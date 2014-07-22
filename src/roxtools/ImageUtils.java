@@ -11,6 +11,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.image.PixelGrabber;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -21,6 +22,8 @@ import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+
+import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 
 import roxtools.img.YUV;
 
@@ -615,6 +618,18 @@ final public class ImageUtils {
 		g.dispose() ;		
 		
 		return groupImg ;
+	}
+	
+	static public String imageToPNGBase64(BufferedImage image) throws IOException {
+		ByteArrayOutputStream bout = new ByteArrayOutputStream() ;
+		ImageIO.write(image, "PNG", bout) ;
+		return Base64Utils.encode(bout.toByteArray()) ;
+	}
+	
+	static public BufferedImage pngBase64ToImage(String pngBase64) throws IOException {
+		byte[] data = Base64Utils.decode(pngBase64) ;
+		ByteArrayInputStream bin = new ByteArrayInputStream(data) ;
+		return ImageIO.read(bin) ;
 	}
 	
 }
