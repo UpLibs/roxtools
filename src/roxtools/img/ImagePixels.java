@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -1020,6 +1021,26 @@ public class ImagePixels implements Cloneable {
 			writePixels(out, pixelsC3, width, height) ;
 		}
 		
+	}
+	
+	final public byte[] getBytes() throws IOException {
+		ByteArrayOutputStream bout = new ByteArrayOutputStream( (int)Math.max(1024*4, (width * height * 3) * 0.67 )) ;
+		writeTo(bout);
+		return bout.toByteArray() ;
+	}
+	
+	final public byte[] getBytesCompressed() throws IOException {
+		ByteArrayOutputStream bout = new ByteArrayOutputStream( (int)Math.max(1024*4, (width * height * 3) * 0.33 )) ;
+		
+		BufferedOutputStream bufOut = new BufferedOutputStream(bout, 1024*8) ;
+		
+		GZIPOutputStream gzOut = new GZIPOutputStream(bufOut, 1024*8) ;
+		
+		writeTo(gzOut) ;
+		
+		gzOut.close() ;
+		
+		return bout.toByteArray() ;
 	}
 	
 	final public void save(File file) throws IOException {

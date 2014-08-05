@@ -43,6 +43,7 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 import roxtools.RichConsole.ConsoleImageHighlight.Highlight;
+import roxtools.img.ImagePixels;
 
 
 final public class RichConsole extends JFrame implements RichConsoleListener {
@@ -980,6 +981,14 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		return getDefaultInstance().printImageLn(img) ;
 	}
 	
+	static public ConsoleImage print(ImagePixels img) {
+		return getDefaultInstance().printImage(img) ;
+	}
+	
+	static public ConsoleImage printLn(ImagePixels img) {
+		return getDefaultInstance().printImageLn(img) ;
+	}
+	
 	static public void printLn() {
 		getDefaultInstance().newLine() ;
 	}
@@ -1326,6 +1335,14 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		repaintPanel() ;
 		
 		return consoleImage ;
+	}
+	
+	public ConsoleImage printImage(ImagePixels img) {
+		return print(img.createImage()) ;
+	}
+	
+	public ConsoleImage printImageLn(ImagePixels img) {
+		return printLn(img.createImage()) ;
 	}
 	
 	public void newLine() {
