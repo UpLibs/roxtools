@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -916,6 +917,48 @@ public class ImagePixels implements Cloneable {
 	public ImagePixels copy(ImagePixels recicledBufferProvider) {
 		return new ImagePixels(this, recicledBufferProvider) ;
 	}
+	
+	/////////////////////////////////////////////////////////
+	
+	private HashMap<String, Object> properties ;
+	
+	public void setProperty(String key, Object val) {
+		if (properties == null) properties = new HashMap<String, Object>() ;
+		properties.put(key, val) ;
+	}
+	
+	public Object getProperty(String key) {
+		if (properties == null) return null ;
+		return properties.get(key) ;
+	}
+	
+	public Object removeProperty(String key) {
+		if (properties == null) return null ;
+		return properties.remove(key) ;
+	}
+	
+	public boolean containsProperty(String key) {
+		if (properties == null) return false ;
+		return properties.containsKey(key) ;
+	}
+	
+	public int getPropertiesSize() {
+		if (properties == null) return 0 ;
+		return properties.size() ;
+	}
+	
+	public void clearProperties() {
+		if (properties == null) return ;
+		properties.clear();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public HashMap<String, Object> getProperties() {
+		if (properties == null) return new HashMap<String, Object>() ;
+		return (HashMap<String, Object>) properties.clone() ;
+	}
+	
+	/////////////////////////////////////////////////////////
 		
 	protected boolean yuvFormat = false ;
 	
