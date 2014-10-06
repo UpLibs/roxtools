@@ -35,7 +35,13 @@ public class CryptoUtils {
 		return iv;
 	}
 	
-
+	static public byte[] createInitializationVector(long seed) {
+		Random rand = new Random(seed) ;
+		byte[] iv = new byte[16];
+		rand.nextBytes(iv);
+		return iv;
+	}
+	
 	public static byte[] encodeKey(Key key) {
 		return key.getEncoded();
 	}
