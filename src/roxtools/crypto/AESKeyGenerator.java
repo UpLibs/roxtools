@@ -3,6 +3,8 @@ package roxtools.crypto;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.Random;
 
 import javax.crypto.KeyGenerator;
 
@@ -70,12 +72,64 @@ public class AESKeyGenerator {
 		
 		return createKey(seed);
 	}
-
-	public Key createKey(long seed) {
-		return createKey( long2bytes(seed) ) ;
+	
+	static private class MySecureRandom extends SecureRandom {
+		private static final long serialVersionUID = -8963928592262368019L;
+		
+		final private Random rand ;
+		
+		public MySecureRandom(long seed) {
+			this.rand = new Random(seed) ;
+		}
+		
+		@Override
+		public synchronized void setSeed(byte[] seed) {
+			throw new UnsupportedOperationException() ;
+		}
+		
+		@Override
+		public boolean nextBoolean() {
+			return rand.nextBoolean();
+		}
+		
+		@Override
+		public synchronized void nextBytes(byte[] bytes) {
+			rand.nextBytes(bytes);
+		}
+		
+		@Override
+		public double nextDouble() {
+			return rand.nextDouble();
+		}
+		
+		@Override
+		public float nextFloat() {
+			return rand.nextFloat();
+		}
+		
+		@Override
+		public synchronized double nextGaussian() {
+			return rand.nextGaussian();
+		}
+		
+		@Override
+		public int nextInt() {
+			return rand.nextInt();
+		}
+		
+		@Override
+		public int nextInt(int n) {
+			return rand.nextInt(n);
+		}
+		
+		@Override
+		public long nextLong() {
+			return rand.nextLong();
+		}
+		
 	}
 	
-	public Key createKey(byte[] seed) {
+	public Key createKey(long seed) {
 		KeyGenerator kgen;
 		try {
 			kgen = KeyGenerator.getInstance("AES");
@@ -83,26 +137,21 @@ public class AESKeyGenerator {
 			throw new IllegalStateException(e) ;
 		}
 
-		SecureRandom sr = new SecureRandom(seed);
+		SecureRandom sr = new MySecureRandom(seed);
 
 		kgen.init(mode.getBits() , sr);
 
 		return kgen.generateKey();
 	}
 	
-	static private byte[] long2bytes(long v) {
-		byte[] buffer = new byte[8] ;
-		
-		buffer[0] = (byte) (v >>> 56);
-		buffer[1] = (byte) (v >>> 48);
-		buffer[2] = (byte) (v >>> 40);
-		buffer[3] = (byte) (v >>> 32);
-		buffer[4] = (byte) (v >>> 24);
-		buffer[5] = (byte) (v >>> 16);
-		buffer[6] = (byte) (v >>> 8);
-		buffer[7] = (byte) (v);
-		
-		return buffer ;
+	public Key createKey(byte[] seed) {
+		return createKey( bytes2long(seed) ) ;
 	}
+
+	static public long bytes2long(byte[] buffer) {
+		return (((long) buffer[0] << 56) + ((long) (buffer[1] & 255) << 48) + ((long) (buffer[2] & 255) << 40) + ((long) (buffer[3] & 255) << 32) +
+				((long) (buffer[4] & 255) << 24) + ((buffer[5] & 255) << 16) + ((buffer[6] & 255) << 8) + ((buffer[7] & 255) ));
+	}
+	
 
 }
