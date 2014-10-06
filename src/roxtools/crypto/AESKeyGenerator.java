@@ -54,6 +54,10 @@ public class AESKeyGenerator {
 		return kgen.generateKey();
 	}
 
+	public Key createKey(String passwrod, byte[] salt) {
+		return createKey(passwrod.toCharArray(), salt) ;
+	}
+	
 	public Key createKey(char[] passwrod, byte[] salt) {
 		byte[] seed = new byte[8] ;
 		
