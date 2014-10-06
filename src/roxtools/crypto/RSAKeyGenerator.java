@@ -7,7 +7,8 @@ import java.security.NoSuchAlgorithmException;
 public class RSAKeyGenerator {
 
 	public enum RSAMode {
-		RSA_1024(1024)
+		RSA_1024(1024) ,
+		RSA_2048(2048)
 		;
 		
 		private final int bits ;
