@@ -10,8 +10,6 @@ import javax.crypto.spec.IvParameterSpec;
 import roxtools.crypto.CryptoUtils.Algorithm;
 
 final public class AESCodec extends CryptoCodec {
-
-	private Key key ;
 	
 	public AESCodec() {
 		this( new AESKeyGenerator().createKey() ) ;
@@ -33,7 +31,7 @@ final public class AESCodec extends CryptoCodec {
 	public byte[] encrypt(byte[] data, byte[] iv) {
 		try {
 			Cipher cipher = createCipher();
-			cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
+			cipher.init(Cipher.ENCRYPT_MODE, getKey() , new IvParameterSpec(iv));
 			return cipher.doFinal(data);
 		}
 		catch (Exception e) {
@@ -44,7 +42,7 @@ final public class AESCodec extends CryptoCodec {
 	public byte[] decrypt(byte[] encData, byte[] iv) {
 		try {
 			Cipher cipher = createCipher();
-			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
+			cipher.init(Cipher.DECRYPT_MODE, getKey() , new IvParameterSpec(iv));
 			return cipher.doFinal(encData);
 		}
 		catch (Exception e) {

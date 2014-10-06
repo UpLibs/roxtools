@@ -11,8 +11,6 @@ import javax.crypto.NoSuchPaddingException;
 import roxtools.crypto.CryptoUtils.Algorithm;
 
 public class RSACodec extends CryptoCodec {
-
-	private Key key ;
 	
 	public RSACodec(byte[] keyEncoded, boolean privateKey) {
 		this( 
@@ -38,7 +36,7 @@ public class RSACodec extends CryptoCodec {
 		Cipher cipher;
 		try {
 			cipher = createCipher();
-			cipher.init(Cipher.ENCRYPT_MODE, key);
+			cipher.init(Cipher.ENCRYPT_MODE, getKey() );
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e) ;
@@ -67,7 +65,7 @@ public class RSACodec extends CryptoCodec {
 		Cipher cipher;
 		try {
 			cipher = createCipher();
-			cipher.init(Cipher.DECRYPT_MODE, key);
+			cipher.init(Cipher.DECRYPT_MODE, getKey() );
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e) ;
