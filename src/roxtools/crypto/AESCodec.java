@@ -9,7 +9,7 @@ import javax.crypto.spec.IvParameterSpec;
 
 import roxtools.crypto.CryptoUtils.Algorithm;
 
-public class AESCodec {
+final public class AESCodec extends CryptoCodec {
 
 	private Key key ;
 	
@@ -22,18 +22,11 @@ public class AESCodec {
 	}
 	
 	public AESCodec(Key key) {
-		this.key = key ;
+		super(key) ;
 	}
 	
-	public Key getKey() {
-		return key;
-	}
-	
-	public byte[] getKeyEncoded() {
-		return CryptoUtils.encodeKey(key) ;
-	}
-	
-	private Cipher createCipher() throws NoSuchAlgorithmException, NoSuchPaddingException {
+	@Override
+	protected Cipher createCipher() throws NoSuchAlgorithmException, NoSuchPaddingException {
 		return Cipher.getInstance("AES/CBC/PKCS5Padding");
 	}
 	
