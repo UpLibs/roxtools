@@ -3,7 +3,6 @@ package roxtools.crypto;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.Random;
 
 import javax.crypto.KeyGenerator;
