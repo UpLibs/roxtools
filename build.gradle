@@ -2,6 +2,8 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 sourceCompatibility = 1.7
+group = "roxtools"
+version = "1.0"
 
 repositories {
     mavenLocal()
@@ -10,6 +12,18 @@ repositories {
 
 dependencies {
     compile group: 'com.jhlabs', name: 'filters', version: '2.0.235-1'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Implementation-Title': 'UpPoints - Roxtools',
+                'Implementation-Version': version,
+                'Created-By': 'UpPoints',
+                'Built-By': System.getProperty('user.name'),
+                'Built-Date': new Date().format('yyyy-MM-dd HH:mm:ss')
+        )
+    }
 }
 
 task wrapper(type: Wrapper) {
