@@ -1,0 +1,17 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceCompatibility = 1.7
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'com.jhlabs', name: 'filters', version: '2.0.235-1'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.1'
+}
