@@ -6,6 +6,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Random;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -42,15 +43,22 @@ public class CryptoUtils {
 		return iv;
 	}
 	
-	public static byte[] encodeKey(Key key) {
+	static public byte[] createMask(long seed, int maskSize) {
+		byte[] mask = new byte[maskSize] ;
+		Random random = new Random(seed) ;
+		random.nextBytes(mask);
+		return mask ;
+	}
+	
+	static public byte[] encodeKey(Key key) {
 		return key.getEncoded();
 	}
 
-	public static Key decodeKey(byte[] bytes, Algorithm algorithm) {
+	static public Key decodeKey(byte[] bytes, Algorithm algorithm) {
 		return new SecretKeySpec(bytes, algorithm.getName());
 	}
 	
-	public static PublicKey decodePublicKey(byte[] bytes, Algorithm algorithm) {
+	static public PublicKey decodePublicKey(byte[] bytes, Algorithm algorithm) {
 		X509EncodedKeySpec spec = new X509EncodedKeySpec(bytes);
 
 		try {
@@ -62,7 +70,7 @@ public class CryptoUtils {
 		}
 	}
 	
-	public static PrivateKey decodePrivateKey(byte[] bytes, Algorithm algorithm) {
+	static public PrivateKey decodePrivateKey(byte[] bytes, Algorithm algorithm) {
 		PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(bytes);
 		
 		try {
@@ -73,6 +81,27 @@ public class CryptoUtils {
 			throw new IllegalStateException(e) ;
 		}
 	}
-	
+
+	static public long calcHashcode( byte[] data ) {
+		if (data == null) return 0;
+
+        int resultA = 1;
+        int resultB = 1;
+        
+        int size = data.length ;
+        int sizeM1 = size-1 ;
+        		
+        for (int i = 0; i < size; i++) {
+        	byte elem1 = data[i] ;
+        	byte elem2 = data[sizeM1-i] ;
+        	
+        	resultA = 31 * resultA + elem1 ;
+        	resultB = 31 * resultB + elem2 ;
+		}
+        
+        long result = ( ( (long)resultA) << 32) + resultB ;
+        
+        return result ;
+	}
 	
 }
