@@ -1,6 +1,5 @@
 *.class
 .metadata
-*.jar
 *.war
 *.ear
 *.orig
