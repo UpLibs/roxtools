@@ -50,6 +50,17 @@ public class CryptoUtils {
 		return mask ;
 	}
 	
+	static public byte[] mergeMasks(byte[] m1, byte[] m2) {
+		int sz = Math.max( m1.length , m2.length ) ;
+		byte[] m = new byte[sz] ;
+		
+		for (int i = 0; i < m.length; i++) {
+			m[i] = (byte) ((m1[i%m1.length] & 0xFF) ^ (m2[i%m2.length] & 0xFF)) ;
+		}
+		
+		return m ;
+	}
+	
 	static public byte[] encodeKey(Key key) {
 		return key.getEncoded();
 	}

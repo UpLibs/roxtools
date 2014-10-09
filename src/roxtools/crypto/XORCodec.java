@@ -10,8 +10,13 @@ import javax.crypto.NoSuchPaddingException;
 public class XORCodec extends CryptoCodec {
 
 	static public class Mask implements Key {
-
+		private static final long serialVersionUID = 8539724289758812408L;
+		
 		private final byte[] mask ;
+		
+		public Mask(Mask m1, Mask m2) {
+			this( CryptoUtils.mergeMasks(m1.mask , m2.mask) ) ;
+		}
 		
 		public Mask(long seed, int maskSize) {
 			this.mask = CryptoUtils.createMask(seed, maskSize) ;
@@ -21,6 +26,14 @@ public class XORCodec extends CryptoCodec {
 			this.mask = mask;
 		}
 
+		public Mask merge( byte[] mask ) {
+			return new Mask( CryptoUtils.mergeMasks(this.mask, mask) ) ;
+		}
+		
+		public Mask merge( Mask mask ) {
+			return merge( mask.mask ) ;
+		}
+		
 		@Override
 		public String getAlgorithm() {
 			return "XOR" ;
