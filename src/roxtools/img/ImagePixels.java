@@ -1871,4 +1871,18 @@ public class ImagePixels implements Cloneable {
 		return new ImagePixels(c1,c2,c3, getWidth() , getHeight() , false) ;
 	}
 	
+	final public ImagePixels createBalancedImage() {
+		convertToRGB() ;
+		
+		byte[] c1 = getPixelsC1().clone() ;
+		byte[] c2 = getPixelsC2().clone() ;
+		byte[] c3 = getPixelsC3().clone() ;
+		
+		ColorBalance.balanceColors(c1) ;
+		ColorBalance.balanceColors(c2) ;
+		ColorBalance.balanceColors(c3) ;
+		
+		return new ImagePixels(c1, c2, c3, getWidth(), getHeight(), true) ;
+	}
+
 }
