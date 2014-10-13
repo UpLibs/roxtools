@@ -61,6 +61,18 @@ final public class SerializationUtils {
 		while (read < size) ;
 	}
 	
+	static public void skip(InputStream in, int size) throws IOException {
+		int read = 0 ;
+		do {
+			long r = in.skip(size-read) ;
+			
+			if (r < 0) throw new EOFException() ;
+			
+			read += r ;
+		}
+		while (read < size) ;
+	}
+	
 	static public byte[] readAll(InputStream in) throws IOException {
 		MyByteArrayOutputStream bout = new MyByteArrayOutputStream(in.available(), 1024) ;
 		readAll(in, bout) ;
