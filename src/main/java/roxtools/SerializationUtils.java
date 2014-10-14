@@ -769,5 +769,22 @@ final public class SerializationUtils {
 		}
 	}
 	
+	//////////////////////////////////////////////////////////////////
+	
+	static public void writeFile(File file, byte[] data) throws IOException {
+		FileOutputStream fout = new FileOutputStream(file) ;
+		fout.write(data);
+		fout.close();
+	}
+	
+	static public byte[] readFile(File file) throws IOException {
+		FileInputStream fin = new FileInputStream(file) ;
+
+		byte[] data = readAll(fin) ;
+		
+		fin.close();
+		
+		return data ;
+	}
 	
 }
