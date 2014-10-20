@@ -2,11 +2,17 @@ package roxtools.img;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.io.File;
+
+import javax.imageio.ImageIO;
+
+import roxtools.RichConsole;
 
 import com.jhlabs.image.ContrastFilter;
 import com.jhlabs.image.GammaFilter;
 import com.jhlabs.image.InvertFilter;
 import com.jhlabs.image.SharpenFilter;
+import com.jhlabs.image.UnsharpFilter;
 
 public class ImageFilters {
 	
@@ -14,7 +20,11 @@ public class ImageFilters {
 		SHARPEN_1,
 		SHARPEN_2,
 		SHARPEN_3,
-		SHARPEN_BALANCED
+		UNSHARPEN_1,
+		UNSHARPEN_2,
+		UNSHARPEN_3,
+		SHARPEN_BALANCED,
+		UNSHARPEN_BALANCED,
 		;
 		
 		public BufferedImage apply(BufferedImage img) {
@@ -23,8 +33,12 @@ public class ImageFilters {
 				case SHARPEN_1: return filterSharpen(img) ;
 				case SHARPEN_2: return filterSharpenLoop(img, 2) ;
 				case SHARPEN_3: return filterSharpenLoop(img, 3) ;
-				case SHARPEN_BALANCED: return autoFilterSharpenBalanced(img) ;
-				default: return img ;
+				case UNSHARPEN_1: return filterUnsharpen(img) ;
+				case UNSHARPEN_2: return filterUnsharpenLoop(img, 2) ;
+				case UNSHARPEN_3: return filterUnsharpenLoop(img, 3) ;
+				case SHARPEN_BALANCED: return autoFilterUnsharpenBalanced(img) ;
+				case UNSHARPEN_BALANCED: return autoFilterUnsharpenBalanced(img) ;
+				default: throw new UnsupportedOperationException("Can't handle filter: "+ this) ;
 			}
 			
 		}
@@ -40,6 +54,24 @@ public class ImageFilters {
 	
 	public static BufferedImage filterSharpen(BufferedImage img) {
 		SharpenFilter filter = new SharpenFilter() ;
+		
+		BufferedImage dst = filter.createCompatibleDestImage(img, ColorModel.getRGBdefault()) ;
+		
+		filter.filter(img , dst) ;
+		
+		return dst ;
+	}
+	
+	public static BufferedImage filterUnsharpenLoop(BufferedImage img, int loops) {
+		for (int i = 0 ; i < loops ; i++) {
+			img = filterUnsharpen(img) ;
+		}
+
+		return img ;
+	}
+	
+	public static BufferedImage filterUnsharpen(BufferedImage img) {
+		UnsharpFilter filter = new UnsharpFilter() ;
 		
 		BufferedImage dst = filter.createCompatibleDestImage(img, ColorModel.getRGBdefault()) ;
 		
@@ -131,6 +163,42 @@ public class ImageFilters {
 		BufferedImage img3 = filterGamma( filterContrast( mergeLight(imgSharpen , mask, 0.20) , 1.1 , 1.4 )  , 1.3 ) ;
 		
 		return img3 ;
+	}
+	
+
+	public static BufferedImage autoFilterUnsharpenBalanced(BufferedImage img) {
+		BufferedImage imgSharpen3 = filterUnsharpenLoop(img, 2) ;
+		
+		BufferedImage imgSharpenMerge = mergeLight(img , imgSharpen3, 0.80) ;
+		
+		BufferedImage imgSharpen = imgSharpenMerge ;
+		
+		BufferedImage mask = filterContrast( filterInvert( filterGrayScale(imgSharpen) ) , 0.20, 1.50) ;
+		
+		BufferedImage img3 = filterGamma( filterContrast( mergeLight(imgSharpen , mask, 0.20) , 1.1 , 1.4 )  , 1.3 ) ;
+		
+		return img3 ;
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////
+	
+	public static void main(String[] args) throws Exception {
+
+		File file = new File("/Users/gracilianomp/test-pos-img.png") ;
+		
+		BufferedImage img = ImageIO.read(file) ;
+		
+		RichConsole.printLn(img);
+		
+		RichConsole.printLn(AutoFilter.SHARPEN_2.apply(img) );
+		
+		RichConsole.printLn(AutoFilter.UNSHARPEN_2.apply(img) );
+		
+		RichConsole.printLn(AutoFilter.UNSHARPEN_BALANCED.apply(img) );
+		
+		RichConsole.printLn(AutoFilter.SHARPEN_BALANCED.apply(img) );
+		
+		
 	}
 	
 }
