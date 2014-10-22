@@ -10,6 +10,7 @@ import javax.crypto.NoSuchPaddingException;
 public class XORCodec extends CryptoCodec {
 
 	static public class Mask implements Key {
+		
 		private static final long serialVersionUID = -3589990229821231558L;
 		
 		private final byte[] mask ;
