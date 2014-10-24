@@ -17,15 +17,37 @@ import com.jhlabs.image.UnsharpFilter;
 public class ImageFilters {
 	
 	public enum AutoFilter {
-		SHARPEN_1,
-		SHARPEN_2,
-		SHARPEN_3,
-		UNSHARPEN_1,
-		UNSHARPEN_2,
-		UNSHARPEN_3,
-		SHARPEN_BALANCED,
-		UNSHARPEN_BALANCED,
+		SHARPEN_1( "SHARPEN_1" ),
+		SHARPEN_2( "SHARPEN_2" ),
+		SHARPEN_3( "SHARPEN_3" ),
+		UNSHARPEN_1( "UNSHARPEN_1" ),
+		UNSHARPEN_2( "UNSHARPEN_2" ),
+		UNSHARPEN_3( "UNSHARPEN_3" ),
+		SHARPEN_BALANCED( "SHARPEN_BALANCED" ),
+		UNSHARPEN_BALANCED( "UNSHARPEN_BALANCED" )
 		;
+		
+		private String autoFilterName;
+		
+		private AutoFilter( String autoFilterName ) {
+			this.autoFilterName = autoFilterName;
+		}
+		
+		public String getAutoFilterName() {
+			return autoFilterName;
+		}
+		
+		public static AutoFilter getAutoFilter( String autoFilterName ) {
+			if ( autoFilterName.equals( SHARPEN_1.autoFilterName ) ) return SHARPEN_1;
+			if ( autoFilterName.equals( SHARPEN_2.autoFilterName ) ) return SHARPEN_2;
+			if ( autoFilterName.equals( SHARPEN_3.autoFilterName ) ) return SHARPEN_3;
+			if ( autoFilterName.equals( UNSHARPEN_1.autoFilterName ) ) return UNSHARPEN_1;
+			if ( autoFilterName.equals( UNSHARPEN_2.autoFilterName ) ) return UNSHARPEN_2;
+			if ( autoFilterName.equals( UNSHARPEN_3.autoFilterName ) ) return UNSHARPEN_3;
+			if ( autoFilterName.equals( SHARPEN_BALANCED.autoFilterName ) ) return SHARPEN_BALANCED;
+			if ( autoFilterName.equals( UNSHARPEN_BALANCED.autoFilterName ) ) return UNSHARPEN_BALANCED;
+			return null;
+		}
 		
 		public BufferedImage apply(BufferedImage img) {
 			
