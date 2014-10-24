@@ -1254,6 +1254,23 @@ final public class StatisticsUtils {
 		return dotIdx ;
 	}
 	
+	static public int[] calcDifferences(int[] ns1, int[] ns2) {
+		int[] diffs = new int[ ns1.length ] ;
+		
+		for (int i = diffs.length-1; i >= 0; i--) {
+			int v1 = ns1[i];
+			int v2 = ns2[i];
+			
+			int diff ;
+			if (v1 > v2) diff = v1 - v2 ;
+			else diff = v2 - v1 ;
+			
+			diffs[i] = diff ;
+		}
+		
+		return diffs ;
+	}
+	
 	static public float[] calcDifferences(float[] fs1, float[] fs2) {
 		float[] diffs = new float[ fs1.length ] ;
 		
