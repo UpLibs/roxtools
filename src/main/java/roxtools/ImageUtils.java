@@ -694,6 +694,7 @@ final public class ImageUtils {
 	}
 	
 	static public BufferedImage scaleImage(BufferedImage img, double ratio) {
+		if (ratio == 1) return img ;
 		return scaleImage(img, (int)( img.getWidth()*ratio ) , (int)( img.getHeight()) ) ;
 	}
 	
