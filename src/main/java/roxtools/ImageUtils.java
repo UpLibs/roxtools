@@ -673,7 +673,7 @@ final public class ImageUtils {
 				}
 			}
 			
-			if (w <= 0 || h <= 0) {
+			if (w2 <= 0 || h2 <= 0) {
 				int hM = maxHeight ;
 				int wM = (int) ( maxHeight * r ) ;
 				
@@ -704,5 +704,5 @@ final public class ImageUtils {
 		// Avoid Java bug:
 		return copyImage(scaled) ;
 	}
-
+	
 }
