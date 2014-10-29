@@ -637,5 +637,72 @@ final public class ImageUtils {
 		ByteArrayInputStream bin = new ByteArrayInputStream(data);
 		return ImageIO.read(bin);
 	}
-
+	
+	/////////////////////////////////////////////////////////////
+	
+	static public BufferedImage scaleImageIfBiggerThanDimension(BufferedImage img, int maxWidth, int maxHeight) {
+		
+		if (maxWidth <= 0 && maxHeight <= 0) return img ;
+		
+		int w = img.getWidth() ;
+		int h = img.getHeight() ;
+		
+		if (maxWidth <= 0) maxWidth = w ;
+		if (maxHeight <= 0) maxHeight = h ;
+		
+		if (w <= maxWidth && h <= maxHeight) {
+			return img ;
+		}
+		else {
+			
+			double rW = w/(maxWidth*1d) ;
+			double rH = h/(maxHeight*1d) ;
+			
+			int w2 = 0 ;
+			int h2 = 0 ;
+			
+			double r = w/(h*1d) ;
+			
+			if (rW > rH) {
+				int wM = maxWidth ;
+				int hM = (int) (maxWidth / r) ;
+				
+				if (wM <= maxWidth && hM <= maxHeight) {
+					w2 = wM ;
+					h2 = hM ;
+				}
+			}
+			
+			if (w2 <= 0 || h2 <= 0) {
+				int hM = maxHeight ;
+				int wM = (int) ( maxHeight * r ) ;
+				
+				if (wM <= maxWidth && hM <= maxHeight) {
+					w2 = wM ;
+					h2 = hM ;
+				}
+			}
+			
+			if (w2 > 0 && h2 > 0) {
+				return scaleImage(img, w2, h2) ;	
+			}
+			
+			return img ;
+		}
+		
+		
+	}
+	
+	static public BufferedImage scaleImage(BufferedImage img, double ratio) {
+		if (ratio == 1) return img ;
+		return scaleImage(img, (int)( img.getWidth()*ratio ) , (int)( img.getHeight()) ) ;
+	}
+	
+	static public BufferedImage scaleImage(BufferedImage img, int width, int height) {
+		Image scaled = img.getScaledInstance(width, height, BufferedImage.SCALE_SMOOTH) ;
+		
+		// Avoid Java bug:
+		return copyImage(scaled) ;
+	}
+	
 }

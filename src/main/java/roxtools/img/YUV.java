@@ -377,6 +377,16 @@ public class YUV {
 		
 		return distYUV/255D <= tolerance ;
 	}
+
+	static public int getDistance(int y1, int u1, int v1 , int y2, int u2, int v2) {
+		int distY = y1 - y2 ;
+		int distU = u1 - u2 ;
+		int distV = v1 - v2 ;
+		
+		int distYUV = FAST_MATH_SQRT_INT.calcSimple( distY*distY + distU*distU + distV*distV ) ;
+		
+		return distYUV ;
+	}
 	
 	static public double getDistance_Precise(int y1, int u1, int v1 , int y2, int u2, int v2) {
 		int distY = y1 - y2 ;
