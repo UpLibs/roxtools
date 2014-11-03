@@ -705,4 +705,23 @@ final public class ImageUtils {
 		return copyImage(scaled) ;
 	}
 	
+	static public void drawRectangle( BufferedImage img, Rectangle rectangle ) {
+		drawRectangle( img , (int)rectangle.getX() , (int)rectangle.getY() , (int)rectangle.getWidth() , (int)rectangle.getHeight() , null );
+	}
+
+	static public void drawRectangle( BufferedImage img, int x, int y, int width, int height , Color color ) {
+		Graphics2D g = img.createGraphics();
+		
+		g.drawImage(img, 0, 0, img.getWidth(), img.getHeight(), null);
+
+		if ( color == null ) g.setColor( Color.GREEN );
+		else g.setColor( color );
+
+		g.drawRect(x, y, width, height);
+
+		g.dispose();
+		
+	}
+	
+	
 }
