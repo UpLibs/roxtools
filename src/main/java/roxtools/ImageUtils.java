@@ -723,5 +723,15 @@ final public class ImageUtils {
 		
 	}
 	
-	
+	static public BufferedImage copyImage( BufferedImage source ) {
+		
+		BufferedImage img = new BufferedImage( source.getWidth() , source.getHeight() , source.getType() );
+		
+		Graphics g = img.getGraphics();
+		g.drawImage( source , 0 , 0 , null );
+		g.dispose();
+		
+		return img;
+	}
+
 }
