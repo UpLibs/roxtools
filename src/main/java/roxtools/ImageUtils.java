@@ -706,7 +706,11 @@ final public class ImageUtils {
 	}
 	
 	static public void drawRectangle( BufferedImage img, Rectangle rectangle ) {
-		drawRectangle( img , (int)rectangle.getX() , (int)rectangle.getY() , (int)rectangle.getWidth() , (int)rectangle.getHeight() , null );
+		drawRectangle( img , rectangle , null );
+	}
+	
+	static public void drawRectangle( BufferedImage img, Rectangle rectangle , Color color ) {
+		drawRectangle( img , (int)rectangle.getX() , (int)rectangle.getY() , (int)rectangle.getWidth() , (int)rectangle.getHeight() , color );
 	}
 
 	static public void drawRectangle( BufferedImage img, int x, int y, int width, int height , Color color ) {
