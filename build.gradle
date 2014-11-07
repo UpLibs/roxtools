@@ -5,8 +5,6 @@ version = "1.0"
 
 dependencies {
     compile group: 'com.jhlabs', name: 'filters', version: '2.0.235-1'
-    
-    testCompile group: 'commons-io', name:'commons-io', version:'2.4'
 }
 
 jar {
