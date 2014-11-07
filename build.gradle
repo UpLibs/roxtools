@@ -1,63 +1,18 @@
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'eclipse-wtp'
+apply from: 'http://gradle.uppoints.com/common.gradle'
 
-sourceCompatibility = 1.7
 group = "roxtools"
 version = "1.0"
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.1'
-}
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-}
-
-repositories {
-    mavenLocal()
-    maven {
-        url "${nexusUrl}/content/groups/public"
-        credentials {
-            username "${nexusUsername}"
-            password "${nexusPassword}"
-        }
-    }
-}
-
 dependencies {
     compile group: 'com.jhlabs', name: 'filters', version: '2.0.235-1'
+    
+    testCompile group: 'commons-io', name:'commons-io', version:'2.4'
 }
 
 jar {
     manifest {
         attributes(
                 'Implementation-Title': 'UpPoints - Roxtools',
-                'Implementation-Version': version,
-                'Created-By': 'UpPoints',
-                'Built-By': System.getProperty('user.name'),
-                'Built-Date': new Date().format('yyyy-MM-dd HH:mm:ss')
         )
-    }
-}
-
-uploadArchives {
-    repositories {
-       mavenDeployer {
-             repository(url: "${nexusUrl}/content/repositories/releases") {
-                authentication(userName: "${nexusUsername}", password: "${nexusPassword}")
-             }
-       }
     }
 }
