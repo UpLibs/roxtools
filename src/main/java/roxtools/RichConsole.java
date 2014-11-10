@@ -1740,7 +1740,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 					Color color = new Color(c,c,c) ;
 					
 					if (colors != null) {
-						int colorIdx = SerializationUtils.indexOf(colorsValues, v) ;
+						int colorIdx = ArrayUtils.indexOf(colorsValues, v) ;
 						if (colorIdx >= 0) color = new Color( colors[colorIdx] ) ;
 					}
 					
