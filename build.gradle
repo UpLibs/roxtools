@@ -1,4 +1,4 @@
-apply from: 'http://gradle.uppoints.com/common.gradle'
+apply from: 'http://gradle.uppoints.com/single-project.gradle'
 
 group = "roxtools"
 version = "1.0"
