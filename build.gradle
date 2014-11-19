@@ -1,8 +1,5 @@
 apply from: 'http://gradle.uppoints.com/single-project.gradle'
 
-group = "roxtools"
-version = "1.0"
-
 dependencies {
     compile group: 'com.jhlabs', name: 'filters', version: '2.0.235-1'
 }
