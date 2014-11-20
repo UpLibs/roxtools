@@ -1171,6 +1171,62 @@ public class ImagePixels implements Cloneable {
 	
 	//////////////////////////////////////////////////////////////
 	
+
+	final public int[] computeDiffValues(ImagePixels other) {
+		int w = this.width ;
+		int h = this.height ;
+		
+		int[] diff = new int[w*h] ;
+		
+		computeDiffValues(other, diff) ;
+		
+		return diff ;
+	}
+	
+	final public void computeDiffValues(ImagePixels other, int[] diff) {
+		
+		for (int i = diff.length-1 ; i >= 0; i--) {
+			diff[i] = YUV.getDistance(
+					this.pixelsC1[i] & 0xFF ,
+					this.pixelsC2[i] & 0xFF ,
+					this.pixelsC3[i] & 0xFF ,
+					other.pixelsC1[i] & 0xFF ,
+					other.pixelsC2[i] & 0xFF ,
+					other.pixelsC3[i] & 0xFF
+					) ;
+		}
+		
+	}
+	
+
+	final public int[] computeDiffValues_Simple(ImagePixels other) {
+		int w = this.width ;
+		int h = this.height ;
+		
+		int[] diff = new int[w*h] ;
+		
+		computeDiffValues_Simple(other, diff) ;
+		
+		return diff ;
+	}
+	
+	final public void computeDiffValues_Simple(ImagePixels other, int[] diff) {
+		
+		for (int i = diff.length-1 ; i >= 0; i--) {
+			
+			int c1D = ( this.pixelsC1[i] & 0xFF ) - ( other.pixelsC1[i] & 0xFF ) ;
+			int c2D = ( this.pixelsC2[i] & 0xFF ) - ( other.pixelsC2[i] & 0xFF ) ;
+			int c3D = ( this.pixelsC3[i] & 0xFF ) - ( other.pixelsC3[i] & 0xFF ) ;
+			
+			if (c1D < 0) c1D = -c1D ;
+			if (c2D < 0) c2D = -c2D ;
+			if (c3D < 0) c3D = -c3D ;
+			
+			diff[i] = Math.max(c1D, Math.max(c2D, c3D)) ;
+		}
+		
+	}
+	
 	final public boolean[] computeDiff(ImagePixels other, double tolerance) {
 		int w = this.width ;
 		int h = this.height ;

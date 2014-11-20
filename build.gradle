@@ -1,0 +1,13 @@
+apply from: 'http://gradle.uppoints.com/single-project.gradle'
+
+dependencies {
+    compile group: 'com.jhlabs', name: 'filters', version: '2.0.235-1'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Implementation-Title': 'UpPoints - Roxtools',
+        )
+    }
+}

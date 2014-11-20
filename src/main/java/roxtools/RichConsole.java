@@ -147,6 +147,20 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 			this.valueSize = valueSize ;
 		}
 		
+		private int[] colors ;
+		private float[] colorsValues ;
+		
+		public void setColorsValues(int[] colors, float[] values) {
+			if (values.length != colors.length) throw new IllegalArgumentException("Colors and values should be of same size.") ;
+			this.colors = colors ;
+			this.colorsValues = values ;
+		}
+		
+		public void clearColorsValues() {
+			this.colors = null ;
+			this.colorsValues = null ;
+		}
+		
 		private boolean invertColor = false ;
 		
 		public void setInvertColor(boolean invertColor) {
@@ -1707,6 +1721,8 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 			
 			boolean invert = chart.invertColor ;
 			
+			int[] colors = chart.colors ;
+			float[] colorsValues = chart.colorsValues ;
 			
 			for (int j = 0; j < h; j++) {
 				for (int i = 0; i < w; i++) {
@@ -1718,7 +1734,15 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 					
 					int c = (int) (n * 255) ;
 					
+					if (c < 0) c = 0 ;
+					else if (c > 255) c = 255 ;
+					
 					Color color = new Color(c,c,c) ;
+					
+					if (colors != null) {
+						int colorIdx = ArrayUtils.indexOf(colorsValues, v) ;
+						if (colorIdx >= 0) color = new Color( colors[colorIdx] ) ;
+					}
 					
 					g2D.setColor(color) ;
 					

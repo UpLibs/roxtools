@@ -637,5 +637,105 @@ final public class ImageUtils {
 		ByteArrayInputStream bin = new ByteArrayInputStream(data);
 		return ImageIO.read(bin);
 	}
+	
+	/////////////////////////////////////////////////////////////
+	
+	static public BufferedImage scaleImageIfBiggerThanDimension(BufferedImage img, int maxWidth, int maxHeight) {
+		
+		if (maxWidth <= 0 && maxHeight <= 0) return img ;
+		
+		int w = img.getWidth() ;
+		int h = img.getHeight() ;
+		
+		if (maxWidth <= 0) maxWidth = w ;
+		if (maxHeight <= 0) maxHeight = h ;
+		
+		if (w <= maxWidth && h <= maxHeight) {
+			return img ;
+		}
+		else {
+			
+			double rW = w/(maxWidth*1d) ;
+			double rH = h/(maxHeight*1d) ;
+			
+			int w2 = 0 ;
+			int h2 = 0 ;
+			
+			double r = w/(h*1d) ;
+			
+			if (rW > rH) {
+				int wM = maxWidth ;
+				int hM = (int) (maxWidth / r) ;
+				
+				if (wM <= maxWidth && hM <= maxHeight) {
+					w2 = wM ;
+					h2 = hM ;
+				}
+			}
+			
+			if (w2 <= 0 || h2 <= 0) {
+				int hM = maxHeight ;
+				int wM = (int) ( maxHeight * r ) ;
+				
+				if (wM <= maxWidth && hM <= maxHeight) {
+					w2 = wM ;
+					h2 = hM ;
+				}
+			}
+			
+			if (w2 > 0 && h2 > 0) {
+				return scaleImage(img, w2, h2) ;	
+			}
+			
+			return img ;
+		}
+		
+		
+	}
+	
+	static public BufferedImage scaleImage(BufferedImage img, double ratio) {
+		if (ratio == 1) return img ;
+		return scaleImage(img, (int)( img.getWidth()*ratio ) , (int)( img.getHeight()) ) ;
+	}
+	
+	static public BufferedImage scaleImage(BufferedImage img, int width, int height) {
+		Image scaled = img.getScaledInstance(width, height, BufferedImage.SCALE_SMOOTH) ;
+		
+		// Avoid Java bug:
+		return copyImage(scaled) ;
+	}
+	
+	static public void drawRectangle( BufferedImage img, Rectangle rectangle ) {
+		drawRectangle( img , rectangle , null );
+	}
+	
+	static public void drawRectangle( BufferedImage img, Rectangle rectangle , Color color ) {
+		drawRectangle( img , (int)rectangle.getX() , (int)rectangle.getY() , (int)rectangle.getWidth() , (int)rectangle.getHeight() , color );
+	}
+
+	static public void drawRectangle( BufferedImage img, int x, int y, int width, int height , Color color ) {
+		Graphics2D g = img.createGraphics();
+		
+		g.drawImage(img, 0, 0, img.getWidth(), img.getHeight(), null);
+
+		if ( color == null ) g.setColor( Color.GREEN );
+		else g.setColor( color );
+
+		g.drawRect(x, y, width, height);
+
+		g.dispose();
+		
+	}
+	
+	static public BufferedImage copyImage( BufferedImage source ) {
+		
+		BufferedImage img = new BufferedImage( source.getWidth() , source.getHeight() , source.getType() );
+		
+		Graphics g = img.getGraphics();
+		g.drawImage( source , 0 , 0 , null );
+		g.dispose();
+		
+		return img;
+	}
 
 }
