@@ -1,5 +1,6 @@
 package roxtools.img;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -820,6 +821,24 @@ public class ImagePixels implements Cloneable {
 		return bs ;
 	}
 	
+	public ImagePixels(int width, int height, byte c1, byte c2, byte c3, boolean yuvFormat) {
+		this(
+				createChannel(width*height , c1) ,
+				createChannel(width*height , c2) ,
+				createChannel(width*height , c3) ,
+				width , height, yuvFormat
+		) ;
+	}
+	
+	public ImagePixels(int width, int height, Color color) {
+		this(
+				createChannel(width*height , (byte)color.getRed() ) ,
+				createChannel(width*height , (byte)color.getGreen() ) ,
+				createChannel(width*height , (byte)color.getBlue() ) ,
+				width , height, false
+		) ;
+	}
+	
 	public ImagePixels(byte[] pixelsC1, int width, int height, boolean yuvFormat) {
 		this(pixelsC1 , createChannel(pixelsC1.length , (byte)128) , createChannel(pixelsC1.length , (byte)128) , width , height, yuvFormat) ;
 	}
@@ -876,6 +895,23 @@ public class ImagePixels implements Cloneable {
 	@Override
 	public ImagePixels clone() {
 		return new ImagePixels(this) ;
+	}
+	
+	final public byte[] getPixelsChannel(int channelIndex) {
+		switch (channelIndex) {
+			case 1: return pixelsC1 ;
+			case 2: return pixelsC2 ;
+			case 3: return pixelsC3 ;
+			default: throw new IllegalArgumentException("Invalid channel index: "+ channelIndex +". Indexes are from 1 to 3.") ;
+		}
+	}
+	
+	final public byte[][] getPixelsChannels() {
+		return new byte[][] {
+				pixelsC1 ,
+				pixelsC2 ,
+				pixelsC3
+		};
 	}
 	
 	final public byte[] getPixelsC1() {
@@ -1813,13 +1849,110 @@ public class ImagePixels implements Cloneable {
 		return new ImagePixels( scaleY , scaleU , scaleV , scaleWidth, scaleHeight, this.yuvFormat ) ;
 	}
 	
-	final public void get(int x, int y, byte[] ret) {
+	final public boolean get(int x, int y, int[] ret) {
+		if (x < 0 || y < 0 || x >= width || y >= height) return false ;
+		
+		int idx = (y*width)+x ;
+		
+		ret[0] = pixelsC1[idx] & 0xff ;
+		ret[1] = pixelsC2[idx] & 0xff ;
+		ret[2] = pixelsC3[idx] & 0xff ;
+		
+		return true ;
+	}
+	
+	final public boolean getAndAdd(int x, int y, int[] ret) {
+		if (x < 0 || y < 0 || x >= width || y >= height) return false ;
+		
+		int idx = (y*width)+x ;
+		
+		ret[0] += pixelsC1[idx] & 0xff ;
+		ret[1] += pixelsC2[idx] & 0xff ;
+		ret[2] += pixelsC3[idx] & 0xff ;
+		
+		return true ;
+	}
+	
+	final public boolean get(int x, int y, byte[] ret) {
+		if (x < 0 || y < 0 || x >= width || y >= height) return false ;
+		
 		int idx = (y*width)+x ;
 		
 		ret[0] = pixelsC1[idx] ;
 		ret[1] = pixelsC2[idx] ;
 		ret[2] = pixelsC3[idx] ;
+		
+		return true ;
 	}
+	
+	public int getPixelsAround(int x, int y, int[] yuv) {
+		int samples = 0 ;
+		
+		if ( this.get(x-1, y, yuv) ) samples++ ;
+		else resetTriple(yuv) ;
+		
+		if ( this.getAndAdd(x+1, y, yuv) ) samples++ ;
+		
+		if ( this.getAndAdd(x, y-1, yuv) ) samples++ ;
+		if ( this.getAndAdd(x, y+1, yuv) ) samples++ ;
+		
+		if ( this.getAndAdd(x-1, y-1, yuv) ) samples++ ;
+		if ( this.getAndAdd(x+1, y-1, yuv) ) samples++ ;
+		
+		if ( this.getAndAdd(x-1, y+1, yuv) ) samples++ ;
+		if ( this.getAndAdd(x+1, y+1, yuv) ) samples++ ;
+		
+		return samples ;
+	}
+	
+	public int getPixelsCross(int x, int y, int[] yuv) {
+		int samples = 0 ;
+		
+		if ( this.get(x-1, y, yuv) ) samples++ ;
+		else resetTriple(yuv) ;
+		
+		if ( this.getAndAdd(x+1, y, yuv) ) samples++ ;
+		
+		if ( this.getAndAdd(x, y-1, yuv) ) samples++ ;
+		if ( this.getAndAdd(x, y+1, yuv) ) samples++ ;
+		
+		return samples ;
+	}
+	
+	static private void resetTriple(int[] a) {
+		a[0] = 0 ;
+		a[1] = 0 ;
+		a[2] = 0 ;
+	}
+	
+	final public void set(int x, int y, int[] pixel) {
+		int idx = (y*width)+x ;
+		
+		pixelsC1[idx] = (byte) pixel[0] ;
+		pixelsC2[idx] = (byte) pixel[1] ;
+		pixelsC3[idx] = (byte) pixel[2] ;
+	}
+	
+	final public void set(int x, int y, byte[] pixel) {
+		int idx = (y*width)+x ;
+		
+		pixelsC1[idx] = pixel[0] ;
+		pixelsC2[idx] = pixel[1] ;
+		pixelsC3[idx] = pixel[2] ;
+	}
+	
+	final public void set(int x, int y, int c1, int c2, int c3) {
+		set(x, y , (byte)c1 , (byte)c2 , (byte)c3 );
+	}
+	
+	final public void set(int x, int y, byte c1, byte c2, byte c3) {
+		int idx = (y*width)+x ;
+		
+		pixelsC1[idx] = c1 ;
+		pixelsC2[idx] = c2 ;
+		pixelsC3[idx] = c3 ;
+	}
+
 	
 	final public boolean isSimillarPixel(ImagePixels other, int i, int j, double tolerance) {
 		int idx = (j*width)+i ;
