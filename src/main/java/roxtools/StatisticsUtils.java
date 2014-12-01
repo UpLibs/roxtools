@@ -1073,6 +1073,101 @@ final public class StatisticsUtils {
 		return (float) meanByNormalEnd ;
 	}
 
+
+	static public double calcMeanUnderStandardDeviation(double[] set, double maxStandardDeviationRatio) {
+		double mean = calcMean(set) ;
+		
+		double deviation = StatisticsUtils.calcStandardDeviation(set, mean) ;
+		
+		double total = 0 ;
+		int samples = 0 ;
+		
+		for (int i = set.length-1 ; i >= 0; i--) {
+			double v = set[i];
+			double diff = mean - v ;
+			if (diff < 0) diff = -diff ;
+			
+			if (diff < deviation * maxStandardDeviationRatio) {
+				total += v ;
+				samples++ ;
+			}
+		}
+		
+		if (samples == 0) return mean ;
+		
+		return total / samples ;
+	}
+	
+	static public float calcMeanUnderStandardDeviation(float[] set, double maxStandardDeviationRatio) {
+		float mean = calcMean(set) ;
+		
+		float deviation = StatisticsUtils.calcStandardDeviation(set, mean) ;
+		
+		float total = 0 ;
+		int samples = 0 ;
+		
+		for (int i = set.length-1 ; i >= 0; i--) {
+			float v = set[i];
+			float diff = mean - v ;
+			if (diff < 0) diff = -diff ;
+			
+			if (diff < deviation * maxStandardDeviationRatio) {
+				total += v ;
+				samples++ ;
+			}
+		}
+		
+		if (samples == 0) return mean ;
+		
+		return total / samples ;
+	}
+	
+	static public int calcMeanUnderStandardDeviation(int[] set, double maxStandardDeviationRatio) {
+		int mean = calcMean(set) ;
+		
+		double deviation = StatisticsUtils.calcStandardDeviation(set, mean) ;
+		
+		int total = 0 ;
+		int samples = 0 ;
+		
+		for (int i = set.length-1 ; i >= 0; i--) {
+			float v = set[i];
+			float diff = mean - v ;
+			if (diff < 0) diff = -diff ;
+			
+			if (diff < deviation * maxStandardDeviationRatio) {
+				total += v ;
+				samples++ ;
+			}
+		}
+		
+		if (samples == 0) return mean ;
+		
+		return total / samples ;
+	}
+	
+	static public double calcStandardDeviation(int[] vals) {
+		return calcStandardDeviation(vals , calcMean(vals)) ;
+	}
+	
+	static public double calcStandardDeviation(int[] vals, int mean) {
+		if (vals.length == 1) return 0 ;
+		
+		double sum = 0 ;
+		
+		for (int i = 0; i < vals.length; i++) {
+			double v = vals[i] - mean ;
+			v = v * v ;
+			sum += v ;
+		}
+		
+		double variation = sum / (vals.length-1) ; 
+		
+		double deviation = Math.sqrt( variation ) ; 
+		
+		return deviation ;
+	}
+	
 	static public double calcStandardDeviation(double[] vals) {
 		return calcStandardDeviation(vals, calcMean(vals)) ;
 	}
@@ -1237,9 +1332,61 @@ final public class StatisticsUtils {
 				double v2 = vals[j] ;
 				
 				double diff = v - v2 ;
-				if (diff < 0) diff *= -1 ;
+				if (diff < 0) diff = -diff ;
 				
 				double force = dist - diff ;
+				
+				density += force * force ;
+			}
+
+			if (dotDensity < density) {
+				dotDensity = density ;
+				dotIdx = i ;
+			}
+		}
+		
+		
+		return dotIdx ;
+	}
+	
+	static public int calcDotDensityIndex(int[] vals) {
+		return calcDotDensityIndex(vals, 0, vals.length) ;
+	}
+	
+	static public int calcDotDensityIndex(int[] vals, int off, int lng) {
+		int min = vals[0] ;
+		int max = vals[0] ;
+		
+		int size = vals.length ;
+		
+		int limit = off + lng ;
+		
+		if (limit > size) throw new IllegalArgumentException("off: "+ off +" ; length: "+ lng +" ; size: "+ vals.length) ;
+		
+		for (int i=off; i< limit ; i++) {
+			int v = vals[i] ;
+
+			if (min > v) min = v ;
+			if (max < v) max = v ;
+		}
+		
+		int dist = max - min ;
+
+		int dotIdx = 0 ;
+		int dotDensity = Integer.MIN_VALUE ;
+
+		for (int i=off; i< limit; i++) {
+			int v = vals[i] ;
+			
+			int density = 0 ;
+			
+			for (int j = 0; j < size ; j++) {
+				int v2 = vals[j] ;
+				
+				int diff = v - v2 ;
+				if (diff < 0) diff = -diff ;
+				
+				int force = dist - diff ;
 				
 				density += force * force ;
 			}
