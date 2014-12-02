@@ -698,6 +698,141 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		
 	}
 	
+	static public class ConsoleImageList implements MouseHandler {
+		public Image[] imgs ;
+		public int width ;
+		public int height ;
+		
+		public boolean showFrameIndex = true ;
+		
+		public ConsoleImageList(File... fileImgs) {
+			this.imgs = new Image[fileImgs.length] ;
+			
+			for (int i = 0; i < fileImgs.length; i++) {
+				this.imgs[i] = readImage( fileImgs[i] ) ;
+			}
+			
+			this.width = imgs[0].getWidth(null) ;
+			this.height = imgs[0].getHeight(null) ;
+		}
+		
+		public ConsoleImageList(File[] fileImgs, int width, int height) {
+			this.imgs = new Image[fileImgs.length] ;
+			
+			for (int i = 0; i < fileImgs.length; i++) {
+				this.imgs[i] = readImage( fileImgs[i] ) ;
+			}
+			
+			this.width = width ;
+			this.height = height ;
+		}
+		
+		public ConsoleImageList(Image... imgs) {
+			this.imgs = imgs ;
+			this.width = imgs[0].getWidth(null) ;
+			this.height = imgs[0].getHeight(null) ;
+		}
+		
+		public ConsoleImageList(Image[] imgs, int width, int height) {
+			this.imgs =  imgs;
+			this.width = width;
+			this.height = height;
+		}
+		
+		public void setShowFrameIndex(boolean showFrameIndex) {
+			this.showFrameIndex = showFrameIndex;
+		}
+		
+		public boolean getShowFrameIndex() {
+			return showFrameIndex;
+		}
+		
+		private int imageIndex = 0 ;
+		
+		public int getImageIndex() {
+			return imageIndex;
+		}
+		
+		public void setImageIndex(int imageIndex) {
+			this.imageIndex = imageIndex;
+		}
+		
+		public void nextImage() {
+			this.imageIndex = (imageIndex+1) % this.imgs.length ;
+		}
+		
+		public Image getCurrentImage() {
+			return this.imgs[imageIndex] ;
+		}
+		
+		public Image[] getImages() {
+			return imgs;
+		}
+		
+		public int getOriginalWidth() {
+			return imgs[0].getWidth(null) ;
+		}
+		
+		public int getOriginalHeight() {
+			return imgs[0].getHeight(null) ;
+		}
+		
+		public ConsoleImageList configureMaxWidth(int maxWidth) {
+			if ( this.width > maxWidth ) {
+				double ratio = maxWidth / (this.width*1d) ;
+				
+				this.width *= ratio ;
+				this.height *= ratio ;
+			}
+			
+			return this ;
+		}
+		
+		public ConsoleImageList configureMaxHeight(int maxHeight) {
+			if ( this.height > maxHeight ) {
+				double ratio = maxHeight / (this.height*1d) ;
+				
+				this.width *= ratio ;
+				this.height *= ratio ;
+			}
+			
+			return this ;
+		}
+		
+		public ConsoleImageList scale(double ratio) {
+			this.width *= ratio ;
+			this.height *= ratio ;
+			
+			return this ;
+		}
+		
+		public ConsoleImageList scale(int w, int h) {
+			this.width = w ;
+			this.height = h ;
+			
+			return this ;
+		}
+
+		@Override
+		public void mouseClicked(RichConsole richConsole, int x, int y) {
+			nextImage();
+			richConsole.repaint();
+		}
+
+		@Override
+		public void mousePressed(RichConsole richConsole, int x, int y) {
+		}
+
+		@Override
+		public void mouseRelease(RichConsole richConsole, int x, int y) {
+		}
+
+		@Override
+		public void mouseDragged(RichConsole richConsole, int x, int y) {
+		}
+		
+	}
+	
 	static public Color toColor(int rgb) {
 		return new Color(rgb) ;
 	}
@@ -1562,6 +1697,9 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 			else if ( obj instanceof ConsoleImage ) {
 				return drawImage((ConsoleImage) obj, x, y, ret) ;
 			}
+			else if ( obj instanceof ConsoleImageList ) {
+				return drawImageList((ConsoleImageList) obj, x, y, ret) ;
+			}
 			else if ( obj instanceof ChartMap ) {
 				return drawChartMap((ChartMap) obj, x, y, ret) ;
 			}
@@ -1628,6 +1766,20 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 			
 			ret[0] = img.getWidth(this) ;
 			ret[1] = img.getHeight(this) ;
+			
+			return 0 ;
+		}
+		
+		public int drawImageList(ConsoleImageList img, int x, int y, int[] ret) {
+			g2D.drawImage(img.getCurrentImage() , x,y, img.width, img.height , this) ;
+			
+			g2D.setColor( Color.YELLOW );
+			g2D.drawString("Frame: "+img.getImageIndex() , x+3, y+20);
+			
+			ret[0] = img.width ;
+			ret[1] = img.height ;
+			
+			mouseHandlers.put(new Rectangle(x,y , ret[0], ret[1]), img) ;
 			
 			return 0 ;
 		}
