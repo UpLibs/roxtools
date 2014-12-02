@@ -1087,7 +1087,7 @@ final public class StatisticsUtils {
 			double diff = mean - v ;
 			if (diff < 0) diff = -diff ;
 			
-			if (diff < deviation * maxStandardDeviationRatio) {
+			if (diff <= deviation * maxStandardDeviationRatio) {
 				total += v ;
 				samples++ ;
 			}
@@ -1111,7 +1111,7 @@ final public class StatisticsUtils {
 			float diff = mean - v ;
 			if (diff < 0) diff = -diff ;
 			
-			if (diff < deviation * maxStandardDeviationRatio) {
+			if (diff <= deviation * maxStandardDeviationRatio) {
 				total += v ;
 				samples++ ;
 			}
@@ -1135,7 +1135,31 @@ final public class StatisticsUtils {
 			float diff = mean - v ;
 			if (diff < 0) diff = -diff ;
 			
-			if (diff < deviation * maxStandardDeviationRatio) {
+			if (diff <= deviation * maxStandardDeviationRatio) {
+				total += v ;
+				samples++ ;
+			}
+		}
+		
+		if (samples == 0) return mean ;
+		
+		return total / samples ;
+	}
+	
+	static public int calcMeanOverStandardDeviation(int[] set, double maxStandardDeviationRatio) {
+		int mean = calcMean(set) ;
+		
+		double deviation = StatisticsUtils.calcStandardDeviation(set, mean) ;
+		
+		int total = 0 ;
+		int samples = 0 ;
+		
+		for (int i = set.length-1 ; i >= 0; i--) {
+			float v = set[i];
+			float diff = mean - v ;
+			if (diff < 0) diff = -diff ;
+			
+			if (diff > deviation * maxStandardDeviationRatio) {
 				total += v ;
 				samples++ ;
 			}
