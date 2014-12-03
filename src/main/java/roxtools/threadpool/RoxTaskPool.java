@@ -2,6 +2,7 @@ package roxtools.threadpool;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -197,5 +198,71 @@ public class RoxTaskPool {
 			return false ;
 		}
 	}
+	
+	public int countFinishedTasks() {
+		synchronized (tasks) {
+			int count = 0 ;
+			
+			for (RoxTask roxTask : tasks) {
+				if ( roxTask.isFinished() ) count++ ;
+			}
+			
+			return count ;
+		}
+	}
+	
+
+	private final HashMap<String, Object> properties = new HashMap<String, Object>() ;
+	
+	public Object getProperty(String key) {
+		synchronized (properties) {
+			return properties.get(key) ;
+		}
+	}
+	
+	public Object removeProperty(String key) {
+		synchronized (properties) {
+			return properties.remove(key) ;
+		}
+	}
+	
+	public void setProperty(String key, Object val) {
+		synchronized (properties) {
+			properties.put(key, val) ;
+			properties.notifyAll(); 
+		}
+	}
+	
+	public Object waitProperty(String key) {
+		synchronized (properties) {
+			while ( !properties.containsKey(key) ) {
+				try {
+					properties.wait();
+				} catch (InterruptedException e) {}
+			}
+			return properties.get(key) ;
+		}
+	}
+	
+	public Object waitProperty(String key, long timeout) {
+		synchronized (properties) {
+			long init = System.currentTimeMillis() ;
+			
+			while ( !properties.containsKey(key) ) {
+				long delay = System.currentTimeMillis() - init ;
+				long timeLeft = timeout - delay ;
+				
+				if (timeLeft > 0) {
+					try { properties.wait(timeLeft) ;} catch (InterruptedException e) {}
+				}
+				else {
+					break ;
+				}
+			}
+			
+			return properties.get(key) ;
+		}
+	}
+	
 	
 }
