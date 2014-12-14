@@ -49,6 +49,8 @@ import roxtools.img.ImagePixels;
 final public class RichConsole extends JFrame implements RichConsoleListener {
 	private static final long serialVersionUID = -8443078709304588707L;
 
+	static public boolean DISABLE_RICHCONSOLE = System.getProperty("DISABLE_RICHCONSOLE") != null ;
+	
 	final static private HashMap<File, SoftReference<BufferedImage>> readImagesCache = new HashMap<File, SoftReference<BufferedImage>>() ;
 	
 	static private BufferedImage readImage(File fileImg) {
@@ -1203,6 +1205,15 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		}
 	}
 	
+	
+	
+	@Override
+	public void setVisible(boolean b) {
+		if (DISABLE_RICHCONSOLE) return ;
+		
+		super.setVisible(b);
+	}
+	
 	public BufferedImage toBufferedImage(Color bgColor) {
 		return this.panel.toBufferedImage(bgColor) ;
 	}
@@ -1512,6 +1523,8 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 	}
 	
 	private void repaintPanel() {
+		if (DISABLE_RICHCONSOLE) return ;
+		
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
