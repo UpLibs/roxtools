@@ -46,7 +46,7 @@ import roxtools.RichConsole.ConsoleImageHighlight.Highlight;
 import roxtools.img.ImagePixels;
 
 
-final public class RichConsole extends JFrame implements RichConsoleListener {
+final public class RichConsole extends JFrame implements RichConsoleListener, RichConsoleInterface {
 	private static final long serialVersionUID = -8443078709304588707L;
 
 	static public boolean DISABLE_RICHCONSOLE = System.getProperty("DISABLE_RICHCONSOLE") != null ;
@@ -82,9 +82,9 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 	static private interface MouseHandler {
 		public void mouseClicked( RichConsole richConsole , int x, int y ) ;
 		
-		public void mousePressed( RichConsole richConsole , int x, int y ) ;
+		public void mousePressed( RichConsoleInterface richConsole , int x, int y ) ;
 		
-		public void mouseRelease( RichConsole richConsole , int x, int y ) ;
+		public void mouseRelease( RichConsoleInterface richConsole , int x, int y ) ;
 		
 		public void mouseDragged( RichConsole richConsole , int x, int y ) ;
 	}
@@ -583,7 +583,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		private WeakReference<Highlight> pressHighlight ;
 		
 		@Override
-		public void mousePressed(RichConsole richConsole, int x, int y) {
+		public void mousePressed(RichConsoleInterface richConsole, int x, int y) {
 			pressPoint = new Point(x, y) ;
 			
 			processMouseEvent(x, y, new EventProcessor() {
@@ -598,7 +598,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		}
 
 		@Override
-		public void mouseRelease(RichConsole richConsole, int x, int y) {
+		public void mouseRelease(RichConsoleInterface richConsole, int x, int y) {
 			pressPoint = null ;
 			pressRectanglePoint = null ;
 			pressHighlight = null ;
@@ -822,11 +822,11 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		}
 
 		@Override
-		public void mousePressed(RichConsole richConsole, int x, int y) {
+		public void mousePressed(RichConsoleInterface richConsole, int x, int y) {
 		}
 
 		@Override
-		public void mouseRelease(RichConsole richConsole, int x, int y) {
+		public void mouseRelease(RichConsoleInterface richConsole, int x, int y) {
 		}
 
 		@Override
@@ -941,7 +941,125 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 	
 	/////////////////////////////////////////////////////////
 	
-	static private RichConsole defaultInstance ;
+	static private class DummyRichConsole implements RichConsoleInterface , RichConsoleListener {
+
+		private DummyRichConsole() {}
+		
+		@Override
+		public void setVisible(boolean b) {}
+
+		@Override
+		public BufferedImage toBufferedImage(Color bgColor) {
+			BufferedImage buffImg = new BufferedImage(100 , 100, BufferedImage.TYPE_INT_RGB) ;
+			
+			Graphics2D g = buffImg.createGraphics() ;
+			
+			g.setColor(bgColor) ;
+			
+			g.fillRect(0, 0, 100,100) ;
+			
+			g.dispose() ;
+			
+			return buffImg ;
+		}
+
+		@Override
+		public void addMenuItem(String menuName, RichConsoleMenuItem item) {}
+
+		@Override
+		public void removeMenuItem(String menuName, RichConsoleMenuItem item) {}
+
+		@Override
+		public void removeMenu(String menuName) {}
+
+		@Override
+		public Dimension getPanelDimension() {
+			return new Dimension(100,100) ;
+		}
+
+		@Override
+		public void setMaxConsoleElements(int maxConsoleElements) {}
+
+		@Override
+		public int getMaxConsoleElements() { return 0;}
+
+		@Override
+		public void waitConsoleElementsBelowSize(int size) {}
+
+		@Override
+		public void removeFromConsole(int nElements) {}
+
+		@Override
+		public void removeFromConsoleIfSizeBiggerThan(int size) {}
+
+		@Override
+		public void focus() {}
+
+		@Override
+		public void clearConsole() {}
+
+		@Override
+		public void printObj(Object obj) {}
+
+		@Override
+		public void printObjLn(Object obj) {}
+		
+		static final private BufferedImage DUMMY_BUFFERED_IMAGE = new BufferedImage(100 , 100, BufferedImage.TYPE_INT_RGB) ;
+
+		@Override
+		public ConsoleImage printImage(Image img) {
+			return new ConsoleImage(DUMMY_BUFFERED_IMAGE) ;
+		}
+
+		@Override
+		public ConsoleImage printImageLn(Image img) {
+			return new ConsoleImage(DUMMY_BUFFERED_IMAGE) ;
+		}
+
+		@Override
+		public ConsoleImage printImage(ImagePixels img) {
+			return new ConsoleImage(DUMMY_BUFFERED_IMAGE) ;
+		}
+
+		@Override
+		public ConsoleImage printImageLn(ImagePixels img) {
+			return new ConsoleImage(DUMMY_BUFFERED_IMAGE) ;
+		}
+
+		@Override
+		public void newLine() {}
+
+		@Override
+		public void write(byte... bs) {}
+
+		@Override
+		public void writeLn(byte... bs) {}
+
+		@Override
+		public void setListener(RichConsoleListener listener) {}
+
+		@Override
+		public RichConsoleListener getListener() {
+			return this;
+		}
+
+		@Override
+		public void onRichConsoleClick(RichConsoleInterface richConsole, Point position) {}
+
+		@Override
+		public void onRichConsolePress(RichConsoleInterface richConsole, Point position) {}
+
+		@Override
+		public void onRichConsoleRelease(RichConsoleInterface richConsole, Point position) {}
+
+		@Override
+		public void onRichConsoleDrag(RichConsoleInterface richConsole, Point position) {}
+		
+	}
+	
+	static private final RichConsoleInterface dummyInstance = new DummyRichConsole() ;
+	
+	static private RichConsoleInterface defaultInstance ;
 	
 	static private ThreadLocal<RichConsole> threadDefaultInstance = new ThreadLocal<RichConsole>() ;
 	
@@ -953,8 +1071,10 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		threadDefaultInstance.remove() ;
 	}
 	
-	public static RichConsole getDefaultInstance() {
-		RichConsole threadLocalInstance = threadDefaultInstance.get() ;
+	public static RichConsoleInterface getDefaultInstance() {
+		if (DISABLE_RICHCONSOLE) return dummyInstance ;
+		
+		RichConsoleInterface threadLocalInstance = threadDefaultInstance.get() ;
 		
 		if (threadLocalInstance != null) {
 			return threadLocalInstance ;
@@ -1205,8 +1325,6 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		}
 	}
 	
-	
-	
 	@Override
 	public void setVisible(boolean b) {
 		if (DISABLE_RICHCONSOLE) return ;
@@ -1214,12 +1332,14 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		super.setVisible(b);
 	}
 	
+	@Override
 	public BufferedImage toBufferedImage(Color bgColor) {
 		return this.panel.toBufferedImage(bgColor) ;
 	}
 	
 	private HashMap<String, List<RichConsoleMenuItem>> menusItems = new HashMap<String, List<RichConsoleMenuItem>>() ;
 	
+	@Override
 	public void addMenuItem(String menuName, RichConsoleMenuItem item) {
 		boolean rebuilt = false ;
 		
@@ -1238,6 +1358,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		if (rebuilt) rebuildMenuBar() ;
 	}
 	
+	@Override
 	public void removeMenuItem(String menuName, RichConsoleMenuItem item) {
 		boolean rebuilt = false ;
 		
@@ -1255,6 +1376,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		if (rebuilt) rebuildMenuBar() ;	
 	}
 	
+	@Override
 	public void removeMenu(String menuName) {
 		boolean rebuilt = false ;
 		
@@ -1361,6 +1483,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		abstract public void action() ;
 	}
 	
+	@Override
 	public Dimension getPanelDimension() {
 		return panel.getDimension() ;
 	}
@@ -1369,10 +1492,12 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 
 	private int maxConsoleElements = 0 ;
 	
+	@Override
 	public void setMaxConsoleElements(int maxConsoleElements) {
 		this.maxConsoleElements = maxConsoleElements;
 	}
 	
+	@Override
 	public int getMaxConsoleElements() {
 		return maxConsoleElements;
 	}
@@ -1392,6 +1517,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		repaintPanel() ;
 	}
 	
+	@Override
 	public void waitConsoleElementsBelowSize(int size) {
 		synchronized (output) {
 			while ( output.size() > size ) {
@@ -1402,6 +1528,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		}
 	}
 	
+	@Override
 	public void removeFromConsole(int nElements) {
 		synchronized (output) {
 			for (int i = 0; i < nElements && !output.isEmpty() ; i++) {
@@ -1414,6 +1541,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		repaintPanel() ;
 	}
 	
+	@Override
 	public void removeFromConsoleIfSizeBiggerThan(int size) {
 		synchronized (output) {
 			while ( output.size() > size ) {
@@ -1426,6 +1554,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		repaintPanel() ;
 	}
 	
+	@Override
 	public void focus() {
 		this.setAlwaysOnTop(true) ;
 		
@@ -1442,6 +1571,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		
 	}
 	
+	@Override
 	public void clearConsole() {
 		synchronized (output) {
 			output.clear() ;
@@ -1453,6 +1583,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 	
 	private JScrollPane scrollpane;
 	
+	@Override
 	public void printObj(Object obj) {
 		synchronized (output) {
 			output.add( new Object[] { obj } ) ;
@@ -1462,6 +1593,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		repaintPanel() ;
 	}
 	
+	@Override
 	public void printObjLn(Object obj) {
 		synchronized (output) {
 			output.add( new Object[] { obj , "\n" } ) ;
@@ -1471,6 +1603,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		repaintPanel() ;
 	}
 	
+	@Override
 	public ConsoleImage printImage(Image img) {
 		ConsoleImage consoleImage = new ConsoleImage(img) ;
 		
@@ -1484,6 +1617,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		return consoleImage ;
 	}
 	
+	@Override
 	public ConsoleImage printImageLn(Image img) {
 		ConsoleImage consoleImage = new ConsoleImage(img) ;
 		
@@ -1497,14 +1631,17 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		return consoleImage ;
 	}
 	
+	@Override
 	public ConsoleImage printImage(ImagePixels img) {
 		return print(img.createImage()) ;
 	}
 	
+	@Override
 	public ConsoleImage printImageLn(ImagePixels img) {
 		return printLn(img.createImage()) ;
 	}
 	
+	@Override
 	public void newLine() {
 		synchronized (output) {
 			output.add( new Object[] { "\n" } ) ;
@@ -1514,10 +1651,12 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 		repaintPanel() ;
 	}
 	
+	@Override
 	public void write(byte... bs) {
 		print( new String(bs) ) ;
 	}
 	
+	@Override
 	public void writeLn(byte... bs) {
 		printLn( new String(bs) ) ;
 	}
@@ -2158,29 +2297,31 @@ final public class RichConsole extends JFrame implements RichConsoleListener {
 	
 	private RichConsoleListener listener = this ;
 	
+	@Override
 	public void setListener(RichConsoleListener listener) {
 		this.listener = listener;
 	}
 	
+	@Override
 	public RichConsoleListener getListener() {
 		return listener;
 	}
 
 	@Override
-	public void onRichConsoleClick(RichConsole richConsole, Point position) {
+	public void onRichConsoleClick(RichConsoleInterface richConsole, Point position) {
 	}
 	
 
 	@Override
-	public void onRichConsolePress(RichConsole richConsole, Point position) {
+	public void onRichConsolePress(RichConsoleInterface richConsole, Point position) {
 	}
 
 	@Override
-	public void onRichConsoleRelease(RichConsole richConsole, Point position) {
+	public void onRichConsoleRelease(RichConsoleInterface richConsole, Point position) {
 	}
 
 	@Override
-	public void onRichConsoleDrag(RichConsole richConsole, Point position) {
+	public void onRichConsoleDrag(RichConsoleInterface richConsole, Point position) {
 	}
 
 	
