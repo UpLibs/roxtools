@@ -71,7 +71,15 @@ public class Memoize<T> {
 	
 	////////////////////////////////////////////////////
 	
-	private long memoryTimeout = 0 ;
+	public Memoize() {
+		this(0) ;
+	}
+	
+	public Memoize(long memoryTimeout) {
+		this.memoryTimeout = memoryTimeout ;
+	}
+	
+	private long memoryTimeout ;
 	
 	public void setMemoryTimeout(long memoryTimeout) {
 		this.memoryTimeout = memoryTimeout;
