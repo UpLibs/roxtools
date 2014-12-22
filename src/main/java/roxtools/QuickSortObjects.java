@@ -18,33 +18,45 @@ final public class QuickSortObjects {
 	////////////////////////////
 	
 	static public <O> void sort(O[] o, ObjectCompareValueInt<O> objCompareValue) {
-		int[] a = new int[o.length] ;
+		sort(o, objCompareValue, 0, o.length-1);
+	}
+	
+	static public <O> void sort(O[] o, ObjectCompareValueInt<O> objCompareValue, int fromIndex, int toIndex) {
+		int[] a = new int[toIndex+1] ;
 		
-		for (int i = 0; i < a.length; i++) {
+		for (int i = fromIndex; i <= toIndex; i++) {
 			a[i] = objCompareValue.getObjectCompareValue( o[i] ) ;
 		}
 		
-		sort(a, o);
+		quickSort(a, o, fromIndex, toIndex);
 	}
 	
 	static public <O> void sort(O[] o, ObjectCompareValueFloat<O> objCompareValue) {
-		float[] a = new float[o.length] ;
+		sort(o, objCompareValue, 0, o.length-1);
+	}
+	
+	static public <O> void sort(O[] o, ObjectCompareValueFloat<O> objCompareValue, int fromIndex, int toIndex) {
+		float[] a = new float[toIndex+1] ;
 		
-		for (int i = 0; i < a.length; i++) {
+		for (int i = fromIndex; i <= toIndex; i++) {
 			a[i] = objCompareValue.getObjectCompareValue( o[i] ) ;
 		}
 		
-		sort(a, o);
+		quickSort(a, o, fromIndex, toIndex);
 	}
 	
 	static public <O> void sort(O[] o, ObjectCompareValueDouble<O> objCompareValue) {
-		double[] a = new double[o.length] ;
+		sort(o, objCompareValue, 0, o.length-1);
+	}
+	
+	static public <O> void sort(O[] o, ObjectCompareValueDouble<O> objCompareValue, int fromIndex, int toIndex) {
+		double[] a = new double[toIndex+1] ;
 		
-		for (int i = 0; i < a.length; i++) {
+		for (int i = fromIndex; i <= toIndex; i++) {
 			a[i] = objCompareValue.getObjectCompareValue( o[i] ) ;
 		}
 		
-		sort(a, o);
+		quickSort(a, o, fromIndex, toIndex);
 	}
 
 	////////////////////////////
@@ -53,12 +65,24 @@ final public class QuickSortObjects {
 		quickSort(a, o, 0, a.length-1);
 	}
 	
+	static public void sort(int[] a, Object[] o, int fromIndex, int toIndex) {
+		quickSort(a, o, fromIndex, toIndex);
+	}
+	
 	static public void sort(float[] a, Object[] o) {
 		quickSort(a, o, 0, a.length-1);
 	}
 	
+	static public void sort(float[] a, Object[] o, int fromIndex, int toIndex) {
+		quickSort(a, o, fromIndex, toIndex);
+	}
+	
 	static public void sort(double[] a, Object[] o){
 		quickSort(a, o, 0, a.length-1);
+	}
+	
+	static public void sort(double[] a, Object[] o, int fromIndex, int toIndex){
+		quickSort(a, o, fromIndex, toIndex);
 	}
 	
 	////////////////////////////

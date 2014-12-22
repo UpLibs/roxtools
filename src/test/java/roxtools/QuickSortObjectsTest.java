@@ -85,6 +85,34 @@ public class QuickSortObjectsTest {
 	}
 	
 	@Test
+	public void testSortOffset() {
+		
+		int offset = 1000 ;
+		
+		long seed = 1859301237985L ^ -458203475L ^ 45631581085001L ;
+		
+		for (int loop = 0; loop < 10; loop++) {
+			Object[] ret = createIntArray(10000, seed) ;
+			
+			int[] a = (int[]) ret[0] ;
+			Object[] o = (Object[]) ret[1] ;
+			
+			for (int i = 0; i < offset; i++) {
+				int v = (-offset)+i ;
+				a[i] = v ;
+				o[i] = "s:"+v ;
+			}
+			
+			QuickSortObjects.sort(a, o, offset, a.length-1);
+			
+			checkSortInt(a, o);
+			
+			seed = seed ^ (seed * 31 + Arrays.hashCode(a)) ;
+		}
+		
+	}
+	
+	@Test
 	public void testSortObjects() {
 		
 		long seed = 1859301237985L ^ -458203475L ^ 45631581085001L ;
@@ -98,6 +126,35 @@ public class QuickSortObjectsTest {
 					return Integer.parseInt(obj) ;
 				}
 			});
+			
+			checkSortString(o);
+			
+			seed = seed ^ (seed * 31 + Arrays.hashCode(o)) ;
+		}
+		
+	}
+	
+	@Test
+	public void testSortObjectsOffset() {
+		
+		int offset = 1000 ;
+		
+		long seed = 1859301237985L ^ -458203475L ^ 45631581085001L ;
+		
+		for (int loop = 0; loop < 10; loop++) {
+			String[] o = createStringArray(10000, seed) ;
+			
+			for (int i = 0; i < offset; i++) {
+				int v = (-offset)+i ;
+				o[i] = ""+v ;
+			}
+			
+			QuickSortObjects.sort(o, new ObjectCompareValueInt<String>() {
+				@Override
+				public int getObjectCompareValue(String obj) {
+					return Integer.parseInt(obj) ;
+				}
+			} , offset , o.length-1);
 			
 			checkSortString(o);
 			
