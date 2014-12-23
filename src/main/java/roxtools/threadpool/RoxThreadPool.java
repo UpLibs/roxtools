@@ -258,21 +258,26 @@ public class RoxThreadPool {
 	/////////////////////////////////////
 	
 	static public final int AVAILABLE_CPU_CORES = Runtime.getRuntime().availableProcessors() ;
-	
 	static public final int DEFAULT_THREAD_POOL_MAX_SIZE = Math.max( AVAILABLE_CPU_CORES*4 , 4 ) ;
 	
-	static public final ThreadPoolExecutor DEFAULT_THREAD_POOL = newThreadPool(DEFAULT_THREAD_POOL_MAX_SIZE) ;
+	static public final int DEFAULT_THREAD_KEEP_ALIVE_SECONDS = 60 ;
+	
+	static public final ThreadPoolExecutor DEFAULT_THREAD_POOL = newThreadPool() ;
 	
 	static public ThreadPoolExecutor newThreadPoolUnlimited() {
-		return newThreadPool(0, Integer.MAX_VALUE, 60) ;
+		return newThreadPool(0, Integer.MAX_VALUE, DEFAULT_THREAD_KEEP_ALIVE_SECONDS) ;
 	}
 	
 	static public ThreadPoolExecutor newThreadPool() {
-		return newThreadPool(0, 100, 60) ;
+		return newThreadPool(0, DEFAULT_THREAD_POOL_MAX_SIZE, DEFAULT_THREAD_KEEP_ALIVE_SECONDS) ;
 	}
 	
 	static public ThreadPoolExecutor newThreadPool(int maxThreads) {
-		return newThreadPool(0, maxThreads, 60) ;
+		return newThreadPool(0, maxThreads, DEFAULT_THREAD_KEEP_ALIVE_SECONDS) ;
+	}
+	
+	static public ThreadPoolExecutor newThreadPoolByThreadsPerCore(double threadsPerCore) {
+		return newThreadPool(0, Math.max(1, (int) (RoxThreadPool.AVAILABLE_CPU_CORES * threadsPerCore)) , DEFAULT_THREAD_KEEP_ALIVE_SECONDS) ;
 	}
 	
 	static public ThreadPoolExecutor newThreadPool(int minThreads, int maxThreads, int threadKeepAliveSeconds) {
