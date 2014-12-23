@@ -2,11 +2,13 @@ package roxtools.threadpool;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-public class RoxTaskPool {
+final public class RoxTaskPool {
 	
 	private final ArrayList<RoxTask> tasks = new ArrayList<RoxTask>() ;
 	
@@ -14,6 +16,10 @@ public class RoxTaskPool {
 
 	public RoxTaskPool() {
 		this( RoxThreadPool.DEFAULT_THREAD_POOL ) ;
+	}
+	
+	public RoxTaskPool(int maxThreads) {
+		this( RoxThreadPool.newThreadPool(maxThreads) ) ;
 	}
 	
 	public RoxTaskPool(ExecutorService threadPool) {
@@ -82,6 +88,20 @@ public class RoxTaskPool {
 	}
 	
 	private boolean allTasksFinished = false ;
+	
+
+	public boolean isAllTasksFinished() {
+		synchronized (tasks) {
+			if (allTasksFinished) return true ;
+			
+			for (RoxTask roxTask : tasks) {
+				if ( !roxTask.isFinished() ) return false ;
+			}
+			
+			allTasksFinished = true ;
+			return true ;
+		}
+	}
 	
 	public void waitTasks() {
 		synchronized (tasks) {
@@ -264,5 +284,188 @@ public class RoxTaskPool {
 		}
 	}
 	
+	public long getFirstTaskInitTime() {
+		synchronized (tasks) {
+			if ( tasks.isEmpty() ) return 0 ;
+			
+			long minTime = Long.MAX_VALUE ;
+			
+			for (RoxTask roxTask : tasks) {
+				if (!roxTask.isFinished()) continue ;
+				
+				long time = roxTask.getInitTime() ;
+				if (time < minTime) minTime = time ;
+			}
+			
+			return minTime ;
+		}
+	}
+	
+	public long getLastTaskEndTime() {
+		synchronized (tasks) {
+			if ( tasks.isEmpty() ) return 0 ;
+			
+			long maxTime = Long.MIN_VALUE ;
+			
+			for (RoxTask roxTask : tasks) {
+				if (!roxTask.isFinished()) continue ;
+				
+				long time = roxTask.getEndTime() ;
+				if (time > maxTime) maxTime = time ;
+			}
+			
+			return maxTime ;
+		}
+	}
+	
+	public long[] getTasksInitEndTime() {
+		synchronized (tasks) {
+			if ( tasks.isEmpty() ) return new long[3] ;
+			
+			long minTime = Long.MAX_VALUE ;
+			long maxTime = Long.MIN_VALUE ;
+			long totalExecutedTasks = 0 ;
+			
+			for (RoxTask roxTask : tasks) {
+				if (!roxTask.isFinished()) continue ;
+				
+				totalExecutedTasks++ ;
+				
+				long time = roxTask.getEndTime() ;
+				
+				if (time < minTime) minTime = time ;
+				if (time > maxTime) maxTime = time ;
+			}
+			
+			if (totalExecutedTasks == 0) {
+				minTime = maxTime = 0 ;
+			}
+			
+			return new long[] { minTime, maxTime, totalExecutedTasks } ;
+		}
+	}
+	
+	public int getTotalExecutedTasks() {
+		synchronized (tasks) {
+			int total = 0 ;
+			
+			for (RoxTask roxTask : tasks) {
+				if ( roxTask.isFinished() ) total++ ;
+			}
+			
+			if (total == tasks.size()) {
+				allTasksFinished = true ;
+			}
+			
+			return total ;
+		}
+	}
+	
+	public long[] getTasksExecutionTimes() {
+		synchronized (tasks) {
+			long[] times = new long[tasks.size()] ;
+			int timesSz = 0 ;
+			
+			for (RoxTask roxTask : tasks) {
+				if (!roxTask.isFinished()) continue ;
+				
+				times[timesSz++] = roxTask.getExecutionTime() ;
+			}
+			
+			if (times.length != timesSz) times = Arrays.copyOf(times, timesSz) ;
+			
+			return times ;
+		}
+	}
+
+	public long getTasksExecutionTimeToExecuteAll() {
+		synchronized (tasks) {
+			long timeToExecuteAll = getLastTaskEndTime() - getFirstTaskInitTime() ;
+			
+			return timeToExecuteAll ;
+		}
+	}
+	
+	public long getTasksExecutionTotalThreadTime() {
+		synchronized (tasks) {
+			long[] executionTime = getTasksExecutionTimes() ;
+			
+			long total = 0 ;
+			
+			for (int i = 0; i < executionTime.length; i++) {
+				total += executionTime[i] ;
+			}
+			
+			return total ;
+		}
+	}
+	
+	public long getTasksExecutionTimeAverage() {
+		synchronized (tasks) {
+			long[] times = getTasksInitEndTime() ;
+			
+			long init = times[0] ;
+			long end = times[1] ;
+			long total = times[2] ;
+			
+			long timeToExecuteAll = end - init ;
+			
+			return timeToExecuteAll / total ;
+		}
+	}
+	
+	public double getTasksExecutionSpeed() {
+		synchronized (tasks) {
+			long[] times = getTasksInitEndTime() ;
+			
+			long init = times[0] ;
+			long end = times[1] ;
+			long total = times[2] ;
+			
+			long timeToExecuteAll = end - init ;
+			
+			double secs = timeToExecuteAll / 1000d ; 
+			
+			return total / secs ;
+		}
+	}
+	
+	public void printExecutionInfos() {
+		printExecutionInfos(false);
+	}
+	
+	static private String formatTimeDuration(long time) {
+		return (time / (1000L*60)) +"min "+ ( (time / 1000L) % 60 ) +"sec "+ (time % 1000) +"ms"  ;
+	}
+	
+	public void printExecutionInfos(boolean waitAllTasks) {
+		synchronized (tasks) {
+			if (waitAllTasks) waitTasks() ;
+			
+			int tasksSize = getTasksSize() ;
+			int totalExecutedTasks = getTotalExecutedTasks() ;
+			long firstTaskInitTime = getFirstTaskInitTime() ;
+			long lastTaskEndTime = getLastTaskEndTime() ;
+			long tasksExecutionTimeToExecuteAll = getTasksExecutionTimeToExecuteAll() ;
+			long tasksExecutionTotalThreadTime = getTasksExecutionTotalThreadTime() ;
+			long tasksExecutionTimeAverage = getTasksExecutionTimeAverage() ;
+			double tasksExecutionSpeed = getTasksExecutionSpeed() ;
+			
+			System.out.println("--------------------------------------------------------------------------------");
+			System.out.println("Total tasks: "+ tasksSize);
+			System.out.println("Total executed tasks: "+ totalExecutedTasks + ( tasksSize == totalExecutedTasks ? " (all executed)" : ""));
+			System.out.println();
+			System.out.println("Start time (first task): "+ firstTaskInitTime +" > "+ new Date(firstTaskInitTime));
+			System.out.println("End time (last task): "+ lastTaskEndTime +" > "+ new Date(lastTaskEndTime));
+			System.out.println();
+			System.out.println("Time to execute all tasks: "+ tasksExecutionTimeToExecuteAll +"ms ("+ formatTimeDuration(tasksExecutionTimeToExecuteAll) +")");
+			System.out.println("Total thread time: "+ tasksExecutionTotalThreadTime +"ms ("+ formatTimeDuration(tasksExecutionTotalThreadTime) +")");
+			System.out.println();
+			System.out.println("Average time per task: "+ tasksExecutionTimeAverage +"ms ("+ formatTimeDuration(tasksExecutionTimeAverage) +")");
+			System.out.println("Tasks execution speed: "+ tasksExecutionSpeed +"/s");
+			System.out.println("--------------------------------------------------------------------------------");
+			
+		}
+	}
 	
 }

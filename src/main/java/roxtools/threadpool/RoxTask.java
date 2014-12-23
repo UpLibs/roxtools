@@ -60,8 +60,25 @@ abstract public class RoxTask implements Runnable {
 		}
 	}
 	
+	private volatile long initTime ;
+	private volatile long endTime ;
+	
+	public long getInitTime() {
+		return initTime;
+	}
+	
+	public long getEndTime() {
+		return endTime;
+	}
+	
+	public long getExecutionTime() {
+		return endTime - initTime ;
+	}
+	
 	@Override
 	final public void run() {
+		initTime = System.currentTimeMillis() ;
+		
 		try {
 			task();
 		}
@@ -85,6 +102,8 @@ abstract public class RoxTask implements Runnable {
 	
 	private void notifyFinished() {
 		synchronized (this) {
+			endTime = System.currentTimeMillis() ;
+			
 			finished = true ;
 			this.notifyAll();
 		}
