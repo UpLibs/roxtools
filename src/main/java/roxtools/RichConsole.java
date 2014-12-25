@@ -504,6 +504,25 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 			}
 		}
 		
+		private boolean showHighlightBorder = true ;
+		private boolean fillHighlight = false ;
+		
+		public void setShowHighlightBorder(boolean showHighlightBorder) {
+			this.showHighlightBorder = showHighlightBorder;
+		}
+		
+		public boolean getShowHighlightBorder() {
+			return showHighlightBorder;
+		}
+		
+		public void setFillHighlight(boolean fillHighlight) {
+			this.fillHighlight = fillHighlight;
+		}
+		
+		public boolean getFillHighlight() {
+			return fillHighlight;
+		}
+		
 		private boolean preserveHighlightRatio = true ;
 		
 		public void setPreserveHighlightRatio(boolean preserveHighlightRatio) {
@@ -1893,7 +1912,20 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 					
 					g2D.setColor( color ) ;
 					
-					g2D.drawRect(x+hX, y+hY, hW, hH) ;
+					if (img.fillHighlight) {
+						g2D.fillRect(x+hX, y+hY, hW, hH) ;
+					}
+					
+					if (img.showHighlightBorder || ( !img.fillHighlight && !img.showHighlightBorder) ) {
+						
+						if ( img.fillHighlight && color.getAlpha() != 255 ) {
+							Color colorOpaque = new Color( color.getRed() , color.getGreen() , color.getBlue() ) ;
+							g2D.setColor( colorOpaque ) ;
+						}
+						
+						g2D.drawRect(x+hX, y+hY, hW, hH) ;	
+					}
+					
 				}
 				
 				g2D.setColor(color0) ;
