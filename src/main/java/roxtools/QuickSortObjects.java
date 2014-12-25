@@ -89,7 +89,7 @@ final public class QuickSortObjects {
 	
 	static private void quickSort(int[] a, Object[] o, int left,int right){
 		if (left >= right) return;
-		 
+		
 		int pivot = getMedian(a,o, left, right);
 		int partition = partition(a, o, left, right, pivot);
 		
@@ -179,6 +179,9 @@ final public class QuickSortObjects {
 		int leftCursor = left-1;
 		int rightCursor = right;
 		
+		int tmp ;
+		Object tmpO ;
+		
 		while(leftCursor < rightCursor){
             while(a[++leftCursor] < pivot);
             while(rightCursor > 0 && a[--rightCursor] > pivot);
@@ -187,11 +190,27 @@ final public class QuickSortObjects {
 				break;
 			}
 			else {
-				swap(a, o, leftCursor, rightCursor);
+				//swap(a, o, leftCursor, rightCursor);
+				
+				tmp = a[leftCursor];
+				a[leftCursor] = a[rightCursor];
+				a[rightCursor] = tmp;
+				
+				tmpO = o[leftCursor];
+				o[leftCursor] = o[rightCursor];
+				o[rightCursor] = tmpO;
 			}
 		}
 		
-		swap(a, o, leftCursor, right);
+		//swap(a, o, leftCursor, right);
+		
+		tmp = a[leftCursor];
+		a[leftCursor] = a[right];
+		a[right] = tmp;
+		
+		tmpO = o[leftCursor];
+		o[leftCursor] = o[right];
+		o[right] = tmpO;
 		
 		return leftCursor;
 	}
@@ -200,6 +219,9 @@ final public class QuickSortObjects {
 		int leftCursor = left-1;
 		int rightCursor = right;
 		
+		float tmp ;
+		Object tmpO ;
+		
 		while(leftCursor < rightCursor){
             while(a[++leftCursor] < pivot);
             while(rightCursor > 0 && a[--rightCursor] > pivot);
@@ -208,11 +230,27 @@ final public class QuickSortObjects {
 				break;
 			}
 			else {
-				swap(a, o, leftCursor, rightCursor);
+				//swap(a, o, leftCursor, rightCursor);
+				
+				tmp = a[leftCursor];
+				a[leftCursor] = a[rightCursor];
+				a[rightCursor] = tmp;
+				
+				tmpO = o[leftCursor];
+				o[leftCursor] = o[rightCursor];
+				o[rightCursor] = tmpO;
 			}
 		}
 		
-		swap(a, o, leftCursor, right);
+		//swap(a, o, leftCursor, right);
+		
+		tmp = a[leftCursor];
+		a[leftCursor] = a[right];
+		a[right] = tmp;
+		
+		tmpO = o[leftCursor];
+		o[leftCursor] = o[right];
+		o[right] = tmpO;
 		
 		return leftCursor;
 	}
@@ -221,6 +259,9 @@ final public class QuickSortObjects {
 		int leftCursor = left-1;
 		int rightCursor = right;
 		
+		double tmp ;
+		Object tmpO ;
+		
 		while(leftCursor < rightCursor){
             while(a[++leftCursor] < pivot);
             while(rightCursor > 0 && a[--rightCursor] > pivot);
@@ -229,11 +270,27 @@ final public class QuickSortObjects {
 				break;
 			}
 			else {
-				swap(a, o, leftCursor, rightCursor);
+				//swap(a, o, leftCursor, rightCursor);
+				
+				tmp = a[leftCursor];
+				a[leftCursor] = a[rightCursor];
+				a[rightCursor] = tmp;
+				
+				tmpO = o[leftCursor];
+				o[leftCursor] = o[rightCursor];
+				o[rightCursor] = tmpO;
 			}
 		}
 		
-		swap(a, o, leftCursor, right);
+		//swap(a, o, leftCursor, right);
+		
+		tmp = a[leftCursor];
+		a[leftCursor] = a[right];
+		a[right] = tmp;
+		
+		tmpO = o[leftCursor];
+		o[leftCursor] = o[right];
+		o[right] = tmpO;
 		
 		return leftCursor;
 	}
