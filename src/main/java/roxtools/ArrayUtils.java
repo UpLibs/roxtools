@@ -1,6 +1,10 @@
 package roxtools;
 
+import java.util.Random;
+
 public class ArrayUtils {
+
+	final static private Random random = new Random() ;
 
 	static public void toHalf(byte[] src, byte[] dst) {
 		int j = 0 ;
@@ -245,7 +249,71 @@ public class ArrayUtils {
 
 		return all ;
 	}
-
 	
+	static public void swap(int[] a, int idx1,int idx2){
+		int tmp = a[idx1];
+		a[idx1] = a[idx2];
+		a[idx2] = tmp;
+	}
+	
+	static public void swap(float[] a, int idx1,int idx2){
+		float tmp = a[idx1];
+		a[idx1] = a[idx2];
+		a[idx2] = tmp;
+	}
+	
+	static public void swap(double[] a, int idx1,int idx2){
+		double tmp = a[idx1];
+		a[idx1] = a[idx2];
+		a[idx2] = tmp;
+	}
+	
+	public static void shuffle(int[] a) {
+		shuffle(a, random);
+	}
+	
+	public static void shuffle(float[] a) {
+		shuffle(a, random);
+	}
+	
+	public static void shuffle(double[] a) {
+		shuffle(a, random);
+	}
+	
+	public static void shuffle(int[] a, Random rnd) {
+        for (int i= a.length; i>1; i--)
+        	swap(a, i-1, rnd.nextInt(i)) ;
+    }
+	
+	public static void shuffle(float[] a, Random rnd) {
+        for (int i= a.length; i>1; i--)
+        	swap(a, i-1, rnd.nextInt(i)) ;
+    }
+	
+	public static void shuffle(double[] a, Random rnd) {
+        for (int i= a.length; i>1; i--)
+        	swap(a, i-1, rnd.nextInt(i)) ;
+    }
+	
+	public static boolean isSorted(int[] a) {
+		for (int i = a.length-2 ; i >= 0; i--) {
+			if ( a[i] > a[i+1] ) return false ;
+		}
+		return true ;
+	}
+	
+	public static boolean isSorted(float[] a) {
+		for (int i = a.length-2 ; i >= 0; i--) {
+			if ( a[i] > a[i+1] ) return false ;
+		}
+		return true ;
+	}
+	
+	public static boolean isSorted(double[] a) {
+		for (int i = a.length-2 ; i >= 0; i--) {
+			if ( a[i] > a[i+1] ) return false ;
+		}
+		return true ;
+	}
 	
 }
