@@ -6,14 +6,14 @@ public class ArrayUtils {
 
 	final static private Random random = new Random() ;
 
-	static public void toHalf(byte[] src, byte[] dst) {
+	static public void halfSet(byte[] src, byte[] dst) {
 		int j = 0 ;
 		for (int i = 0; i < src.length; i+=2) {
 			dst[j++] = src[i] ;
 		}
 	}
 	
-	static public void toDouble(byte[] src, byte[] dst) {
+	static public void doubleSet(byte[] src, byte[] dst) {
 		int j = 0 ;
 		for (int i = 0; i < src.length; i++) {
 			dst[j++] = src[i] ;
@@ -26,6 +26,16 @@ public class ArrayUtils {
 		
 		for (int i = ns.length-1; i >= 0; i--) {
 			ns[i] = bs[i] & 0xff ;
+		}
+		
+		return ns ;
+	}
+	
+	static public int[] toInts(Number[] objs) {
+		int[] ns = new int[objs.length] ;
+		
+		for (int i = ns.length-1; i >= 0; i--) {
+			ns[i] = objs[i].intValue() ;
 		}
 		
 		return ns ;
@@ -71,6 +81,26 @@ public class ArrayUtils {
 		return res ;
 	}
 	
+	static public float[] toFloats(Number[] vals) {
+		float[] res = new float[vals.length] ;
+		
+		for (int i = res.length-1; i >= 0; i--) {
+			res[i] = vals[i].floatValue() ;
+		}
+		
+		return res ;
+	}
+	
+	static public float[] toFloats(double[] vals) {
+		float[] res = new float[vals.length] ;
+		
+		for (int i = res.length-1; i >= 0; i--) {
+			res[i] = (float) vals[i] ;
+		}
+		
+		return res ;
+	}
+	
 	static public float[] toFloats(byte[] vals) {
 		float[] res = new float[vals.length] ;
 		
@@ -81,12 +111,62 @@ public class ArrayUtils {
 		return res ;
 	}
 
+	static public double[] toDoubles(int[] vals) {
+		double[] res = new double[vals.length] ;
+		
+		for (int i = res.length-1; i >= 0; i--) {
+			res[i] = vals[i] ;
+		}
+		
+		return res ;
+	}
+	
+	static public double[] toDoubles(Number[] vals) {
+		double[] res = new double[vals.length] ;
+		
+		for (int i = res.length-1; i >= 0; i--) {
+			res[i] = vals[i].doubleValue() ;
+		}
+		
+		return res ;
+	}
+	
+	static public double[] toDoubles(byte[] vals) {
+		double[] res = new double[vals.length] ;
+		
+		for (int i = res.length-1; i >= 0; i--) {
+			res[i] = vals[i] & 0xFF ;
+		}
+		
+		return res ;
+	}
+	
+	static public void scale(int[] vals, int min, int max, int min2, int max2) {
+		int scale = max - min ;
+		int scale2 = max2 - min2 ;
+		
+		for (int i = vals.length-1; i >= 0; i--) {
+			int v = vals[i] ;
+			vals[i] = min2 + (((v - min) / scale) * scale2) ;
+		}
+	}
+	
 	static public void scale(float[] vals, float min, float max, float min2, float max2) {
 		float scale = max - min ;
 		float scale2 = max2 - min2 ;
 		
 		for (int i = vals.length-1; i >= 0; i--) {
 			float v = vals[i] ;
+			vals[i] = min2 + (((v - min) / scale) * scale2) ;
+		}
+	}
+	
+	static public void scale(double[] vals, double min, double max, double min2, double max2) {
+		double scale = max - min ;
+		double scale2 = max2 - min2 ;
+		
+		for (int i = vals.length-1; i >= 0; i--) {
+			double v = vals[i] ;
 			vals[i] = min2 + (((v - min) / scale) * scale2) ;
 		}
 	}
