@@ -434,7 +434,7 @@ final public class RoxTaskPool {
 		printExecutionInfos(false);
 	}
 	
-	static private String formatTimeDuration(long time) {
+	static public String formatTimeDuration(long time) {
 		return (time / (1000L*60)) +"min "+ ( (time / 1000L) % 60 ) +"sec "+ (time % 1000) +"ms"  ;
 	}
 	
