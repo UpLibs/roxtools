@@ -216,8 +216,8 @@ final public class StatisticsUtils {
 	static public int countActivatedIndexes(boolean[] highActivatedIndexes) {
 		int count = 0 ;
 		
-		for (int i = 0; i < highActivatedIndexes.length; i++) {
-			if (  highActivatedIndexes[i] ) count++ ;
+		for (int i = highActivatedIndexes.length-1 ; i >= 0; i--) {
+			if ( highActivatedIndexes[i] ) count++ ;
 		}
 		
 		return count ;
