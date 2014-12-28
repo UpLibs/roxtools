@@ -7,83 +7,198 @@ import java.util.Set;
 
 public class Memoize<T> {
 	
-	static public class MemKey {
-		static private Object[] toObjects(int[] a) {
-			Object[] objs = new Object[a.length] ;
-			for (int i = 0; i < objs.length; i++) {
-				objs[i] = a[i] ;
-			}
-			return objs ;
+	static public class MemKeyInt {
+		
+		final private int[] keyParts ;
+		
+		public MemKeyInt(int... keyParts) {
+			this.keyParts = keyParts ;
 		}
 		
-		static private Object[] toObjects(long[] a) {
-			Object[] objs = new Object[a.length] ;
-			for (int i = 0; i < objs.length; i++) {
-				objs[i] = a[i] ;
-			}
-			return objs ;
+		public int[] getKeyParts() {
+			return keyParts;
 		}
 		
-		static private Object[] toObjects(float[] a) {
-			Object[] objs = new Object[a.length] ;
-			for (int i = 0; i < objs.length; i++) {
-				objs[i] = a[i] ;
-			}
-			return objs ;
-		}
-		
-		static private Object[] toObjects(double[] a) {
-			Object[] objs = new Object[a.length] ;
-			for (int i = 0; i < objs.length; i++) {
-				objs[i] = a[i] ;
-			}
-			return objs ;
-		}
-		
-		static private Object[] toObjects(byte[] a) {
-			Object[] objs = new Object[a.length] ;
-			for (int i = 0; i < objs.length; i++) {
-				objs[i] = a[i] ;
-			}
-			return objs ;
+		private int hashcode = 0 ;
+		@Override
+		public int hashCode() {
+			if (hashcode == 0) hashcode = Arrays.hashCode(keyParts) ;
+			return hashcode ;
 		}
 
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			
+			if (getClass() != obj.getClass()) return false;
+			
+			MemKeyInt other = (MemKeyInt) obj;
+			
+			if ( this.hashCode() != other.hashCode() ) return false;
+			
+			if (!Arrays.equals(keyParts, other.keyParts)) return false;
+			return true;
+		}
+	}
+	
+	static public class MemKeyByte {
 		
+		final private byte[] keyParts ;
+		
+		public MemKeyByte(byte... keyParts) {
+			this.keyParts = keyParts ;
+		}
+		
+		public byte[] getKeyParts() {
+			return keyParts;
+		}
+		
+		private int hashcode = 0 ;
+		@Override
+		public int hashCode() {
+			if (hashcode == 0) hashcode = Arrays.hashCode(keyParts) ;
+			return hashcode ;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			
+			if (getClass() != obj.getClass()) return false;
+			
+			MemKeyByte other = (MemKeyByte) obj;
+			
+			if ( this.hashCode() != other.hashCode() ) return false;
+			
+			if (!Arrays.equals(keyParts, other.keyParts)) return false;
+			return true;
+		}
+	}
+	
+	static public class MemKeyLong {
+		
+		final private long[] keyParts ;
+		
+		public MemKeyLong(long... keyParts) {
+			this.keyParts = keyParts ;
+		}
+		
+		public long[] getKeyParts() {
+			return keyParts;
+		}
+		
+		private int hashcode = 0 ;
+		@Override
+		public int hashCode() {
+			if (hashcode == 0) hashcode = Arrays.hashCode(keyParts) ;
+			return hashcode ;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			
+			if (getClass() != obj.getClass()) return false;
+			
+			MemKeyLong other = (MemKeyLong) obj;
+			
+			if ( this.hashCode() != other.hashCode() ) return false;
+			
+			if (!Arrays.equals(keyParts, other.keyParts)) return false;
+			return true;
+		}
+	}
+
+	static public class MemKeyFloat {
+		
+		final private float[] keyParts ;
+		
+		public MemKeyFloat(float... keyParts) {
+			this.keyParts = keyParts ;
+		}
+		
+		public float[] getKeyParts() {
+			return keyParts;
+		}
+		
+		private int hashcode = 0 ;
+		@Override
+		public int hashCode() {
+			if (hashcode == 0) hashcode = Arrays.hashCode(keyParts) ;
+			return hashcode ;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			
+			if (getClass() != obj.getClass()) return false;
+			
+			MemKeyFloat other = (MemKeyFloat) obj;
+			
+			if ( this.hashCode() != other.hashCode() ) return false;
+			
+			if (!Arrays.equals(keyParts, other.keyParts)) return false;
+			return true;
+		}
+	}
+
+
+	static public class MemKeyDouble {
+				
+		final private double[] keyParts ;
+		
+		public MemKeyDouble(double... keyParts) {
+			this.keyParts = keyParts ;
+		}
+		
+		public double[] getKeyParts() {
+			return keyParts;
+		}
+		
+		private int hashcode = 0 ;
+		@Override
+		public int hashCode() {
+			if (hashcode == 0) hashcode = Arrays.hashCode(keyParts) ;
+			return hashcode ;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			
+			if (getClass() != obj.getClass()) return false;
+			
+			MemKeyDouble other = (MemKeyDouble) obj;
+			
+			if ( this.hashCode() != other.hashCode() ) return false;
+			
+			if (!Arrays.equals(keyParts, other.keyParts)) return false;
+			return true;
+		}
+	}
+	
+	static public class MemKey {
+				
 		final private Object[] keyParts ;
 		
 		public MemKey(Object... keyParts) {
 			this.keyParts = keyParts ;
 		}
 		
-		public MemKey(int... keyParts) {
-			this( toObjects(keyParts) );
+		public Object[] getKeyParts() {
+			return keyParts;
 		}
 		
-		public MemKey(long... keyParts) {
-			this( toObjects(keyParts) );
-		}
-		
-		public MemKey(float... keyParts) {
-			this( toObjects(keyParts) );
-		}
-		
-		public MemKey(double... keyParts) {
-			this( toObjects(keyParts) );
-		}
-		
-		public MemKey(byte... keyParts) {
-			this( toObjects(keyParts) );
-		}
-
 		private int hashcode = 0 ;
 		@Override
 		public int hashCode() {
-			if (hashcode == 0) {
-				final int prime = 31;
-				int result = 1;
-				result = prime * result + Arrays.hashCode(keyParts);
-				hashcode = result ;
-			}
+			if (hashcode == 0) hashcode = Arrays.hashCode(keyParts) ;
 			return hashcode ;
 		}
 
@@ -139,27 +254,27 @@ public class Memoize<T> {
 		return memoryTimeout;
 	}
 	
-	private HashMap<MemKey, MemoryReference<T>> memories = new HashMap<Memoize.MemKey, MemoryReference<T>>() ;
+	private HashMap<Object, MemoryReference<T>> memories = new HashMap<Object, MemoryReference<T>>() ;
 	
-	public void put(MemKey key, T val) {
+	public void put(Object key, T val) {
 		synchronized (memories) {
 			memories.put(key, new MemoryReference<T>(val)) ;
 		}
 	}
 	
-	public T get(MemKey key) {
+	public T get(Object key) {
 		return getImplem(key, false, false) ;
 	}
 	
-	public T getUpdateMemoryTime(MemKey key) {
+	public T getUpdateMemoryTime(Object key) {
 		return getImplem(key, true, false) ;
 	}
 	
-	public T getIgnoreTimeout(MemKey key) {
+	public T getIgnoreTimeout(Object key) {
 		return getImplem(key, false, true) ;
 	}
 	
-	private T getImplem(MemKey key, boolean updateTime, boolean ignoreTimeout) {
+	private T getImplem(Object key, boolean updateTime, boolean ignoreTimeout) {
 		synchronized (memories) {
 			MemoryReference<T> ref = memories.get(key) ;
 			
@@ -218,7 +333,7 @@ public class Memoize<T> {
 		}
 	}
 
-	public Set<MemKey> keySet() {
+	public Set<Object> keySet() {
 		synchronized (memories) {
 			return memories.keySet();
 		}
