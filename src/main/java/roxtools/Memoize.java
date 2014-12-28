@@ -8,10 +8,71 @@ import java.util.Set;
 public class Memoize<T> {
 	
 	static public class MemKey {
-		private String[] keyParts ;
+		static private Object[] toObjects(int[] a) {
+			Object[] objs = new Object[a.length] ;
+			for (int i = 0; i < objs.length; i++) {
+				objs[i] = a[i] ;
+			}
+			return objs ;
+		}
 		
-		public MemKey(String... keyParts) {
+		static private Object[] toObjects(long[] a) {
+			Object[] objs = new Object[a.length] ;
+			for (int i = 0; i < objs.length; i++) {
+				objs[i] = a[i] ;
+			}
+			return objs ;
+		}
+		
+		static private Object[] toObjects(float[] a) {
+			Object[] objs = new Object[a.length] ;
+			for (int i = 0; i < objs.length; i++) {
+				objs[i] = a[i] ;
+			}
+			return objs ;
+		}
+		
+		static private Object[] toObjects(double[] a) {
+			Object[] objs = new Object[a.length] ;
+			for (int i = 0; i < objs.length; i++) {
+				objs[i] = a[i] ;
+			}
+			return objs ;
+		}
+		
+		static private Object[] toObjects(byte[] a) {
+			Object[] objs = new Object[a.length] ;
+			for (int i = 0; i < objs.length; i++) {
+				objs[i] = a[i] ;
+			}
+			return objs ;
+		}
+
+		
+		final private Object[] keyParts ;
+		
+		public MemKey(Object... keyParts) {
 			this.keyParts = keyParts ;
+		}
+		
+		public MemKey(int... keyParts) {
+			this( toObjects(keyParts) );
+		}
+		
+		public MemKey(long... keyParts) {
+			this( toObjects(keyParts) );
+		}
+		
+		public MemKey(float... keyParts) {
+			this( toObjects(keyParts) );
+		}
+		
+		public MemKey(double... keyParts) {
+			this( toObjects(keyParts) );
+		}
+		
+		public MemKey(byte... keyParts) {
+			this( toObjects(keyParts) );
 		}
 
 		private int hashcode = 0 ;
@@ -34,22 +95,11 @@ public class Memoize<T> {
 			if (getClass() != obj.getClass()) return false;
 			
 			MemKey other = (MemKey) obj;
+			
+			if ( this.hashCode() != other.hashCode() ) return false;
+			
 			if (!Arrays.equals(keyParts, other.keyParts)) return false;
 			return true;
-		}
-	}
-	
-	static public class MemKeyObjs extends MemKey {
-		static private String[] toString(Object[] objs) {
-			String[] strs = new String[objs.length] ;
-			for (int i = 0; i < strs.length; i++) {
-				strs[i] = objs[i].toString() ;
-			}
-			return strs ;
-		}
-		
-		public MemKeyObjs(Object... objs) {
-			super(toString(objs)) ;
 		}
 	}
 	
