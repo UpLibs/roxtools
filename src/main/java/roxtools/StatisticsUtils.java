@@ -508,6 +508,18 @@ final public class StatisticsUtils {
 		return new float[] { mean, (float)meanByNormal, deviation , (float)meanByNormalCenter , (float)meanByNormalInit , (float)meanByNormalEnd } ;
 	}
 
+	static public int calcSum(int[] vals) {
+		int sum = 0 ;
+		
+		int sz = vals.length ;
+		
+		for (int i = 0; i < sz; i++) {
+			sum += vals[i];
+		}
+
+		return sum ;
+	}
+
 	static public float calcSum(float[] vals) {
 		double sum = 0 ;
 		
