@@ -104,6 +104,43 @@ final public class RoxTaskPool {
 	}
 	
 	public void waitTasks() {
+		RoxTask[] tasksToWait = null ;
+		int tasksToWaitSz ;
+		
+		while (true) {
+			
+			synchronized (tasks) {
+				if (allTasksFinished) return ;
+				
+				int tasksSz = tasks.size() ;
+				if (tasksToWait == null || tasksToWait.length < tasksSz) {
+					tasksToWait = new RoxTask[tasksSz] ;
+				}
+				
+				tasksToWaitSz = 0 ;
+				
+				for (RoxTask roxTask : tasks) {
+					if ( !roxTask.isFinished() ) {
+						tasksToWait[tasksToWaitSz++] = roxTask ;
+					}
+				}
+				
+				if (tasksToWaitSz == 0) {
+					allTasksFinished = true ;
+					return ;
+				}
+			}
+			
+			for (int i = tasksToWaitSz-1; i >= 0; i--) {
+				tasksToWait[i].waitFinished() ;
+				tasksToWait[i] = null ;
+			}
+			
+		}
+		
+	}
+	
+	public void waitTasks2() {
 		synchronized (tasks) {
 			if (allTasksFinished) return ;
 			
@@ -141,6 +178,8 @@ final public class RoxTaskPool {
 	
 	@SuppressWarnings("unchecked")
 	public <T> T[] grabTasksResults(T[] results) {
+		waitTasks();
+		
 		synchronized (tasks) {
 			waitTasks();
 			
@@ -169,6 +208,8 @@ final public class RoxTaskPool {
 	}
 	
 	public List<Throwable> grabTasksErros() {
+		waitTasks();
+		
 		synchronized (tasks) {
 			waitTasks();
 			
@@ -186,6 +227,8 @@ final public class RoxTaskPool {
 	}
 	
 	public boolean printTasksErros() {
+		waitTasks();
+		
 		synchronized (tasks) {
 			waitTasks();
 			
@@ -206,6 +249,8 @@ final public class RoxTaskPool {
 	}
 	
 	public boolean hasTasksErros() {
+		waitTasks();
+		
 		synchronized (tasks) {
 			waitTasks();
 			
@@ -430,6 +475,29 @@ final public class RoxTaskPool {
 		}
 	}
 	
+	public void printExecutionSpeedInfos() {
+		synchronized (tasks) {
+			int tasksSize = getTasksSize() ;
+			
+			long[] initEndTime = getTasksInitEndTime() ;
+			long time = initEndTime[1] - initEndTime[0] ;
+			long totalExecutedTasks = initEndTime[2] ;
+			
+			double execRatio = (totalExecutedTasks * 1d) / tasksSize ;
+			
+			long fullTime = (long) ((time / (totalExecutedTasks * 1d)) * tasksSize) ;
+			
+			long remainingTime = fullTime - time ;
+			
+			double secs = time / 1000d ; 
+			
+			double speed = totalExecutedTasks / secs ;
+			
+			System.out.println("-- tasks speed> complete: "+ totalExecutedTasks +" / "+tasksSize +" = "+ (execRatio*100) +"% > speed: "+ speed +"/s > time: ("+ time +" + "+ remainingTime +") / "+ fullTime +"ms") ;
+			
+		}
+	}
+	
 	public void printExecutionInfos() {
 		printExecutionInfos(false);
 	}
@@ -439,6 +507,8 @@ final public class RoxTaskPool {
 	}
 	
 	public void printExecutionInfos(boolean waitAllTasks) {
+		if (waitAllTasks) waitTasks() ;
+		
 		synchronized (tasks) {
 			if (waitAllTasks) waitTasks() ;
 			
