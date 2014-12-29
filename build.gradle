@@ -5,6 +5,7 @@ apply plugin: 'eclipse-wtp'
 sourceCompatibility = 1.7
 group = "roxtools"
 version = "1.1"
+[compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.1'
