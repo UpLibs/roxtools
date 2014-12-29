@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import static org.junit.Assert.*;
+
 import org.junit.Test;
 
 import roxtools.QuickSortObjects.ObjectCompareValueInt;
@@ -277,11 +278,22 @@ public class QuickSortObjectsTest {
 		
 		System.out.println("testBigSort<<");
 		
-		Random random = new Random(seed) ;
+		Runtime runtime = Runtime.getRuntime();
+		long availableMemory = runtime.maxMemory() - (runtime.totalMemory() - runtime.freeMemory()) ;
 		
-		int[] a = new int[100000000] ;
+		System.out.println("availableMemory: "+ availableMemory);
 		
+		int availableArraySize = (int)( ( availableMemory / (4+8) ) * 0.90);
+		
+		System.out.println("availableArraySize: "+ availableArraySize);
+		
+		if (availableArraySize < 10000) availableArraySize = 10000 ;
+		else if (availableArraySize > 100000000) availableArraySize = 100000000 ;
+		
+		int[] a = new int[availableArraySize] ;
 		System.out.println("array length: "+ a.length);
+		
+		Random random = new Random(seed) ;
 		
 		for (int i = 0; i < a.length; i++) {
 			a[i] = random.nextInt(a.length) ;
