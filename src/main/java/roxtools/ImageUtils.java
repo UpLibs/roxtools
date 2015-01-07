@@ -194,12 +194,27 @@ final public class ImageUtils {
 
 	static public byte[] getPixelsPart(int[] pixels, int shift) {
 		byte[] part = new byte[pixels.length];
-
-		for (int i = 0; i < part.length; i++) {
+		getPixelsPart(pixels, shift, part);
+		return part;
+	}
+	
+	static public void getPixelsPart(int[] pixels, int shift, byte[] part) {
+		for (int i = part.length-1 ; i >= 0 ; i--) {
 			part[i] = (byte) ((pixels[i] >> shift) & 0xff);
 		}
+	}
 
+	
+	static public int[] getPixelsPartAsInt(int[] pixels, int shift) {
+		int[] part = new int[pixels.length];
+		getPixelsPartAsInt(pixels, shift, part);
 		return part;
+	}
+	
+	static public void getPixelsPartAsInt(int[] pixels, int shift, int[] part) {
+		for (int i = part.length-1 ; i >= 0 ; i--) {
+			part[i] = ((pixels[i] >> shift) & 0xff);
+		}
 	}
 
 	static public BufferedImage createScaledImage(Image img, int w, int h) {
