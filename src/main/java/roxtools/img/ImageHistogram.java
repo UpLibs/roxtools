@@ -31,6 +31,25 @@ public class ImageHistogram {
 		return histRatio ;
 	}
 	
+	static public float[] calculateHistogramRatio(int[] c1, int[] c2, int[] c3, int totalColors, int lightTolerance) {
+		
+		int[] hist = calculateHistogram(c1,c2,c3, totalColors, lightTolerance) ;
+		
+		float total = 0 ;
+		
+		for (int i = hist.length-1; i >= 0; i--) {
+			total += hist[i];
+		}
+		
+		float[] histRatio = new float[hist.length] ; 
+		
+		for (int i = 0; i < histRatio.length; i++) {
+			histRatio[i] = hist[i] / total ;
+		}
+		
+		return histRatio ;
+	}
+	
 	static public int[] calculateHistogram(ImagePixels imagePixels, int totalColors, int lightTolerance) {
 		
 		imagePixels.convertToYUV() ;
@@ -62,5 +81,32 @@ public class ImageHistogram {
 		
 		return hist ;
 	}
+	
+	static public int[] calculateHistogram(int[] c1, int[] c2, int[] c3, int totalColors, int lightTolerance) {
+		
+		double possibleColors = 256d * (256d/lightTolerance) ;
+		
+		double colorRange = possibleColors / (totalColors*1d) ;
+		
+		int[] hist = new int[totalColors] ;
+		
+		for (int i = c1.length-1; i >= 0 ; i--) {
+			
+			int y = c1[i] ;
+			int u = c2[i] ;
+			int v = c3[i] ;
+			
+			int color = (u * v) / 256 ;
+			color = color * (y/lightTolerance) ;
+			
+			int colorIdx = (int) (color / colorRange) ;
+			
+			hist[colorIdx]++ ;
+			
+		}
+		
+		return hist ;
+	}
+	
 	
 }
