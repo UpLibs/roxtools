@@ -1,6 +1,11 @@
 package roxtools;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 public class ArrayUtils {
 
@@ -394,6 +399,47 @@ public class ArrayUtils {
 			if ( a[i] > a[i+1] ) return false ;
 		}
 		return true ;
+	}
+
+	@SuppressWarnings("unchecked")
+	static public <T> T[] asArrayOfSize(T[] a, int size) {
+		if (a.length < size) a = (T[]) java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), size) ;
+		return a;
+	}
+	
+	@SuppressWarnings("unchecked")
+	static public <T> T[] asArrayOfSize(T obj, int size) {
+		return (T[]) java.lang.reflect.Array.newInstance(obj.getClass(), size) ;
+	}
+	
+	@SuppressWarnings("unchecked")
+	static public <T> T[] asArrayOfSize(Class<T> clazz, int size) {
+		return (T[]) java.lang.reflect.Array.newInstance(clazz, size) ;
+	}
+	
+	static public <T> T[] toArray(Set<T> set, T[] a) {
+		return set.toArray(a) ;
+	}
+	
+	static public <T> T[] toArray(Collection<T> collection, T[] a) {
+		return collection.toArray(a) ;
+	}
+	
+	static public <T> T[] toArray(Iterator<T> it, T[] a) {
+		ArrayList<T> list = new ArrayList<T>() ;
+		while (it.hasNext()) {
+			T t = (T) it.next();
+			list.add(t) ;
+		}
+		return list.toArray(a) ;
+	}
+	
+	static public <K,V> K[] toArrayKeys(Map<K,V> map, K[] a) {
+		return toArray(map.keySet(), a) ;
+	}
+	
+	static public <K,V> V[] toArrayValues(Map<K,V> map, V[] a) {
+		return toArray(map.values(), a) ;
 	}
 	
 }
