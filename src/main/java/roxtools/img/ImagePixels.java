@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import roxtools.DigestMD5;
 import roxtools.ImageUtils;
 import roxtools.SerializationUtils;
 
@@ -1070,6 +1071,22 @@ public class ImagePixels implements Cloneable {
 		int[] pixelsList = createRGBPixelsList() ;
 		BufferedImage img = ImageUtils.createImage( pixelsList , width, height ) ;
 		return img ;
+	}
+	
+	static private final DigestMD5 DIGEST_MD5 = new DigestMD5() ;
+	
+	public byte[] calcMD5() throws IOException {
+		return DIGEST_MD5.calcMD5(getSerial()) ;
+	}
+	
+	public String calcMD5Hex() throws IOException {
+		return DIGEST_MD5.calcMD5Hex(getSerial()) ;
+	}
+	
+	final public byte[] getSerial() throws IOException {
+		ByteArrayOutputStream bout = new ByteArrayOutputStream() ;
+		writeTo(bout);
+		return bout.toByteArray() ;
 	}
 	
 	final public void writeTo(OutputStream out) throws IOException {
