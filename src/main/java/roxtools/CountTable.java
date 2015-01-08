@@ -123,6 +123,28 @@ final public class CountTable<K> {
 		return amount ;
 	}
 	
+	public Entry<K> remove(K key) {
+		int hash = hash(key) ;
+		
+		int tableIdx = tableIndexFor(hash, table.length) ;
+		
+		Entry<K>[] group = table[tableIdx] ;
+		int groupSize = tableSizes[tableIdx] ;
+		
+		for (int i = groupSize-1; i >= 0; i--) {
+			Entry<K> v = group[i] ;
+			if (v.key.equals(key)) {
+				System.arraycopy(group, i+1, group, i, (groupSize-(i+1))) ;
+				tableSizes[tableIdx] = groupSize-1 ;
+				
+				return v ;
+			}
+		}
+		
+		return null ;
+	}
+	
+	
 	public int get(K key) {
 		int hash = hash(key) ;
 		
@@ -137,6 +159,22 @@ final public class CountTable<K> {
 		}
 		
 		return 0 ;
+	}
+	
+	public Entry<K> getEntry(K key) {
+		int hash = hash(key) ;
+		
+		int tableIdx = tableIndexFor(hash, table.length) ;
+		
+		Entry<K>[] group = table[tableIdx] ;
+		int groupSize = tableSizes[tableIdx] ;
+		
+		for (int i = groupSize-1; i >= 0; i--) {
+			Entry<K> v = group[i] ;
+			if (v.key.equals(key)) return v ;
+		}
+		
+		return null ;
 	}
 	
 	public boolean contains(K key) {
