@@ -297,26 +297,4 @@ final public class CountTable<K> {
 		}
 	}
 	
-	
-
-	public static void main(String[] args) {
-		
-		CountTable<String> table = new CountTable<String>() ;
-		
-		table.increment("a") ;
-		table.increment("b") ;
-		table.increment("c") ;
-		table.increment("a") ;
-		table.increment("a") ;
-		
-		table.sum("a",10) ;
-		
-		System.out.println("c: "+ table.contains("as"));
-		
-		for (Entry<String> entry : table.getEntries()) {
-			System.out.println(entry);
-		}
-		
-	}
-	
 }
