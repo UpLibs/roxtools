@@ -156,7 +156,7 @@ final public class RoxTaskPool {
 		synchronized (tasks) {
 			allTasksFinished = false ;
 			
-			for (int i = 0; i < tasks.size() ; i++) {
+			for (int i = 0; i < tasks.size() ;) {
 				RoxTask task = tasks.get(i) ;
 				
 				if (task.isFinished()) {
@@ -166,7 +166,6 @@ final public class RoxTaskPool {
 					i++ ;
 				}
 			}
-			
 		}
 	}
 
