@@ -61,6 +61,38 @@ final public class QuickSortObjects {
 
 	////////////////////////////
 	
+	static public void sortNumbersAsInt(Number[] o, int fromIndex, int toIndex) {
+		int[] a = new int[toIndex+1] ;
+		
+		for (int i = fromIndex; i <= toIndex; i++) {
+			a[i] = o[i].intValue() ;
+		}
+		
+		quickSort(a, o, fromIndex, toIndex);
+	}
+	
+	static public void sortNumbersAsFloat(Number[] o, int fromIndex, int toIndex) {
+		float[] a = new float[toIndex+1] ;
+		
+		for (int i = fromIndex; i <= toIndex; i++) {
+			a[i] = o[i].floatValue() ;
+		}
+		
+		quickSort(a, o, fromIndex, toIndex);
+	}
+	
+	static public void sortNumbersAsDouble(Number[] o, int fromIndex, int toIndex) {
+		double[] a = new double[toIndex+1] ;
+		
+		for (int i = fromIndex; i <= toIndex; i++) {
+			a[i] = o[i].doubleValue() ;
+		}
+		
+		quickSort(a, o, fromIndex, toIndex);
+	}
+	
+	////////////////////////////
+	
 	static public void sort(int[] a, Object[] o) {
 		quickSort(a, o, 0, a.length-1);
 	}
