@@ -126,6 +126,130 @@ final public class CountTable<K> {
 		return amount ;
 	}
 	
+	public boolean set(K key, int value) {
+		int hash = hash(key) ;
+		
+		int tableIdx = tableIndexFor(hash, table.length) ;
+		
+		Entry<K>[] group = table[tableIdx] ;
+		int groupSize = tableSizes[tableIdx] ;
+		
+		for (int i = groupSize-1; i >= 0; i--) {
+			Entry<K> v = group[i] ;
+			if (v.key.equals(key)) {
+				v.count = value ;
+				return false ;
+			}
+		}
+		
+		if (size >= threshold) {
+			reHash( table.length * 2 ) ;
+			
+			tableIdx = tableIndexFor(hash, table.length) ;
+			
+			group = table[tableIdx] ;
+			groupSize = tableSizes[tableIdx] ;
+		}
+		
+		if (groupSize == group.length) {
+			group = Arrays.copyOf(group, groupSize+DEFAULT_TABLE_GROUP_SIZE) ;
+			table[tableIdx] = group ;
+		}
+		
+		group[groupSize++] = new Entry<K>(key,value) ;
+		tableSizes[tableIdx] = groupSize ;
+		
+		this.size++ ;
+		
+		return true ;
+	}
+	
+	public boolean setMaximum(K key, int value) {
+		int hash = hash(key) ;
+		
+		int tableIdx = tableIndexFor(hash, table.length) ;
+		
+		Entry<K>[] group = table[tableIdx] ;
+		int groupSize = tableSizes[tableIdx] ;
+		
+		for (int i = groupSize-1; i >= 0; i--) {
+			Entry<K> v = group[i] ;
+			if (v.key.equals(key)) {
+				if (value > v.count) {
+					v.count = value ;
+					return true ;
+				}
+				else {
+					return false ;
+				}
+			}
+		}
+		
+		if (size >= threshold) {
+			reHash( table.length * 2 ) ;
+			
+			tableIdx = tableIndexFor(hash, table.length) ;
+			
+			group = table[tableIdx] ;
+			groupSize = tableSizes[tableIdx] ;
+		}
+		
+		if (groupSize == group.length) {
+			group = Arrays.copyOf(group, groupSize+DEFAULT_TABLE_GROUP_SIZE) ;
+			table[tableIdx] = group ;
+		}
+		
+		group[groupSize++] = new Entry<K>(key,value) ;
+		tableSizes[tableIdx] = groupSize ;
+		
+		this.size++ ;
+		
+		return true ;
+	}
+	
+	public boolean setMinimum(K key, int value) {
+		int hash = hash(key) ;
+		
+		int tableIdx = tableIndexFor(hash, table.length) ;
+		
+		Entry<K>[] group = table[tableIdx] ;
+		int groupSize = tableSizes[tableIdx] ;
+		
+		for (int i = groupSize-1; i >= 0; i--) {
+			Entry<K> v = group[i] ;
+			if (v.key.equals(key)) {
+				if (value < v.count) {
+					v.count = value ;
+					return true ;
+				}
+				else {
+					return false ;
+				}
+			}
+		}
+		
+		if (size >= threshold) {
+			reHash( table.length * 2 ) ;
+			
+			tableIdx = tableIndexFor(hash, table.length) ;
+			
+			group = table[tableIdx] ;
+			groupSize = tableSizes[tableIdx] ;
+		}
+		
+		if (groupSize == group.length) {
+			group = Arrays.copyOf(group, groupSize+DEFAULT_TABLE_GROUP_SIZE) ;
+			table[tableIdx] = group ;
+		}
+		
+		group[groupSize++] = new Entry<K>(key,value) ;
+		tableSizes[tableIdx] = groupSize ;
+		
+		this.size++ ;
+		
+		return true ;
+	}
+	
 	public Entry<K> remove(K key) {
 		int hash = hash(key) ;
 		
@@ -235,7 +359,10 @@ final public class CountTable<K> {
 		return size;
 	}
 	
-
+	public boolean isEmpty() {
+		return size == 0 ;
+	}
+	
 	public void clear() {
 		clear(8) ;
 	}
@@ -251,6 +378,8 @@ final public class CountTable<K> {
 		this.tableSizes = new int[capacity] ;
 		
 		this.threshold = calcThreshold(capacity) ;
+		
+		this.size = 0 ;
 	}
 	
 	public Entry<K>[] getEntries() {
