@@ -1,6 +1,8 @@
 package roxtools;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 final public class CountTable<K> {
 	
@@ -295,6 +297,16 @@ final public class CountTable<K> {
 		else {
 			return entries ;
 		}
+	}
+	
+	public List<K> getKeys() {
+		ArrayList<K> list = new ArrayList<K>(size) ;
+		
+		for (Entry<K> entry : getEntries()) {
+			list.add( entry.getKey() ) ;
+		}
+		
+		return list ;
 	}
 	
 }
