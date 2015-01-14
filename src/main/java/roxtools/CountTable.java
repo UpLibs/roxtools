@@ -1,5 +1,6 @@
 package roxtools;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -307,6 +308,34 @@ final public class CountTable<K> {
 		}
 		
 		return list ;
+	}
+	
+	public Object[] getKeysArray() {
+		Object[] keys = new Object[size] ;
+		int keysSz = 0 ;
+		
+		for (Entry<K> entry : getEntries()) {
+			keys[keysSz++] = entry.getKey() ;
+		}
+		
+		return keys ;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public K[] getKeysArray(K[] keys) {
+		if (keys.length < size) {
+			keys = (K[]) Array.newInstance(keys.getClass().getComponentType(), size) ;
+		}
+		
+		int keysSz = 0 ;
+		
+		for (Entry<K> entry : getEntries()) {
+			keys[keysSz++] = entry.getKey() ;
+		}
+		
+		if (keys.length > size) keys[size] = null;
+		
+		return keys ;
 	}
 	
 }
