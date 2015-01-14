@@ -482,6 +482,19 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 				highlight.setMovable(movable) ;
 			}
 		}
+		
+		public void removeHighlight(Rectangle rect) {
+			synchronized (highlights) {
+				Highlight highlight = getHighlight(rect, false) ;
+				
+				if (highlight != null) {
+					highlights.remove(highlight) ;
+					synchronized (rectangleHighlights) {
+						rectangleHighlights.remove(rect);
+					}
+				}
+			}
+		}
 
 		public void setHighlightHint( Rectangle rect , String hint ) {
 			synchronized (highlights) {
@@ -1045,6 +1058,9 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 			return new ConsoleImage(DUMMY_BUFFERED_IMAGE) ;
 		}
 
+		@Override
+		public void requestRepaint() {}
+		
 		@Override
 		public void newLine() {}
 
@@ -1678,6 +1694,11 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 	@Override
 	public void writeLn(byte... bs) {
 		printLn( new String(bs) ) ;
+	}
+	
+	@Override
+	public void requestRepaint() {
+		repaintPanel();
 	}
 	
 	private void repaintPanel() {

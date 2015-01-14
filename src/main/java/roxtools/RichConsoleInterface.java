@@ -59,4 +59,6 @@ public interface RichConsoleInterface {
 
 	public abstract RichConsoleListener getListener();
 
+	public abstract void requestRepaint();
+
 }
