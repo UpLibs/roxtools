@@ -60,6 +60,13 @@ abstract public class RoxTask implements Runnable {
 		}
 	}
 	
+	public Object waitResult(long timeout) {
+		synchronized (this) {
+			waitFinished(timeout);
+			return this.result ;
+		}
+	}
+	
 	private volatile long initTime ;
 	private volatile long endTime ;
 	
@@ -116,6 +123,25 @@ abstract public class RoxTask implements Runnable {
 					this.wait();
 				} catch (InterruptedException e) {}
 			}
+		}
+	}
+	
+	public boolean waitFinished(long timeout) {
+		synchronized (this) {
+			long initTime = System.currentTimeMillis() ;
+			
+			while (!finished) {
+				long time = System.currentTimeMillis() - initTime ;
+				long timeLeft = timeout - time ;
+				
+				if (timeLeft < 1) return finished ;
+				
+				try {
+					this.wait(timeLeft);
+				} catch (InterruptedException e) {}
+			}
+			
+			return finished ;
 		}
 	}
 	
