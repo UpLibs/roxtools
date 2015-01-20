@@ -80,6 +80,25 @@ final public class ImageUtils {
 
 		return buffImg;
 	}
+	
+	static public BufferedImage copyImageARGB(Image img, Color background) {
+		int w = img.getWidth(null) ;
+		int h = img.getHeight(null) ;
+		
+		BufferedImage buffImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+
+		Graphics g = buffImg.createGraphics();
+
+		g.setColor(background);
+
+		g.fillRect(0, 0, w, h);
+
+		g.drawImage(img, 0, 0, null);
+
+		g.dispose();
+
+		return buffImg;
+	}
 
 	static public BufferedImage readFile(String filePath) {
 		return readFile(new File(filePath));
@@ -140,6 +159,20 @@ final public class ImageUtils {
 
 	static public BufferedImage createImage(Color bgColor, int w, int h) {
 		BufferedImage buffImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+
+		Graphics2D g = buffImg.createGraphics();
+
+		g.setColor(bgColor);
+
+		g.fillRect(0, 0, w, h);
+
+		g.dispose();
+
+		return buffImg;
+	}
+	
+	static public BufferedImage createImageARGB(Color bgColor, int w, int h) {
+		BufferedImage buffImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 
 		Graphics2D g = buffImg.createGraphics();
 
