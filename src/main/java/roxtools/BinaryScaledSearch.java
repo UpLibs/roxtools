@@ -142,7 +142,7 @@ final public class BinaryScaledSearch {
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	
-	  /**
+	/**
      * Searches the specified array for the specified key using the
      * binary scaled search algorithm (by G.M.P.).
      * 
