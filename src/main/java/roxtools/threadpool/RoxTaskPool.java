@@ -492,7 +492,15 @@ final public class RoxTaskPool {
 			
 			double speed = totalExecutedTasks / secs ;
 			
-			System.out.println("-- tasks speed> complete: "+ totalExecutedTasks +" / "+tasksSize +" = "+ (execRatio*100) +"% > speed: "+ speed +"/s > time: ("+ time +" + "+ remainingTime +") / "+ fullTime +"ms") ;
+			Runtime runtime = Runtime.getRuntime() ;
+			
+			long memTotal = runtime.totalMemory() ;
+			long memFree = runtime.freeMemory() ;
+			long memUsed = memTotal - memFree ;
+			
+			long mb = 1024*1024 ;
+			
+			System.out.println("-- tasks speed> complete: "+ totalExecutedTasks +" / "+tasksSize +" = "+ (execRatio*100) +"% > speed: "+ speed +"/s > time: ("+ time +" + "+ remainingTime +") / "+ fullTime +"ms > memory: ("+ (memUsed/mb) +" + "+ (memFree/mb) +") / "+ (memTotal/mb) +"MB" ) ;
 			
 		}
 	}
