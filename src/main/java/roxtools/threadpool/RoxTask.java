@@ -39,7 +39,7 @@ abstract public class RoxTask implements Runnable {
 		}
 	}
 	
-	private Object result ;
+	volatile private Object result ;
 	
 	public void setResult(Object result) {
 		synchronized (this) {
