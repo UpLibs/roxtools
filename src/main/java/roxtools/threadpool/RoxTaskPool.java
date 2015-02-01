@@ -87,7 +87,13 @@ final public class RoxTaskPool {
 		System.out.println("-- Finished tasks: "+ message);
 	}
 	
-	private boolean allTasksFinished = false ;
+	public void waitTasksForcedVerbose(String message) {
+		System.out.println("-- Waiting tasks["+ getTasksSize() +"]: "+ message);
+		waitTasksForced();
+		System.out.println("-- Finished tasks: "+ message);
+	}
+	
+	volatile private boolean allTasksFinished = false ;
 	
 
 	public boolean isAllTasksFinished() {
@@ -104,13 +110,21 @@ final public class RoxTaskPool {
 	}
 	
 	public void waitTasks() {
+		waitTasksImplem(false);
+	}
+	
+	public void waitTasksForced() {
+		waitTasksImplem(true);
+	}
+	
+	private void waitTasksImplem(boolean force) {
 		RoxTask[] tasksToWait = null ;
 		int tasksToWaitSz ;
 		
 		while (true) {
 			
 			synchronized (tasks) {
-				if (allTasksFinished) return ;
+				if (allTasksFinished && !force) return ;
 				
 				int tasksSz = tasks.size() ;
 				if (tasksToWait == null || tasksToWait.length < tasksSz) {
@@ -140,18 +154,6 @@ final public class RoxTaskPool {
 		
 	}
 	
-	public void waitTasks2() {
-		synchronized (tasks) {
-			if (allTasksFinished) return ;
-			
-			for (RoxTask roxTask : tasks) {
-				roxTask.waitFinished() ;
-			}
-			
-			allTasksFinished = true ;
-		}
-	}
-	
 	public void clearFinishedTasks() {
 		synchronized (tasks) {
 			allTasksFinished = false ;
@@ -177,7 +179,7 @@ final public class RoxTaskPool {
 	
 	@SuppressWarnings("unchecked")
 	public <T> T[] grabTasksResults(T[] results) {
-		waitTasks();
+		waitTasksForced();
 		
 		synchronized (tasks) {
 			waitTasks();
@@ -207,7 +209,7 @@ final public class RoxTaskPool {
 	}
 	
 	public List<Throwable> grabTasksErros() {
-		waitTasks();
+		waitTasksForced();
 		
 		synchronized (tasks) {
 			waitTasks();
@@ -226,7 +228,7 @@ final public class RoxTaskPool {
 	}
 	
 	public boolean printTasksErros() {
-		waitTasks();
+		waitTasksForced();
 		
 		synchronized (tasks) {
 			waitTasks();
@@ -248,7 +250,7 @@ final public class RoxTaskPool {
 	}
 	
 	public boolean hasTasksErros() {
-		waitTasks();
+		waitTasksForced();
 		
 		synchronized (tasks) {
 			waitTasks();
@@ -514,7 +516,7 @@ final public class RoxTaskPool {
 	}
 	
 	public void printExecutionInfos(boolean waitAllTasks) {
-		if (waitAllTasks) waitTasks() ;
+		if (waitAllTasks) waitTasksForced() ;
 		
 		synchronized (tasks) {
 			if (waitAllTasks) waitTasks() ;
