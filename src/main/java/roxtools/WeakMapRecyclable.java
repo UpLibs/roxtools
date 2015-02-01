@@ -76,6 +76,16 @@ final public class WeakMapRecyclable<K,V> {
 		this.threshold = calcThreshold(capacity) ;
 	}
 	
+	public WeakMapRecyclable(RecycleHandler<V> recycleHandler) {
+		this() ;
+		this.recycleHandler = recycleHandler ;
+	}
+	
+	public WeakMapRecyclable(int initialCapacity, RecycleHandler<V> recycleHandler) {
+		this(initialCapacity);
+		this.recycleHandler = recycleHandler ;
+	}
+	
 	@SuppressWarnings("unchecked")
 	private RecycleHandler<V> recycleHandler = DUMMY_RECICLE_HANDLER ;
 	
