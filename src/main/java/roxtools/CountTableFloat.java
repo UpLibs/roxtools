@@ -8,10 +8,12 @@ import java.util.List;
 final public class CountTableFloat<K> {
 	
 	final static public class Entry<K> {
+		final int hash ;
 		final K key ;
 		float count ;
 		
-		public Entry(K key, float count) {
+		public Entry(K key, float count, int hash) {
+			this.hash = hash;
 			this.key = key;
 			this.count = count;
 		}
@@ -80,6 +82,10 @@ final public class CountTableFloat<K> {
         return h & (length-1);
     }
 	
+	private boolean eq(K a, K b) {
+		return a == b || a.equals(b) ;
+	}
+	
 	public float increment(K key) {
 		return sum(key, 1);
 	}
@@ -98,7 +104,7 @@ final public class CountTableFloat<K> {
 		
 		for (int i = groupSize-1; i >= 0; i--) {
 			Entry<K> v = group[i] ;
-			if (v.key.equals(key)) {
+			if (v.hash == hash && eq(v.key,key)) {
 				v.count += amount ;
 				return v.count ;
 			}
@@ -118,7 +124,7 @@ final public class CountTableFloat<K> {
 			table[tableIdx] = group ;
 		}
 		
-		group[groupSize++] = new Entry<K>(key,amount) ;
+		group[groupSize++] = new Entry<K>(key,amount,hash) ;
 		tableSizes[tableIdx] = groupSize ;
 		
 		this.size++ ;
@@ -136,7 +142,7 @@ final public class CountTableFloat<K> {
 		
 		for (int i = groupSize-1; i >= 0; i--) {
 			Entry<K> v = group[i] ;
-			if (v.key.equals(key)) {
+			if (v.hash == hash && eq(v.key,key)) {
 				v.count = value ;
 				return false ;
 			}
@@ -156,7 +162,7 @@ final public class CountTableFloat<K> {
 			table[tableIdx] = group ;
 		}
 		
-		group[groupSize++] = new Entry<K>(key,value) ;
+		group[groupSize++] = new Entry<K>(key,value,hash) ;
 		tableSizes[tableIdx] = groupSize ;
 		
 		this.size++ ;
@@ -174,7 +180,7 @@ final public class CountTableFloat<K> {
 		
 		for (int i = groupSize-1; i >= 0; i--) {
 			Entry<K> v = group[i] ;
-			if (v.key.equals(key)) {
+			if (v.hash == hash && eq(v.key,key)) {
 				if (value > v.count) {
 					v.count = value ;
 					return true ;
@@ -199,7 +205,7 @@ final public class CountTableFloat<K> {
 			table[tableIdx] = group ;
 		}
 		
-		group[groupSize++] = new Entry<K>(key,value) ;
+		group[groupSize++] = new Entry<K>(key,value,hash) ;
 		tableSizes[tableIdx] = groupSize ;
 		
 		this.size++ ;
@@ -217,7 +223,7 @@ final public class CountTableFloat<K> {
 		
 		for (int i = groupSize-1; i >= 0; i--) {
 			Entry<K> v = group[i] ;
-			if (v.key.equals(key)) {
+			if (v.hash == hash && eq(v.key,key)) {
 				if (value < v.count) {
 					v.count = value ;
 					return true ;
@@ -242,7 +248,7 @@ final public class CountTableFloat<K> {
 			table[tableIdx] = group ;
 		}
 		
-		group[groupSize++] = new Entry<K>(key,value) ;
+		group[groupSize++] = new Entry<K>(key,value,hash) ;
 		tableSizes[tableIdx] = groupSize ;
 		
 		this.size++ ;
@@ -260,7 +266,7 @@ final public class CountTableFloat<K> {
 		
 		for (int i = groupSize-1; i >= 0; i--) {
 			Entry<K> v = group[i] ;
-			if (v.key.equals(key)) {
+			if (v.hash == hash && eq(v.key,key)) {
 				System.arraycopy(group, i+1, group, i, (groupSize-(i+1))) ;
 				tableSizes[tableIdx] = groupSize-1 ;
 				
@@ -282,7 +288,7 @@ final public class CountTableFloat<K> {
 		
 		for (int i = groupSize-1; i >= 0; i--) {
 			Entry<K> v = group[i] ;
-			if (v.key.equals(key)) return v.count ;
+			if (v.hash == hash && eq(v.key,key)) return v.count ;
 		}
 		
 		return 0 ;
@@ -298,7 +304,7 @@ final public class CountTableFloat<K> {
 		
 		for (int i = groupSize-1; i >= 0; i--) {
 			Entry<K> v = group[i] ;
-			if (v.key.equals(key)) return v ;
+			if (v.hash == hash && eq(v.key,key)) return v ;
 		}
 		
 		return null ;
@@ -314,7 +320,7 @@ final public class CountTableFloat<K> {
 		
 		for (int i = groupSize-1; i >= 0; i--) {
 			Entry<K> v = group[i] ;
-			if (v.key.equals(key)) return true ;
+			if (v.hash == hash && eq(v.key,key)) return true ;
 		}
 		
 		return false ;
