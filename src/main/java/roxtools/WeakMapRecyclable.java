@@ -301,6 +301,31 @@ final public class WeakMapRecyclable<K,V> {
 		return null ;
 	}
 	
+	public V getFast(K key) {
+		int hash = hash(key) ;
+		
+		int tableIdx = tableIndexFor(hash, table.length) ;
+		Entry<K,V> head = table[tableIdx] ;
+	
+		Entry<K,V> cursor = head ;
+		
+		while ( cursor != null ) {
+			Entry<K,V> next = cursor.next ;
+			
+			if (cursor.hash == hash) {
+				K k = cursor.get() ;
+				
+				if (k != null && eq(k,key) ) {
+					return cursor.value ;
+				}
+			}
+			
+			cursor = next ; 
+		}
+		
+		return null ;
+	}
+	
 	public boolean contains(K key) {
 		int hash = hash(key) ;
 		
