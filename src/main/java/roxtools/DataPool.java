@@ -79,9 +79,19 @@ abstract public class DataPool<T , K extends DataPoolSizeKey> {
 		}
 		
 		synchronized (cachedData) {
+			assert( !containsData(cachedData, data) ) ;
 			cachedData.addLast(ref) ;
 		}
 		
+	}
+	
+	private boolean containsData(ArrayDeque<SoftReference<T>> cache, T data) {
+		for (SoftReference<T> ref : cache) {
+			T d = ref.get() ;
+			if (d == data) return true ;
+		}
+		
+		return false ;
 	}
 	
 }
