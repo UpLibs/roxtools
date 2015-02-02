@@ -179,7 +179,7 @@ final public class RoxTaskPool {
 	
 	@SuppressWarnings("unchecked")
 	public <T> T[] grabTasksResults(T[] results) {
-		waitTasksForced();
+		waitTasks();
 		
 		synchronized (tasks) {
 			waitTasks();
@@ -209,7 +209,7 @@ final public class RoxTaskPool {
 	}
 	
 	public List<Throwable> grabTasksErros() {
-		waitTasksForced();
+		waitTasks();
 		
 		synchronized (tasks) {
 			waitTasks();
@@ -228,7 +228,7 @@ final public class RoxTaskPool {
 	}
 	
 	public boolean printTasksErros() {
-		waitTasksForced();
+		waitTasks();
 		
 		synchronized (tasks) {
 			waitTasks();
@@ -250,7 +250,7 @@ final public class RoxTaskPool {
 	}
 	
 	public boolean hasTasksErros() {
-		waitTasksForced();
+		waitTasks();
 		
 		synchronized (tasks) {
 			waitTasks();
@@ -516,7 +516,7 @@ final public class RoxTaskPool {
 	}
 	
 	public void printExecutionInfos(boolean waitAllTasks) {
-		if (waitAllTasks) waitTasksForced() ;
+		if (waitAllTasks) waitTasks() ;
 		
 		synchronized (tasks) {
 			if (waitAllTasks) waitTasks() ;
