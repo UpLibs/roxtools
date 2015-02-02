@@ -33,6 +33,8 @@ abstract public class DataPool<T , K extends DataPoolSizeKey> {
 	
 	final public T catchData(K dataSizeKey) {
 		
+		//if (true) return createData(dataSizeKey) ;
+
 		ArrayDeque<SoftReference<T>> cachedData ;
 		synchronized (cacheTable) {
 			cachedData = cacheTable.get(dataSizeKey) ;
@@ -63,6 +65,8 @@ abstract public class DataPool<T , K extends DataPoolSizeKey> {
 	}
 	
 	final public void releaseData(T data, K dataSizeKey) {
+		//if (true) return ;
+		
 		SoftReference<T> ref = new SoftReference<T>(data) ;
 		
 		ArrayDeque<SoftReference<T>> cachedData ;
