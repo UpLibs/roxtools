@@ -339,7 +339,7 @@ final public class CountTable<K> {
 			for (int j = groupSz-1; j >= 0; j--) {
 				Entry<K> v = group[j] ;
 				
-				int hash = hash(v) ;
+				int hash = v.hash;
 				int tableIdx = tableIndexFor(hash, newTableSize) ;
 				
 				Entry<K>[] group2 = table2[tableIdx] ;

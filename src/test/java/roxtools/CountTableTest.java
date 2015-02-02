@@ -1,6 +1,9 @@
 package roxtools;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import org.junit.Test;
 
@@ -175,6 +178,45 @@ public class CountTableTest {
 			}
 		}
 				
+	}
+	
+	@Test
+	public void testBigHashTable() {
+		
+		CountTable<Integer> countTable = new CountTable<Integer>() ;
+		HashMap<Integer, Integer> countTable2 = new HashMap<Integer, Integer>() ;
+		
+		Random rand = new Random(123) ;
+		
+		for (int i = 0; i < 1000000; i++) {
+			int key = rand.nextInt(100000) ;
+			int amount = rand.nextInt(100) ;
+			
+			countTable.sum(key, amount) ;
+			
+			Integer count = countTable2.get(key) ;
+			count = count != null ? count+amount : amount ;
+			countTable2.put(key, count) ;
+		}
+		
+		assertTrue( countTable.size() == countTable2.size() ) ;
+		
+		Integer[] keys = countTable.getKeysArray( new Integer[countTable.size()] ) ;
+		Integer[] keys2 = ArrayUtils.toArray( countTable2.keySet() , new Integer[countTable2.size()] ) ;
+		
+		Arrays.sort(keys);
+		Arrays.sort(keys2);
+		
+		assertTrue( Arrays.equals(keys, keys2) );
+		
+		for (Integer key : keys) {
+			
+			int val = countTable.get(key) ;
+			int val2 = countTable2.get(key) ;
+			
+			assertTrue( val == val2 );
+		}
+		
 	}
 	
 }
