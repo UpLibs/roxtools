@@ -190,7 +190,7 @@ public class CountTableFloatTest {
 		Random rand = new Random(123) ;
 		
 		for (int i = 0; i < 1000000; i++) {
-			int key = rand.nextInt(100000) ;
+			int key = rand.nextInt(10000) ;
 			float amount = rand.nextInt(100) + rand.nextFloat() ;
 			
 			countTable.sum(key, amount) ;

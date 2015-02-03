@@ -189,7 +189,7 @@ public class CountTableTest {
 		Random rand = new Random(123) ;
 		
 		for (int i = 0; i < 1000000; i++) {
-			int key = rand.nextInt(100000) ;
+			int key = rand.nextInt(10000) ;
 			int amount = rand.nextInt(100) ;
 			
 			countTable.sum(key, amount) ;
