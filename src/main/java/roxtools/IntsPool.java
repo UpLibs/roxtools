@@ -46,22 +46,20 @@ final public class IntsPool {
 		ArrayDeque<SoftReference<int[]>> cached ;
 		synchronized (cacheTable) {
 			cached = cacheTable.get(sizeKey) ;
-			
-			if (cached == null) {
-				cacheTable.put(sizeKey, cached = new ArrayDeque<SoftReference<int[]>>() ) ;
-			}
 		}
 		
-		synchronized (cached) {
-			
-			while (true) {
-				SoftReference<int[]> ref = cached.pollLast() ;
-				if (ref == null) break ;
+		if (cached != null) {
+			synchronized (cached) {
 				
-				int[] ns = ref.get() ;
-				if (ns != null) return ns ;
+				while (true) {
+					SoftReference<int[]> ref = cached.pollLast() ;
+					if (ref == null) break ;
+					
+					int[] ns = ref.get() ;
+					if (ns != null) return ns ;
+				}
+				 
 			}
-			 
 		}
 		
 		return new int[size] ;
@@ -77,7 +75,7 @@ final public class IntsPool {
 			cached = cacheTable.get(sizeKey) ;
 			
 			if (cached == null) {
-				cacheTable.put(sizeKey, cached = new ArrayDeque<SoftReference<int[]>>() ) ;
+				cacheTable.put(sizeKey, cached = new ArrayDeque<SoftReference<int[]>>(4) ) ;
 			}
 		}
 		
