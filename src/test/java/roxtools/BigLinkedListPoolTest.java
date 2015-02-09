@@ -1,9 +1,14 @@
 package roxtools;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Collections;
+
 import org.junit.Test;
 
 import roxtools.BigLinkedListPool.BigLinkedList;
-import static org.junit.Assert.*;
 
 public class BigLinkedListPoolTest {
 	
@@ -17,7 +22,9 @@ public class BigLinkedListPoolTest {
 		
 		final long bigMemory = (long) (1024L*1024*1024*1.5) ;
 		
-		ALLOW_BIG_TESTS = maxMemory >= bigMemory ;
+		boolean allow = maxMemory >= bigMemory ;
+		
+		ALLOW_BIG_TESTS = allow ;
 		
 		System.out.println("** ALLOW_BIG_TESTS: "+ ALLOW_BIG_TESTS +" > "+ (maxMemory/1024) +"KB / "+ (bigMemory/1024)+"KB" );
 		
@@ -121,6 +128,100 @@ public class BigLinkedListPoolTest {
 		}
 		
 		System.out.println(pool);
+		
+	}
+	
+	@Test
+	public void testRemove() {
+		BigLinkedListPool<Integer> pool = new BigLinkedListPool<Integer>(Integer.class) ;
+		
+		ArrayList<BigLinkedList<Integer>> lists = new ArrayList< BigLinkedList<Integer> >() ;
+		
+		int totalSize = 0 ;
+		
+		for (int i = 0; i < 100; i++) {
+			
+			BigLinkedList<Integer> list = pool.createLinkedList() ;
+			
+			lists.add(list) ;
+			
+			for (int j = 0; j < 1000; j++) {
+				list.add(j);
+			}
+			
+			totalSize += list.size() ;
+		}
+		
+		assertTrue( pool.size() == totalSize );
+
+		int totalSize2 = 0 ;
+		
+		for (BigLinkedList<Integer> list : lists) {
+			
+			Integer[] array = list.toArray() ;
+			ArrayList<Integer> checkList = new ArrayList<Integer>( array.length ) ;
+			Collections.addAll(checkList, array) ;
+			
+			assertTrue( list.size() == checkList.size() );
+			
+			int preRemoveSize = list.size() ;
+			
+			int removeCount = 0 ;
+			for (int j = 0; j < 1000; j+=2) {
+				int rmIdx = j-removeCount ;
+				Integer val = list.remove(rmIdx) ;
+				Integer val2 = checkList.remove(rmIdx) ;
+				
+				assertNotNull(val);
+				assertNotNull(val2);
+				
+				assertTrue( val.equals(val2) );
+				
+				assertTrue( val.equals(j) );
+				
+				removeCount++ ;
+			}
+			
+			assertTrue( list.size() == checkList.size() );
+			
+			int sz = list.size() ;
+			
+			assertTrue( sz == preRemoveSize/2 );
+			
+			
+			for (int i = 0; i < sz; i++) {
+				Integer v = list.get(i) ;
+				Integer v2 = checkList.get(i) ;
+				
+				assertNotNull(v);
+				assertNotNull(v2);
+				
+				assertTrue( v.equals(v2) );
+			}
+			
+			totalSize2 += list.size() ;
+			
+		}
+		
+		assertTrue( pool.size() == totalSize2 );
+		
+		for (BigLinkedList<Integer> list : lists) {
+			
+			Integer[] array = list.toArray() ;
+			
+			assertTrue( array.length == list.size() );
+			
+			Integer prevV = null ;
+			for (Integer v : list) {
+				
+				if (prevV != null) {
+					assertTrue( v == prevV+2 );
+				}
+				
+				prevV = v ;
+			}
+			
+		}
 		
 	}
 
