@@ -75,11 +75,11 @@ public class BinaryScaledSearchTest {
 	
 	
 	// uncomment to execute it as Unit Test:
-	//@Test
+	@Test
 	public void benchmark() {
 		
 		System.out.println("prepare");
-		benchmarkImplem();
+		benchmarkImplem(2);
 		
 		System.out.println("sleep...");
 		try { Thread.sleep(3000) ;} catch (InterruptedException e) {}
@@ -90,23 +90,45 @@ public class BinaryScaledSearchTest {
 		try { Thread.sleep(3000) ;} catch (InterruptedException e) {}
 		
 		System.out.println("benchmark");
-		benchmarkImplem();
+		benchmarkImplem(10);
 		
 	}
-	
-	private void benchmarkImplem() {
+
+
+	static final int BENCHMARK_LOOPS = 999 ;
+
+	private void benchmarkImplem(int repetitions) {
 		
-		int[] set = createSet(10000, 0, 100000, 123) ;
-		
+		int[] set = createSet(100, 0, 100000, 123) ;
+		int[] keysToSearch = createSet(10000, 0, 100000, 456) ;
+
 		Arrays.sort(set);
-		
-		int[] keysToSearch = createSet(1000, 0, 100000, 456) ;
-		
 		Arrays.sort(keysToSearch);
 		
+		long bestTimeBinaryScaledSearch = Long.MAX_VALUE ;
+		long bestTimeBinarySearchOriginal = Long.MAX_VALUE ;
+		
+		for (int i = 0; i < repetitions; i++) {
+			bestTimeBinaryScaledSearch = Math.min( bestTimeBinaryScaledSearch , benchmarkBinaryScaledSearch(set, keysToSearch) ) ;
+			
+			bestTimeBinarySearchOriginal = Math.min( bestTimeBinarySearchOriginal , benchmarkBinarySearchOriginal(set, keysToSearch) ) ;
+			
+			
+			System.out.println("================================================== "+ i);
+			
+			System.out.println("bestTimeBinaryScaledSearch: "+ bestTimeBinaryScaledSearch);
+			System.out.println("bestTimeBinarySearchOriginal: "+ bestTimeBinarySearchOriginal);
+			
+			System.out.println("==================================================");
+		}
+		
+		
+	}
+
+	private long benchmarkBinaryScaledSearch(int[] set, int[] keysToSearch) {
 		long timeBinaryScaledSearch = System.currentTimeMillis() ;
 		
-		for (int loop = 9999; loop >= 0; loop--) {
+		for (int loop = BENCHMARK_LOOPS; loop >= 0; loop--) {
 			for (int i = keysToSearch.length-1; i >= 0; i--) {
 				BinaryScaledSearch.search(set, keysToSearch[i]) ;
 				BinaryScaledSearch.search(set, keysToSearch[i]) ;
@@ -126,9 +148,13 @@ public class BinaryScaledSearchTest {
 
 		System.out.println("timeBinaryScaledSearch: "+ timeBinaryScaledSearch);
 		
+		return timeBinaryScaledSearch ;
+	}
+	
+	private long benchmarkBinarySearchOriginal(int[] set, int[] keysToSearch) {
 		long timeBinarySearchOriginal = System.currentTimeMillis() ;
 		
-		for (int loop = 9999; loop >= 0; loop--) {
+		for (int loop = BENCHMARK_LOOPS; loop >= 0; loop--) {
 			for (int i = keysToSearch.length-1; i >= 0; i--) {
 				BinaryScaledSearch.binarySearchOriginal(set, keysToSearch[i]) ;
 				BinaryScaledSearch.binarySearchOriginal(set, keysToSearch[i]) ;
@@ -148,6 +174,7 @@ public class BinaryScaledSearchTest {
 		
 		System.out.println("timeBinarySearchOriginal: "+ timeBinarySearchOriginal);
 		
+		return timeBinarySearchOriginal ;
 	}
-	
+
 }

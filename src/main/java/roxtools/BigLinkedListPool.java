@@ -1,8 +1,10 @@
 package roxtools;
 
 import java.lang.reflect.Array;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 final public class BigLinkedListPool<E> {
 	final protected Class<E> type ;
@@ -165,6 +167,14 @@ final public class BigLinkedListPool<E> {
 			this.size = 0 ;
 		}
 		
+		public BigLinkedListPool<E> getPool() {
+			return pool;
+		}
+		
+		public Object getMUTEX() {
+			return pool;
+		}
+		
 		public int size() {
 			return size ;
 		}
@@ -187,6 +197,18 @@ final public class BigLinkedListPool<E> {
 			pool.setData(tailLinkIdx, elem);
 			
 			this.size++ ;
+		}
+		
+		public void addAll(@SuppressWarnings("unchecked") E... elems) {
+			for (E e : elems) {
+				add(e);
+			}
+		}
+		
+		public void addAll(Iterable<E> elems) {
+			for (E e : elems) {
+				add(e);
+			}
 		}
 		
 		public E removeFirst() {
@@ -349,6 +371,94 @@ final public class BigLinkedListPool<E> {
 			return pool.data[blockIdx][innerIdx] ;
 		}
 		
+		public void setAll(List<E> elems) {
+			clear();
+			
+			for (E e : elems) {
+				add(e);
+			}
+		}
+		
+		public void setAll(@SuppressWarnings("unchecked") E... elems) {
+			
+			clear();
+			
+			for (E e : elems) {
+				add(e);
+			}
+			
+		}
+		
+		public E set(int idx, E elem) {
+			if (idx == size) {
+				add(elem);
+				return null ;
+			}
+			else if ( idx < (size >>> 1) ) {
+				return setFromHead(idx, elem) ;
+			}
+			else {
+				return setFromTail(idx, elem) ;
+			}
+		}
+		
+		public E setFromHead(int idx, E elem) {
+			if (idx >= size) return null ;
+			
+			int blockSize = pool.blockSize ;
+			int[][] links = pool.links ;
+			
+			int blockIdx ;
+			int innerIdx ;
+			
+			int cursor = this.headLinkIdx ;
+			
+			for (int i = idx-1 ; i >= 0 ; i--) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor % blockSize ;
+				
+				cursor = links[blockIdx][innerIdx] ;
+			}
+			
+			blockIdx = cursor / blockSize ;
+			innerIdx = cursor % blockSize ;
+			
+			E prevData = pool.data[blockIdx][innerIdx] ;
+			
+			pool.data[blockIdx][innerIdx] = elem ;
+			
+			return prevData ;
+		}
+		
+		public E setFromTail(int idx, E elem) {
+			if (idx >= size) return null ;
+			
+			int blockSize = pool.blockSize ;
+			int[][] linksReversed = pool.linksReversed;
+			
+			int blockIdx ;
+			int innerIdx ;
+			
+			int cursor = this.tailLinkIdx ;
+			
+			for (int i = (size-idx)-2 ; i >= 0 ; i--) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor % blockSize ;
+				
+				
+				cursor = linksReversed[blockIdx][innerIdx] ;
+			}
+			
+			blockIdx = cursor / blockSize ;
+			innerIdx = cursor % blockSize ;
+			
+			E prevData = pool.data[blockIdx][innerIdx] ;
+			
+			pool.data[blockIdx][innerIdx] = elem ;
+			
+			return prevData ;
+		}
+		
 		protected int[] getLinks() {
 			int[] links = new int[size] ;
 			int linksSz = 0 ;
@@ -361,6 +471,12 @@ final public class BigLinkedListPool<E> {
 			}
 			
 			return links ;
+		}
+		
+		public List<E> toList() {
+			ArrayList<E> list = new ArrayList<E>(size) ;
+			Collections.addAll(list, toArray()) ;
+			return list ;
 		}
 		
 		@SuppressWarnings("unchecked")
@@ -378,14 +494,29 @@ final public class BigLinkedListPool<E> {
 			return a ;
 		}
 		
+		public void copyIntoArray(E[] a, int off) {
+			copyIntoArray(a, off, size-off);
+		}
+		
+		public void copyIntoArray(E[] a, int off, int length) {
+			int cursor = this.headLinkIdx ;
+			
+			int copy = 0 ;
+			while ( copy < length ) {
+				a[off++] = pool.getData(cursor);
+				cursor = pool.getLink(cursor);
+			}
+		}
+		
 		public Iterator<E> iterator() {
 			return new Iterator<E>() {
 
+				int consumeCount = 0 ;
 				int cursor = headLinkIdx ;
 				
 				@Override
 				public boolean hasNext() {
-					return cursor != 0 ;
+					return consumeCount < size ;
 				}
 
 				@Override
@@ -393,6 +524,7 @@ final public class BigLinkedListPool<E> {
 					E data = pool.getData(cursor) ;
 					int next = pool.getLink(cursor) ;
 					cursor = next ;
+					consumeCount++ ;
 					return data;
 				}
 
