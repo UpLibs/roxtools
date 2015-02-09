@@ -206,9 +206,43 @@ final public class BigLinkedListPool<E> {
 			this.size++ ;
 		}
 		
-		public void addAll(@SuppressWarnings("unchecked") E... elems) {
-			for (E e : elems) {
-				add(e);
+		private void addSlot() {
+			int idx = pool.nextFreeIndex() ;
+			
+			if (this.size == 0) {
+				this.headLinkIdx = this.tailLinkIdx = idx ;
+			}
+			else {
+				pool.setLink(this.tailLinkIdx, idx);
+				this.tailLinkIdx = idx ;
+			}
+			
+			this.size++ ;
+		}
+		
+		public void addAll(E[] elems) {
+			addAll(elems, 0, elems.length);
+		}
+		
+		public void addAll(E[] elems, int off, int length) {
+			int limit = off+length ;
+			
+			for (int i = off; i < limit; i++) {
+				E elem = elems[i] ;
+				add(elem);
+			}
+		}
+		
+		public void addAll(List<E> elems) {
+			addAll(elems, 0 , elems.size());
+		}
+		
+		public void addAll(List<E> elems, int off, int length) {
+			int limit = off+length ;
+			
+			for (int i = off; i < limit; i++) {
+				E elem = elems.get(i) ;
+				add(elem);
 			}
 		}
 		
@@ -379,19 +413,71 @@ final public class BigLinkedListPool<E> {
 		}
 		
 		public void setAll(List<E> elems) {
-			clear();
-			
-			for (E e : elems) {
-				add(e);
+			int elemsSz = elems.size() ;
+			if ( size > elemsSz ) {
+				do {
+					removeLast() ;
+				}
+				while ( size > elemsSz ) ;
 			}
+			else if ( size < elemsSz ) {
+				do {
+					addSlot();
+				}
+				while ( size < elemsSz ) ;
+			}
+			
+			int blockSize = pool.blockSize ;
+			
+			int cursor = this.headLinkIdx ;
+			int setSz = 0 ;
+			
+			int blockIdx ;
+			int innerIdx ;
+			
+			while ( setSz < size ) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor - (blockIdx*blockSize) ;
+				
+				pool.data[blockIdx][innerIdx] = elems.get(setSz) ;
+				cursor = pool.links[blockIdx][innerIdx] ;
+				
+				setSz++ ;
+			}
+			
 		}
 		
 		public void setAll(@SuppressWarnings("unchecked") E... elems) {
 			
-			clear();
+			if ( size > elems.length ) {
+				do {
+					removeLast() ;
+				}
+				while ( size > elems.length ) ;
+			}
+			else if ( size < elems.length ) {
+				do {
+					addSlot();
+				}
+				while ( size < elems.length ) ;
+			}
 			
-			for (E e : elems) {
-				add(e);
+			int blockSize = pool.blockSize ;
+			
+			int cursor = this.headLinkIdx ;
+			int setSz = 0 ;
+			
+			int blockIdx ;
+			int innerIdx ;
+			
+			while ( setSz < size ) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor - (blockIdx*blockSize) ;
+				
+				pool.data[blockIdx][innerIdx] = elems[setSz] ;
+				cursor = pool.links[blockIdx][innerIdx] ;
+				
+				setSz++ ;
 			}
 			
 		}

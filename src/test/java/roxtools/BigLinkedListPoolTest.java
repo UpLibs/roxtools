@@ -269,6 +269,7 @@ public class BigLinkedListPoolTest {
 		GET_MANY,
 		SET,
 		SET_MANY,
+		SET_ALL,
 		CHECK_ARRAY
 	}
 	
@@ -284,10 +285,36 @@ public class BigLinkedListPoolTest {
 			case GET_MANY: return op_get_many(rand, list) ;
 			case SET: return op_set(rand, list) ;
 			case SET_MANY: return op_set_many(rand, list) ;
+			case SET_ALL: return op_set_all(rand, list) ;
 			case CHECK_ARRAY: return op_check_array(rand, list) ;
 			default: throw new IllegalStateException("Can't handle op: "+ op) ;
 		}
 		
+	}
+
+	private boolean op_set_all(Random rand, BigLinkedList<Integer> list) {
+		
+		int size = rand.nextInt(100) ;
+		
+		Integer[] set = new Integer[size] ;
+		
+		for (int i = 0; i < set.length; i++) {
+			set[i] = rand.nextInt(10000) ;
+		}
+		
+		list.setAll(set);
+		
+		assertTrue( list.size() == set.length );
+		
+		Integer[] check = list.toArray() ;
+		
+		for (int i = 0; i < check.length; i++) {
+			Integer val = check[i];
+			Integer val2 = set[i];
+			assertTrue( val.equals(val2) );
+		}
+		
+		return true;
 	}
 
 	private boolean op_check_array(Random rand, BigLinkedList<Integer> list) {
