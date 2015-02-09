@@ -56,8 +56,12 @@ final public class BinaryScaledSearch {
 		return search(a, 0, a.length, key) ;
 	}
 	
-
 	public static int search(int[] a, int fromIndex, int toIndex, int key) {
+		return search2(a, fromIndex, toIndex, key) ;
+	}
+	
+	
+	public static int search1(int[] a, int fromIndex, int toIndex, int key) {
 		int low = fromIndex;
 		int high = toIndex - 1;
 

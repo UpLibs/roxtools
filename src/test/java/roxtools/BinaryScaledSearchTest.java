@@ -75,7 +75,7 @@ public class BinaryScaledSearchTest {
 	
 	
 	// uncomment to execute it as Unit Test:
-	@Test
+	//@Test
 	public void benchmark() {
 		
 		System.out.println("prepare");
