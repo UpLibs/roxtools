@@ -90,6 +90,7 @@ final public class BigLinkedListPool<E> {
 			this.freeIndex = freeIndex +1 ;	
 		}
 		else {
+			releasedIndexesSize-- ;
 			this.freeIndex = nextFreeIndex ;
 		}
 		
@@ -98,12 +99,18 @@ final public class BigLinkedListPool<E> {
 		return freeIndex ;
 	}
 	
+	private int releaseIndexCount = 0 ;
+	private int releasedIndexesSize = 0 ;
+	
 	protected void releaseIndex(int idx) {
 		int blockIdx = idx / blockSize ;
 		int innerIdx = idx - (blockIdx*blockSize) ;
 		
 		this.links[blockIdx][innerIdx] = freeIndex ;
 		this.freeIndex = idx ;
+		
+		releaseIndexCount++ ;
+		releasedIndexesSize++ ;
 		
 		this.poolSize-- ;
 	}
@@ -553,7 +560,7 @@ final public class BigLinkedListPool<E> {
 	
 	@Override
 	public String toString() {
-		return this.getClass().getName() +"[size: "+ poolSize +" ; capacity: "+ poolCapacity +" ; memory: "+ (getUsedMemory()/1024) +"KB]";
+		return this.getClass().getName() +"[size: "+ poolSize +" ; capacity: "+ poolCapacity +" ; releaseIndexCount: "+ releasedIndexesSize +" / "+ releaseIndexCount+" ; memory: "+ (getUsedMemory()/1024) +"KB]";
 	}
 
 }

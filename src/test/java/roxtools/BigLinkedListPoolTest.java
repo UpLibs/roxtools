@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 
 import org.junit.Test;
 
@@ -223,6 +224,206 @@ public class BigLinkedListPoolTest {
 			
 		}
 		
+	}
+	
+
+	@Test
+	public void testRandomOperations() {
+		testRandomOperationsImplem(100,1000,10);
+	}
+	
+	private void testRandomOperationsImplem(int totalLists, int operationsPerList, int repetitions) {
+		
+		Random rand = new Random(1232746512) ;
+		
+		BigLinkedListPool<Integer> pool = new BigLinkedListPool<Integer>(Integer.class) ;
+	
+		ArrayList<BigLinkedList<Integer>> lists = new ArrayList<BigLinkedList<Integer>>() ;
+		
+		for (int i = 0; i < totalLists; i++) {
+			lists.add( pool.createLinkedList() ) ;
+		}
+		
+		for (int i = 0; i < repetitions; i++) {
+
+			for (BigLinkedList<Integer> list : lists) {
+				for (int j = 0; j < operationsPerList; j++) {
+					int ordinal = rand.nextInt( ListOP.values().length ) ;
+					ListOP op = ListOP.values()[ordinal] ;
+					
+					doOperation(rand, list, op) ;	
+				}
+			}
+				
+		}
+		
+	}
+	
+	static public enum ListOP {
+		ADD,
+		ADD_MANY,
+		REMOVE,
+		REMOVE_MANY,
+		CLEAR,
+		GET,
+		GET_MANY,
+		SET,
+		SET_MANY,
+		CHECK_ARRAY
+	}
+	
+	private boolean doOperation(Random rand, BigLinkedList<Integer> list, ListOP op) {
+		
+		switch (op) {
+			case ADD: return op_add(rand, list) ;
+			case ADD_MANY: return op_add_many(rand, list) ;
+			case REMOVE: return op_remove(rand, list) ;
+			case REMOVE_MANY: return op_remove_many(rand, list) ;
+			case CLEAR: return op_clear(rand, list) ;
+			case GET: return op_get(rand, list) ;
+			case GET_MANY: return op_get_many(rand, list) ;
+			case SET: return op_set(rand, list) ;
+			case SET_MANY: return op_set_many(rand, list) ;
+			case CHECK_ARRAY: return op_check_array(rand, list) ;
+			default: throw new IllegalStateException("Can't handle op: "+ op) ;
+		}
+		
+	}
+
+	private boolean op_check_array(Random rand, BigLinkedList<Integer> list) {
+		if ( list.isEmpty() ) return false ;
+		
+		Integer[] array = list.toArray() ;
+		
+		for (int i = 0; i < array.length; i++) {
+			Integer v = array[i];
+			Integer v2 = list.get(i) ;
+			
+			assertTrue( v.equals(v2) );
+		}
+		
+		return true ;
+	}
+
+	private boolean op_set_many(Random rand, BigLinkedList<Integer> list) {
+		if ( list.isEmpty() ) return false ;
+		
+		int total = rand.nextInt(100) ;
+		
+		for (int i = 0; i < total; i++) {
+			boolean ok = op_set(rand, list) ;
+			if (!ok) break ;
+		}
+		
+		return true ;
+	}
+
+	private boolean op_set(Random rand, BigLinkedList<Integer> list) {
+		if ( list.isEmpty() ) return false ;
+
+		int idx = rand.nextInt( list.size() ) ;
+		int val = rand.nextInt(10000) ;
+		
+		Integer prev = list.set(idx , val) ;
+		
+		assertTrue( prev != null );
+		
+		assertTrue( list.get(idx) == val );
+		
+		return true ;
+	}
+
+	private boolean op_get_many(Random rand, BigLinkedList<Integer> list) {
+		if ( list.isEmpty() ) return false ;
+		
+		int total = rand.nextInt(100) ;
+		
+		for (int i = 0; i < total; i++) {
+			int idx = rand.nextInt( list.size() ) ;
+			Integer v = list.get(idx) ;
+			assertTrue(v != null);
+		}
+		
+		return true;
+	}
+
+	private boolean op_get(Random rand, BigLinkedList<Integer> list) {
+		if ( list.isEmpty() ) return false ;
+		
+		int idx = rand.nextInt( list.size() ) ;
+		Integer v = list.get(idx) ;
+		assertTrue(v != null);
+		
+		return true ;
+	}
+
+	private boolean op_clear(Random rand, BigLinkedList<Integer> list) {
+		list.clear(); 
+		
+		assertTrue( list.isEmpty() );
+		
+		return true ;
+	}
+
+	private boolean op_remove_many(Random rand, BigLinkedList<Integer> list) {
+		if ( list.isEmpty() ) return false ;
+		
+		int total = rand.nextInt(100) ;
+		
+		for (int i = 0; i < total; i++) {
+			boolean ok = op_remove(rand, list) ;
+			if (!ok) break ;
+		}
+		
+		return true ;
+
+	}
+
+	private boolean op_remove(Random rand, BigLinkedList<Integer> list) {
+		
+		if ( list.isEmpty() ) return false ;
+		
+		if ( rand.nextBoolean() ) {
+			int idx = rand.nextInt( list.size() ) ;
+			Integer prev = list.remove(idx) ;
+			assertTrue( prev != null );
+		}
+		else {
+			Integer prev ;
+			if ( rand.nextBoolean() ) {
+				prev = list.removeFirst() ;
+			}
+			else {
+				prev = list.removeLast() ;
+			}
+			
+			assertTrue( prev != null );
+		}
+		
+		return true ;
+	}
+
+	private boolean op_add_many(Random rand, BigLinkedList<Integer> list) {
+
+		int total = rand.nextInt(100) ;
+		
+		int size = list.size() ;
+		
+		for (int i = 0; i < total; i++) {
+			list.add( rand.nextInt(10000) );
+		}
+		
+		assertTrue( list.size() == size+total );
+		
+		return true ;
+	}
+
+	private boolean op_add(Random rand, BigLinkedList<Integer> list) {
+		int size = list.size() ;
+		list.add( rand.nextInt(10000) );
+		assertTrue( list.size() == size+1 );
+		
+		return true ;
 	}
 
 }
