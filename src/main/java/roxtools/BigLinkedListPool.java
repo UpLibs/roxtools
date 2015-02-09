@@ -155,9 +155,9 @@ final public class BigLinkedListPool<E> {
 	
 	static public class BigLinkedList<E> implements Iterable<E> {
 		final private BigLinkedListPool<E> pool ;
-		int headLinkIdx ;
-		int tailLinkIdx ;
-		int size ;
+		private int headLinkIdx ;
+		private int tailLinkIdx ;
+		private int size ;
 
 		public BigLinkedList(BigLinkedListPool<E> pool) {
 			this.pool = pool ;
@@ -405,7 +405,7 @@ final public class BigLinkedListPool<E> {
 		
 		@Override
 		public String toString() {
-			return "["+ headLinkIdx +" ; "+ size +"]"+ Arrays.toString(getLinks()) + Arrays.toString(toArray()) ;
+			return "[ head:"+ headLinkIdx +" ... tail:"+ tailLinkIdx +" ; size: "+ size +"]" ;
 		}
 	}
 	
