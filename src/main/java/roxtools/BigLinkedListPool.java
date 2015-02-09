@@ -35,7 +35,7 @@ final public class BigLinkedListPool<E> {
 			data[i] = (E[]) Array.newInstance(type, blockSize) ;
 		}
 		
-		capacity = initalBlocks * blockSize ;
+		capacity = (initalBlocks * blockSize) -1 ;
 		
 		this.data = data ;
 	}
@@ -64,6 +64,10 @@ final public class BigLinkedListPool<E> {
 		links2[prevSize] = new int[blockSize] ;
 		linksReversed2[prevSize] = new int[blockSize] ;
 		data2[prevSize] = (E[]) Array.newInstance(type, blockSize) ;
+		
+		this.links = links2 ;
+		this.linksReversed = linksReversed2 ;
+		this.data = data2 ;
 		
 		capacity += blockSize ;
 	}
@@ -94,7 +98,7 @@ final public class BigLinkedListPool<E> {
 	
 	protected void releaseIndex(int idx) {
 		int blockIdx = idx / blockSize ;
-		int innerIdx = idx - blockIdx ;
+		int innerIdx = idx - (blockIdx*blockSize) ;
 		
 		this.links[blockIdx][innerIdx] = freeIndex ;
 		this.freeIndex = idx ;
@@ -102,36 +106,36 @@ final public class BigLinkedListPool<E> {
 	
 	protected void setData(int idx , E elem) {
 		int blockIdx = idx / blockSize ;
-		int innerIdx = idx - blockIdx ;
+		int innerIdx = idx - (blockIdx*blockSize) ;
 		this.data[blockIdx][innerIdx] = elem ;
 	}
 	
 	protected E getData(int idx) {
 		int blockIdx = idx / blockSize ;
-		int innerIdx = idx - blockIdx ;
+		int innerIdx = idx - (blockIdx*blockSize) ;
 		return this.data[blockIdx][innerIdx] ;
 	}
 	
 	protected void setLink(int idx , int link) {
 		int blockIdx = idx / blockSize ;
-		int innerIdx = idx - blockIdx ;
+		int innerIdx = idx - (blockIdx*blockSize) ;
 		this.links[blockIdx][innerIdx] = link ;
 		
 		blockIdx = link / blockSize ;
-		innerIdx = link - blockIdx ;
+		innerIdx = link - (blockIdx*blockSize) ;
 		
 		this.linksReversed[blockIdx][innerIdx] = idx ;
 	}
 	
 	protected int getLink(int idx) {
 		int blockIdx = idx / blockSize ;
-		int innerIdx = idx - blockIdx ;
+		int innerIdx = idx - (blockIdx*blockSize) ;
 		return this.links[blockIdx][innerIdx] ;
 	}
 	
 	protected int getLinkReversed(int idx) {
 		int blockIdx = idx / blockSize ;
-		int innerIdx = idx - blockIdx ;
+		int innerIdx = idx - (blockIdx*blockSize) ;
 		return this.linksReversed[blockIdx][innerIdx] ;
 	}
 	
@@ -147,7 +151,7 @@ final public class BigLinkedListPool<E> {
 
 	////////////////////////////////////////////////
 	
-	static public class BigLinkedList<E> {
+	static public class BigLinkedList<E> implements Iterable<E> {
 		final private BigLinkedListPool<E> pool ;
 		int headLinkIdx ;
 		int tailLinkIdx ;
@@ -161,6 +165,10 @@ final public class BigLinkedListPool<E> {
 		
 		public int size() {
 			return size ;
+		}
+		
+		public boolean isEmpty() {
+			return size == 0 ;
 		}
 		
 		public void add(E elem) {
@@ -177,6 +185,23 @@ final public class BigLinkedListPool<E> {
 			pool.setData(tailLinkIdx, elem);
 			
 			this.size++ ;
+		}
+		
+		public E removeFirst() {
+			if (this.size == 0) return null ;
+			
+			E prev = pool.getData(headLinkIdx);
+			pool.setData(headLinkIdx, null);
+			
+			int nextLink = pool.getLink(headLinkIdx) ;
+			
+			pool.releaseIndex(headLinkIdx);
+			
+			this.headLinkIdx = nextLink ;
+			
+			this.size-- ;
+			
+			return prev ;
 		}
 		
 		public E removeLast() {
@@ -210,6 +235,16 @@ final public class BigLinkedListPool<E> {
 				this.size-- ;
 			}
 		}
+
+		public E getFirst() {
+			if (size == 0) return null ;
+			return pool.getData(headLinkIdx) ;
+		}
+		
+		public E getLast() {
+			if (size == 0) return null ;
+			return pool.getData(tailLinkIdx) ;
+		}
 		
 		public E get(int idx) {
 			if ( idx < (size >>> 1) ) {
@@ -221,31 +256,52 @@ final public class BigLinkedListPool<E> {
 		}
 		
 		public E getFromHead(int idx) {
-			int i = 0 ;
+			if (idx >= size) return null ;
+			
+			int blockSize = pool.blockSize ;
+			int[][] links = pool.links ;
+			
+			int blockIdx ;
+			int innerIdx ;
 			
 			int cursor = this.headLinkIdx ;
 			
-			while ( i < size ) {
-				if (i == idx) return pool.getData(cursor) ;
-				cursor = pool.getLink(cursor);
-				i++;
+			for (int i = idx-1 ; i >= 0 ; i--) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor % blockSize ;
+				
+				cursor = links[blockIdx][innerIdx] ;
 			}
 			
-			return null ;
+			blockIdx = cursor / blockSize ;
+			innerIdx = cursor % blockSize ;
+			
+			return pool.data[blockIdx][innerIdx] ;
 		}
 		
 		public E getFromTail(int idx) {
-			int i = size-1 ;
+			if (idx >= size) return null ;
+			
+			int blockSize = pool.blockSize ;
+			int[][] linksReversed = pool.linksReversed;
+			
+			int blockIdx ;
+			int innerIdx ;
 			
 			int cursor = this.tailLinkIdx ;
 			
-			while ( i >= 0 ) {
-				if (i == idx) return pool.getData(cursor) ;
-				cursor = pool.getLinkReversed(cursor);
-				i--;
+			for (int i = (size-idx)-2 ; i >= 0 ; i--) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor % blockSize ;
+				
+				
+				cursor = linksReversed[blockIdx][innerIdx] ;
 			}
 			
-			return null ;
+			blockIdx = cursor / blockSize ;
+			innerIdx = cursor % blockSize ;
+			
+			return pool.data[blockIdx][innerIdx] ;
 		}
 		
 		protected int[] getLinks() {
@@ -307,83 +363,20 @@ final public class BigLinkedListPool<E> {
 			return "["+ headLinkIdx +" ; "+ size +"]"+ Arrays.toString(getLinks()) + Arrays.toString(toArray()) ;
 		}
 	}
-
-	////////////////////////////////////////////////
 	
-	public static void main(String[] args) {
+	public long getUsedMemory() {
+		int total = 0 ;
 		
-		BigLinkedListPool<String> bigLinkedListPool = new BigLinkedListPool<String>(String.class) ;
-
-		System.out.println( bigLinkedListPool );
+		total += this.links.length * blockSize * 4 ;
+		total += this.linksReversed.length * blockSize * 4 ;
+		total += this.data.length * blockSize * 8 ;
 		
-		BigLinkedList<String> linkedList = bigLinkedListPool.createLinkedList() ;
-		
-		System.out.println(linkedList);
-		
-		linkedList.add("a");
-		linkedList.add("b");
-		linkedList.add("c");
-		linkedList.add("d");
-		
-		System.out.println(linkedList);
-		
-		System.out.println("----------------------------");
-		
-		System.out.println("rem> "+ linkedList.removeLast() );
-		System.out.println("rem> "+ linkedList.removeLast() );
-		System.out.println("rem> "+ linkedList.removeLast() );
-		
-		linkedList.add("x");
-		linkedList.add("y");
-		linkedList.add("z");
-		
-		System.out.println("rem> "+ linkedList.removeLast() );
-		
-		System.out.println(linkedList);
-		
-		System.out.println("rem> "+ linkedList.removeLast() );
-		System.out.println("rem> "+ linkedList.removeLast() );
-		
-		System.out.println(linkedList);
-		
-		linkedList.add("x2");
-		linkedList.add("y2");
-		
-		System.out.println(linkedList);
-		
-		linkedList.clear();
-		
-		System.out.println(linkedList);
-		
-		linkedList.add("z2");
-		linkedList.add("a2");
-		linkedList.add("b2");
-		linkedList.add("c2");
-		linkedList.add("d2");
-		
-		System.out.println(linkedList);
-		
-		System.out.println("--------------------");
-		
-		for (int i = 0; i < linkedList.size(); i++) {
-			String v0 = linkedList.get(i) ;
-			String v1 = linkedList.getFromHead(i) ;
-			String v2 = linkedList.getFromTail(i) ;
-			System.out.println(i+"> "+ v0 +" ; "+ v1 +" ; "+ v2);
-		}
-		
-		System.out.println("--------------------");
-		
-		Iterator<String> iterator = linkedList.iterator() ;
-		
-		while ( iterator.hasNext() ) {
-			String val = iterator.next() ;
-			System.out.println("> "+ val);
-		}
-				
-		System.out.println("--------------------");
-
-		System.out.println(linkedList);
-		
+		return total ;
 	}
+	
+	@Override
+	public String toString() {
+		return this.getClass().getName() +"[size: "+ size +" ; capacity: "+ capacity +" ; memory: "+ (getUsedMemory()/1024) +"KB]";
+	}
+
 }
