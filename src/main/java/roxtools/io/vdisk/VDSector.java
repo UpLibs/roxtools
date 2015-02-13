@@ -130,7 +130,7 @@ final public class VDSector {
 			lng -= r ;
 		}
 		
-		if (lng != 0) throw new EOFException() ;
+		if (lng != 0) throw new EOFException("Trying to read from position "+ pos +". Still needing "+ lng +" bytes to read.") ;
 	}
 	
 	synchronized protected void readFromBlock(int blockIndex, int posInsideBlock, byte[] buff, int off, int lng) throws IOException {

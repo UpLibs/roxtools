@@ -228,7 +228,9 @@ final public class VDFile {
 			
 			int lng = length < available ? length : available ; 
 			
-			if (lng == 0) throw new EOFException() ;
+			if (lng == 0) {
+				throw new EOFException("Trying to read at pos "+ pos +" (blockIdx: "+ blockIdx +" ; posInBlock: "+ posInBlock +" ; block size: "+ block.size() +"), but still need "+ length +" bytes to read.") ;
+			}
 			
 			block.read(posInBlock, buff, off, lng) ;
 			
