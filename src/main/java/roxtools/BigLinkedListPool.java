@@ -72,6 +72,9 @@ final public class BigLinkedListPool<E> {
 		this.data = data2 ;
 		
 		poolCapacity += blockSize ;
+		
+		System.out.println("** "+ this.getClass().getName()+"> ADDED BLOCK> size/capacity: "+ this.poolSize +" / "+ this.poolCapacity +" ; memory: "+ (getUsedMemory()/1024) +"KB");
+		
 	}
 	
 	private int poolSize = 0 ;
@@ -635,11 +638,11 @@ final public class BigLinkedListPool<E> {
 	}
 	
 	public long getUsedMemory() {
-		int total = 0 ;
+		long total = 0 ;
 		
-		total += this.links.length * blockSize * 4 ;
-		total += this.linksReversed.length * blockSize * 4 ;
-		total += this.data.length * blockSize * 8 ;
+		total += this.links.length * (blockSize * 4L) ;
+		total += this.linksReversed.length * (blockSize * 4L) ;
+		total += this.data.length * (blockSize * 8L) ;
 		
 		return total ;
 	}
