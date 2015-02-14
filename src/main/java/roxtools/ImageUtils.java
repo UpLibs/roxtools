@@ -785,5 +785,36 @@ final public class ImageUtils {
 		
 		return img;
 	}
+	
+	static public BufferedImage joinImages( BufferedImage img1 , BufferedImage img2 , boolean vertically ) {
+		
+		int w , h ;
+		
+		if (vertically) {
+			w = Math.max( img1.getWidth() , img2.getWidth() ) ;
+			h = img1.getHeight() + img2.getHeight() ;	
+		}
+		else {
+			w = img1.getWidth() + img2.getWidth() ;
+			h = Math.max( img1.getHeight() , img2.getHeight() ) ;
+		}
+		
+		BufferedImage img = new BufferedImage( w , h , img1.getType() );
+		
+		Graphics g = img.getGraphics();
+		
+		g.drawImage( img1 , 0 , 0 , null );
+		
+		if (vertically) {
+			g.drawImage( img2 , 0 , img1.getHeight() , null );	
+		}
+		else {
+			g.drawImage( img2 , img1.getWidth() , 0 , null );
+		}
+		
+		g.dispose();
+		
+		return img ;
+	}
 
 }
