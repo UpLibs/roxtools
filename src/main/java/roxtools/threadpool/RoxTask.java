@@ -33,9 +33,23 @@ abstract public class RoxTask implements Runnable {
 		}
 	}
 	
+	private boolean printError = true ;
+	
+	public void setPrintError(boolean printError) {
+		this.printError = printError;
+	}
+	
+	public boolean getPrintError() {
+		return printError;
+	}
+	
 	public void setError(Throwable e) {
 		synchronized (this) {
 			error = e ;
+		}
+		
+		if (printError && e != null) {
+			e.printStackTrace(); 
 		}
 	}
 	
