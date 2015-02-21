@@ -208,6 +208,19 @@ final public class RoxTaskPool {
 		}
 	}
 	
+	static public interface Handler<T> {
+		public void handle(T value) ;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> void grabTasksResults(Handler<T> handler) {
+		Object[] results = grabTasksResults() ;
+		
+		for (Object res : results) {
+			handler.handle( (T)res ) ;
+		}
+	}
+	
 	public List<Throwable> grabTasksErros() {
 		waitTasks();
 		
@@ -453,6 +466,8 @@ final public class RoxTaskPool {
 			long init = times[0] ;
 			long end = times[1] ;
 			long total = times[2] ;
+			
+			if (total == 0) return 0 ;
 			
 			long timeToExecuteAll = end - init ;
 			
