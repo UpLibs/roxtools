@@ -378,12 +378,14 @@ final public class WeakMapRecyclable<K,V> {
 			while (cursor != null) {
 				K k = cursor.get() ;
 				
+				Entry<K,V> next = cursor.next ;
+				
 				if (k == null) {
 					recycleValue(cursor.value);
+					
+					cursor = next ;
 					continue ;
 				}
-				
-				Entry<K,V> next = cursor.next ;
 				
 				int hash = hash(k) ;
 				int tableIdx = tableIndexFor(hash, newTableSize) ;
