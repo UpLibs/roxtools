@@ -8,6 +8,16 @@ abstract public class DataPool<T , K extends DataPoolSizeKey> {
 	
 	final private HashMap<K, ArrayDeque<SoftReference<T>>> cacheTable = new HashMap<K, ArrayDeque<SoftReference<T>>>() ;
 	
+	private int maxCachedElementsPerKey = 0 ;
+	
+	public void setMaxCachedElementsPerKey(int maxCachedElementsPerKey) {
+		this.maxCachedElementsPerKey = maxCachedElementsPerKey;
+	}
+	
+	public int getMaxCachedElementsPerKey() {
+		return maxCachedElementsPerKey;
+	}
+	
 	final public void clear() {
 		
 		synchronized (cacheTable) {
@@ -64,7 +74,7 @@ abstract public class DataPool<T , K extends DataPoolSizeKey> {
 		releaseData(data, dataSizeKey) ;
 	}
 	
-	final public void releaseData(T data, K dataSizeKey) {
+	final public boolean releaseData(T data, K dataSizeKey) {
 		//if (true) return ;
 		
 		SoftReference<T> ref = new SoftReference<T>(data) ;
@@ -78,11 +88,26 @@ abstract public class DataPool<T , K extends DataPoolSizeKey> {
 			}
 		}
 		
-		synchronized (cachedData) {
-			assert( !containsData(cachedData, data) ) ;
-			cachedData.addLast(ref) ;
+		if (maxCachedElementsPerKey > 0) {
+			synchronized (cachedData) {
+				assert( !containsData(cachedData, data) ) ;
+				
+				if (cachedData.size() < maxCachedElementsPerKey) {
+					cachedData.addLast(ref) ;
+					return true;
+				}
+				else {
+					return false ;
+				}
+			}	
 		}
-		
+		else {
+			synchronized (cachedData) {
+				assert( !containsData(cachedData, data) ) ;
+				cachedData.addLast(ref) ;
+				return true;
+			}	
+		}
 	}
 	
 	private boolean containsData(ArrayDeque<SoftReference<T>> cache, T data) {
