@@ -822,6 +822,11 @@ public class ImagePixels implements Cloneable {
 		return bs ;
 	}
 	
+	static public byte[] createEmptyChannel(int size) {
+		byte[] bs = new byte[size] ;
+		return bs ;
+	}
+	
 	public ImagePixels(int width, int height, byte c1, byte c2, byte c3, boolean yuvFormat) {
 		this(
 				createChannel(width*height , c1) ,
@@ -837,6 +842,15 @@ public class ImagePixels implements Cloneable {
 				createChannel(width*height , (byte)color.getGreen() ) ,
 				createChannel(width*height , (byte)color.getBlue() ) ,
 				width , height, false
+		) ;
+	}
+	
+	public ImagePixels(int width, int height, boolean yuvFormat) {
+		this(
+				createEmptyChannel(width*height) ,
+				createEmptyChannel(width*height) ,
+				createEmptyChannel(width*height) ,
+				width , height, yuvFormat
 		) ;
 	}
 	
