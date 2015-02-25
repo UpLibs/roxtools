@@ -816,5 +816,18 @@ final public class ImageUtils {
 		
 		return img ;
 	}
+	
+	static public byte[] writeImage( BufferedImage image ) throws IOException {
+		ByteArrayOutputStream bout = new ByteArrayOutputStream() ;
+		
+		ImageIO.write( image ,"PNG", bout) ;
+		
+		return bout.toByteArray() ;
+	}
+	
+	static public BufferedImage readImage( byte[] imgBytes ) throws IOException {
+		ByteArrayInputStream bin = new ByteArrayInputStream(imgBytes) ;
+		return ImageIO.read(bin);
+	}
 
 }
