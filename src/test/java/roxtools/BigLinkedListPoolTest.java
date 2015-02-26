@@ -21,7 +21,7 @@ public class BigLinkedListPoolTest {
 		
 		long maxMemory = runtime.maxMemory() ;
 		
-		final long bigMemory = (long) (1024L*1024*1024*1.5) ;
+		final long bigMemory = (long) (1024L*1024*1024*2) ;
 		
 		boolean allow = maxMemory >= bigMemory ;
 		
