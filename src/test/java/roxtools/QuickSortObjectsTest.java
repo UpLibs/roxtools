@@ -288,7 +288,7 @@ public class QuickSortObjectsTest {
 		System.out.println("availableArraySize: "+ availableArraySize);
 		
 		if (availableArraySize < 10000) availableArraySize = 10000 ;
-		else if (availableArraySize > 100000000) availableArraySize = 100000000 ;
+		else if (availableArraySize > 10000000) availableArraySize = 10000000 ;
 		
 		int[] a = new int[availableArraySize] ;
 		System.out.println("array length: "+ a.length);
