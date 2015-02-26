@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 
 final public class RoxTaskPool {
 	
@@ -522,6 +523,16 @@ final public class RoxTaskPool {
 		}
 	}
 	
+	public int getMaximumThreadPoolSize() {
+		if ( threadPool instanceof ThreadPoolExecutor ) {
+			ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) threadPool ;
+			
+			return threadPoolExecutor.getMaximumPoolSize() ;
+		}
+		
+		return -1 ;
+	}
+	
 	public void printExecutionInfos() {
 		printExecutionInfos(false);
 	}
@@ -536,6 +547,8 @@ final public class RoxTaskPool {
 		synchronized (tasks) {
 			if (waitAllTasks) waitTasks() ;
 			
+			int maximumThreadPoolSize = getMaximumThreadPoolSize() ;
+			
 			int tasksSize = getTasksSize() ;
 			int totalExecutedTasks = getTotalExecutedTasks() ;
 			long firstTaskInitTime = getFirstTaskInitTime() ;
@@ -546,6 +559,9 @@ final public class RoxTaskPool {
 			double tasksExecutionSpeed = getTasksExecutionSpeed() ;
 			
 			System.out.println("--------------------------------------------------------------------------------");
+			
+			if (maximumThreadPoolSize > 0) System.out.println("maximumThreadPoolSize: "+ maximumThreadPoolSize);
+			
 			System.out.println("Total tasks: "+ tasksSize);
 			System.out.println("Total executed tasks: "+ totalExecutedTasks + ( tasksSize == totalExecutedTasks ? " (all executed)" : ""));
 			System.out.println();
