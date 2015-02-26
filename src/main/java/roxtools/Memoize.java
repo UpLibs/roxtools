@@ -182,42 +182,56 @@ public class Memoize<T> {
 			return true;
 		}
 	}
-	
+
+	static public class MemKeyObjs extends MemKey {
+		static private String[] toString(Object[] objs) {
+			String[] strs = new String[objs.length] ;
+			for (int i = 0; i < strs.length; i++) {
+				strs[i] = objs[i].toString() ;
+			}
+			return strs ;
+		}
+
+		public MemKeyObjs(Object... objs) {
+			super(toString(objs)) ;
+		}
+	}
+
 	static public class MemKey {
-				
+
 		final private Object[] keyParts ;
-		
+
 		public MemKey(Object... keyParts) {
 			this.keyParts = keyParts ;
 		}
-		
+
 		public Object[] getKeyParts() {
 			return keyParts;
 		}
-		
 		private int hashcode = 0 ;
+
 		@Override
 		public int hashCode() {
 			if (hashcode == 0) hashcode = Arrays.hashCode(keyParts) ;
 			return hashcode ;
 		}
-
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj) return true;
 			if (obj == null) return false;
-			
+
 			if (getClass() != obj.getClass()) return false;
-			
+
 			MemKey other = (MemKey) obj;
-			
+
 			if ( this.hashCode() != other.hashCode() ) return false;
-			
+
 			if (!Arrays.equals(keyParts, other.keyParts)) return false;
 			return true;
 		}
+
 	}
-	
+
 	static private class MemoryReference<T> extends SoftReference<T> {
 		private MemoryReference(T referent) {
 			super(referent);
