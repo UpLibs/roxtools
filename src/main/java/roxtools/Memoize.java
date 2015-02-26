@@ -183,20 +183,6 @@ public class Memoize<T> {
 		}
 	}
 
-	static public class MemKeyObjs extends MemKey {
-		static private String[] toString(Object[] objs) {
-			String[] strs = new String[objs.length] ;
-			for (int i = 0; i < strs.length; i++) {
-				strs[i] = objs[i].toString() ;
-			}
-			return strs ;
-		}
-
-		public MemKeyObjs(Object... objs) {
-			super(toString(objs)) ;
-		}
-	}
-
 	static public class MemKey {
 
 		final private Object[] keyParts ;
