@@ -25,6 +25,8 @@ public class BigLinkedListPoolTest {
 		
 		boolean allow = maxMemory >= bigMemory ;
 		
+		allow = false ;
+		
 		ALLOW_BIG_TESTS = allow ;
 		
 		System.out.println("** ALLOW_BIG_TESTS: "+ ALLOW_BIG_TESTS +" > "+ (maxMemory/1024) +"KB / "+ (bigMemory/1024)+"KB" );
