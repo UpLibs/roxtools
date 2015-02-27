@@ -631,9 +631,42 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 
 		@Override
 		public void mouseRelease(RichConsoleInterface richConsole, int x, int y) {
+			mouseDrawRect(richConsole, pressPoint, new Point(x,y));
+			
 			pressPoint = null ;
 			pressRectanglePoint = null ;
 			pressHighlight = null ;
+		}
+		
+		private void mouseDrawRect(RichConsoleInterface richConsole, Point initPoint, Point endPoint) {
+			int x1 , x2 , y1 , y2 ;
+			
+			if ( initPoint.x < endPoint.x ) {
+				x1 = initPoint.x ;
+				x2 = endPoint.x ;
+			}
+			else {
+				x2 = initPoint.x ;
+				x1 = endPoint.x ;
+			}
+			
+			if ( initPoint.y < endPoint.y ) {
+				y1 = initPoint.y ;
+				y2 = endPoint.y ;
+			}
+			else {
+				y2 = initPoint.y ;
+				y1 = endPoint.y ;
+			}
+			
+			Rectangle rectangle = new Rectangle(x1,y1, x2-x1 , y2-y1) ;
+			
+			onMouseDrawRectangle( richConsole, rectangle ) ;
+			
+		}
+
+		public void onMouseDrawRectangle(RichConsoleInterface richConsole, Rectangle rectangle) {
+			
 		}
 
 		@Override
