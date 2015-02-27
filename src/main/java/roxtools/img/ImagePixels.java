@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -781,6 +782,9 @@ public class ImagePixels implements Cloneable {
 	protected int width ;
 	protected int height ;
 	
+	public ImagePixels(URL imageURL) {
+		this( ImageUtils.readURL(imageURL) ) ;
+	}
 
 	public ImagePixels(File imageFile) {
 		this( ImageUtils.readFile(imageFile) ) ;
