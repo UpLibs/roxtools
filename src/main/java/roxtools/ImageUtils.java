@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.regex.Matcher;
@@ -112,6 +113,16 @@ final public class ImageUtils {
 			return null;
 		}
 	}
+	
+	static public BufferedImage readURL(URL url) {
+		try {
+			return ImageIO.read(url);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 
 	static public void savePNG(int[] pixels, int w, int h, String filePath) {
 		savePNG(pixels, w, h, new File(filePath));
