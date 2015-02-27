@@ -449,23 +449,35 @@ final public class VDisk {
 	public VDFile getOrCreateFileWithMetaData(String metaDataKey, byte[] data) throws IOException {
 		VDFile file = this.getFirstFileByMetaDataKey(metaDataKey) ;
 		
-		if (file == null) {
-			file = this.createFile() ;
-			file.setMetaData( new VDMetaData(metaDataKey, data) ) ;
-		}
+		if (file != null) return file ;
 		
-		return file ;
+		synchronized (this.sectorMUTEX) {
+			file = this.getFirstFileByMetaDataKey(metaDataKey) ;
+			
+			if (file == null) {
+				file = this.createFile() ;
+				file.setMetaData( new VDMetaData(metaDataKey, data) ) ;
+			}
+			
+			return file ;
+		}
 	}
 
 	public VDFile getOrCreateFileWithMetaData(VDMetaData metaData) throws IOException {
 		VDFile file = this.getFirstFileByMetaDataKey( metaData.getKey() ) ;
 		
-		if (file == null) {
-			file = this.createFile() ;
-			file.setMetaData(metaData) ;
-		}
+		if (file != null) return file ;
 		
-		return file ;
+		synchronized (this.sectorMUTEX) {
+			file = this.getFirstFileByMetaDataKey( metaData.getKey() ) ;
+			
+			if (file == null) {
+				file = this.createFile() ;
+				file.setMetaData(metaData) ;
+			}
+			
+			return file ;
+		}
 	}
 	
 	private int lastCreatedFileSectorIndex = 0 ;
