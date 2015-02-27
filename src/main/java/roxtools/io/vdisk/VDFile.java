@@ -680,7 +680,7 @@ final public class VDFile {
 	private void closeOutputStream(MyOutputStream stream) {
 		synchronized (this) {
 			if ( this.outputStream == stream ) {
-				this.inputStream = null ;
+				this.outputStream = null ;
 			}
 		}
 	}
