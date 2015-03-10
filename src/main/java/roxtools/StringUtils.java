@@ -97,6 +97,75 @@ final public class StringUtils {
 	
 	/////////////////////////////////////
 	
+	static public class SplitResult {
+		final public String[] result ;
+		final public int size ;
+		
+		public SplitResult(String[] result, int size) {
+			this.result = result;
+			this.size = size;
+		}
+		
+		@Override
+		public String toString() {
+			return Arrays.toString( Arrays.copyOf(result, size) ) ;
+		}
+	}
+	
+	static final private SplitResult splitResultDummy = new SplitResult(new String[0], 0) ;
+	
+	static public SplitResult split(final String str, final char separatorChar) {
+		return split(str, separatorChar, false, null) ;
+	}
+	
+	static public SplitResult split(final String str, final char separatorChar, String[] preAllocatedResult) {
+		return split(str, separatorChar, false, preAllocatedResult) ;
+	}
+	
+	static public SplitResult split(final String str, final char separatorChar, final boolean preserveAllTokens) {
+		return split(str, separatorChar, preserveAllTokens, null) ;
+	}
+	
+	static public SplitResult split(final String str, final char separatorChar, final boolean preserveAllTokens, String[] preAllocatedResult) {
+		if (str == null) return splitResultDummy ;
+		
+		final int len = str.length();
+		
+		if (len == 0) return splitResultDummy ;
+		
+		if (preAllocatedResult == null || preAllocatedResult.length == 0) preAllocatedResult = new String[8] ;
+		int resultSize = 0 ;
+		
+		int i = 0, start = 0;
+		boolean match = false;
+		boolean lastMatch = false;
+		
+		while (i < len) {
+			if (str.charAt(i) == separatorChar) {
+				if (match || preserveAllTokens) {
+					if ( resultSize == preAllocatedResult.length ) preAllocatedResult = Arrays.copyOf(preAllocatedResult, Math.min(resultSize*2 , len) ) ;
+					preAllocatedResult[ resultSize++ ] = str.substring(start, i) ;
+					match = false;
+					lastMatch = true;
+				}
+				start = ++i;
+				continue;
+			}
+			lastMatch = false;
+			match = true;
+			i++;
+		}
+		
+		if (match || preserveAllTokens && lastMatch) {
+			if ( resultSize == preAllocatedResult.length ) preAllocatedResult = Arrays.copyOf(preAllocatedResult, Math.min(resultSize*2 , len) ) ;
+			preAllocatedResult[ resultSize++ ] = str.substring(start, i) ;
+		}
+		
+		return new SplitResult(preAllocatedResult, resultSize) ;
+    }
+	
+	/////////////////////////////////////
+	
 	public static void main(String[] args) {
 		
 		long[] mask = new long[] { 1134567890 , 291013692 } ;
