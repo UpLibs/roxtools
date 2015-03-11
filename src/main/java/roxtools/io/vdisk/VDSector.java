@@ -375,6 +375,16 @@ final public class VDSector {
 		}
 	}
 	
+	synchronized public void getMetaDataKeysWithPrefix( String prefix, List<String> keys ) {
+		HashMap<String, int[]> metaDataKeysTable = getMetaDataKeysTable() ;
+		
+		for (String key : metaDataKeysTable.keySet()) {
+			if (key.startsWith(prefix)) {
+				keys.add(key) ;
+			}
+		}
+	}
+	
 	public Iterator<String> iterateMetaDataKeys() {
 		HashMap<String, int[]> metaDataKeysTable = getMetaDataKeysTable() ;
 		

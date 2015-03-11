@@ -359,6 +359,25 @@ final public class VDisk {
 		}
 	}
 	
+	public ArrayList<String> getFilesMetaDataKeysWithPrefix(String prefix) {
+		
+		synchronized (sectorMUTEX) {
+			int totalSectors = getTotalSectors() ;
+			
+			int initialCapacity = (int) ((totalSectors * sectorSize) * 0.10) ; 
+			if (initialCapacity < 100) initialCapacity = 100 ;
+			
+			ArrayList<String> keys = new ArrayList<String>(initialCapacity) ;
+			
+			for (int i = 0; i < totalSectors; i++) {
+				VDSector sector = getSector(i) ;
+				sector.getMetaDataKeysWithPrefix(prefix, keys) ;
+			}
+			
+			return keys ;
+		}
+	}
+	
 	public Iterator<String> iterateFileMetaDataKeys() {
 		
 		return new Iterator<String>() {
