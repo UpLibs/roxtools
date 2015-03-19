@@ -278,6 +278,14 @@ public class ArrayUtils {
 		return -1 ;
 	}
 	
+	static public int indexOf(Object[] a, Object v) {
+		for (int i = 0; i < a.length; i++) {
+			Object obj = a[i] ;
+			if ( obj != null && obj.equals(v) ) return i ;
+		}
+		return -1 ;
+	}
+	
 	static public int[] join(int[]... fs) {
 		int total = 0 ;
 		
