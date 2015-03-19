@@ -786,5 +786,35 @@ final public class SerializationUtils {
 		
 		return data ;
 	}
+
+	//////////////////////////////////////////////////////////////////
+	
+	static public void writeStringUTF8( String str , OutputStream out ) throws IOException {
+		writeString(str, out, CHARSET_UTF8);
+	}
+	
+	static public void writeStringLATIN1( String str , OutputStream out ) throws IOException {
+		writeString(str, out, CHARSET_LATIN1);
+	}
+	
+	static public void writeString( String str , OutputStream out , Charset charset ) throws IOException {
+		byte[] bs = str.getBytes(charset) ;
+		writeInt(bs.length, out);
+		out.write(bs);
+	}
+	
+	static public String readStringUTF8( InputStream in ) throws IOException {
+		return readString(in, CHARSET_UTF8) ;
+	}
+	
+	static public String readStringLATIN1( InputStream in ) throws IOException {
+		return readString(in, CHARSET_LATIN1) ;
+	}
+	
+	static public String readString( InputStream in , Charset charset ) throws IOException {
+		int sz = readInt(in) ;
+		byte[] bs = readFull(in, sz) ;
+		return new String(bs, charset) ;
+	}
 	
 }
