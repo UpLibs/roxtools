@@ -15,6 +15,7 @@ import java.util.TimerTask;
 
 import roxtools.IntTable;
 import roxtools.SerializationUtils;
+import roxtools.io.vdisk.VDisk.FilesMetaDataKeyFilter;
 
 final public class VDSector {
 	
@@ -380,6 +381,16 @@ final public class VDSector {
 		
 		for (String key : metaDataKeysTable.keySet()) {
 			if (key.startsWith(prefix)) {
+				keys.add(key) ;
+			}
+		}
+	}
+	
+	synchronized public void getMetaDataKeys( FilesMetaDataKeyFilter filter, List<String> keys ) {
+		HashMap<String, int[]> metaDataKeysTable = getMetaDataKeysTable() ;
+		
+		for (String key : metaDataKeysTable.keySet()) {
+			if ( filter.accept(key) ) {
 				keys.add(key) ;
 			}
 		}
