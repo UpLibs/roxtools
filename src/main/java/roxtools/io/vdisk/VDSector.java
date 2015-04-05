@@ -6,14 +6,12 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import roxtools.IntTable;
 import roxtools.SerializationUtils;
 import roxtools.io.vdisk.VDisk.FilesMetaDataKeyFilter;
 
@@ -57,6 +55,8 @@ final public class VDSector {
 
 	final private byte[] header ;
 	
+	final private FileKeysTable keysTable ;
+	
 	@SuppressWarnings("unchecked")
 	protected VDSector(VDisk vDisk, int sectorIndex) throws IOException {
 		super();
@@ -86,6 +86,7 @@ final public class VDSector {
 			this.blocks[i] = unused ? null : NULL_REF_BLOCK ;
 		}
 		
+		keysTable = new FileKeysTable(this) ;
 	}
 	
 	private void eraseSector() throws IOException {
@@ -213,8 +214,7 @@ final public class VDSector {
 		
 		this.io.close() ;
 		
-		this.keysTableRef = null ;
-		this.keysHashcodes = null ;
+		this.keysTable.close() ;
 	}
 	
 	private void writeHeader() throws IOException {
@@ -369,37 +369,46 @@ final public class VDSector {
 	}
 	
 	synchronized public void getMetaDataKeys( List<String> keys ) {
-		HashMap<String, int[]> metaDataKeysTable = getMetaDataKeysTable() ;
 		
-		for (String key : metaDataKeysTable.keySet()) {
-			keys.add(key) ;
+		synchronized (keysTable) {
+			Iterator<String> iteratorKeys = keysTable.iteratorKeys() ;
+			
+			while ( iteratorKeys.hasNext() ) {
+				String key = iteratorKeys.next() ;
+				keys.add(key) ;
+			}
 		}
+		
 	}
 	
 	synchronized public void getMetaDataKeysWithPrefix( String prefix, List<String> keys ) {
-		HashMap<String, int[]> metaDataKeysTable = getMetaDataKeysTable() ;
-		
-		for (String key : metaDataKeysTable.keySet()) {
-			if (key.startsWith(prefix)) {
-				keys.add(key) ;
+
+		synchronized (keysTable) {
+			Iterator<String> iteratorKeys = keysTable.iteratorKeys() ;
+			
+			while ( iteratorKeys.hasNext() ) {
+				String key = iteratorKeys.next() ;
+				if ( key.startsWith(prefix) ) keys.add(key) ;
 			}
 		}
+		
 	}
 	
 	synchronized public void getMetaDataKeys( FilesMetaDataKeyFilter filter, List<String> keys ) {
-		HashMap<String, int[]> metaDataKeysTable = getMetaDataKeysTable() ;
 		
-		for (String key : metaDataKeysTable.keySet()) {
-			if ( filter.accept(key) ) {
-				keys.add(key) ;
+		synchronized (keysTable) {
+			Iterator<String> iteratorKeys = keysTable.iteratorKeys() ;
+			
+			while ( iteratorKeys.hasNext() ) {
+				String key = iteratorKeys.next() ;
+				if ( filter.accept(key) ) keys.add(key) ;
 			}
 		}
+		
 	}
 	
 	public Iterator<String> iterateMetaDataKeys() {
-		HashMap<String, int[]> metaDataKeysTable = getMetaDataKeysTable() ;
-		
-		return metaDataKeysTable.keySet().iterator() ;
+		return keysTable.iteratorKeys() ;
 	}
 	
 	synchronized protected VDBlock getBlock(int blockIndex) {
@@ -558,8 +567,8 @@ final public class VDSector {
 			
 		}
 	
-		this.keysTableRef = null ;
-		this.keysHashcodes = null ;
+		keysTable.clearKeysTables();
+		
 	}
 	
 	protected void setBlockSize(int blockIndex, int size) throws IOException {
@@ -761,84 +770,23 @@ final public class VDSector {
 		writeHeader() ;
 	}
 	
-	private SoftReference<HashMap<String, int[]>> keysTableRef ;
-	
 	synchronized protected int[] getMetaDataKey(String key) {
-		if (keysHashcodes != null) {
-			if ( !keysHashcodes.contains(key.hashCode()) ) return null ;
-		}
-		
-		HashMap<String, int[]> keysTable = getMetaDataKeysTable() ;		
-		
-		int[] prevIdents = keysTable.get(key) ;
-		
-		return prevIdents ;
+		return keysTable.getFileIdent(key) ;
 	}
 	
 	synchronized protected boolean containsMetaDataKey(String key) {
-		
-		if (keysHashcodes != null) {
-			if ( !keysHashcodes.contains(key.hashCode()) ) return false ;
-		}
-		
-		HashMap<String, int[]> keysTable = getMetaDataKeysTable() ;
-		
-		return keysTable.containsKey(key) ;
+		return keysTable.containsFileIdent(key) ;
 	}
 	
-	synchronized protected void notifyMetaDataKeyChange(String key, int blockIndex, int blockSector) {
-		if (keysTableRef == null) {
-			if (keysHashcodes != null) keysHashcodes.put( key.hashCode() ) ;
-			return ;
-		}
-		
-		HashMap<String, int[]> keysTable = keysTableRef.get() ;
-		if (keysTable == null) {
-			if (keysHashcodes != null) keysHashcodes.put( key.hashCode() ) ;
-			return ;
-		}
-		
-		int[] prevIdents = keysTable.get(key) ;
-		
-		if (prevIdents == null) {
-			keysTable.put(key, new int[] {blockIndex , blockSector}) ;
-			
-			keysHashcodes.put( key.hashCode() ) ;
-		}
-		else {
-			int[] idents2 = joinIdents(prevIdents, blockIndex , blockSector) ;
-			if (prevIdents != idents2) keysTable.put(key, idents2) ;
-		}
+	public void notifyMetaDataKeyChange(String key, int blockIndex, int blockSector) {
+		keysTable.notifyMetaDataKeyChange(key, blockIndex, blockSector);
+	}
+
+	public void notifyMetaDataKeyRemove(String key, int blockIndex, int blockSector) {
+		keysTable.notifyMetaDataKeyRemove(key, blockIndex, blockSector);
 	}
 	
-	synchronized protected void notifyMetaDataKeyRemove(String key, int blockIndex, int blockSector) {
-		if (keysTableRef == null) {
-			if (keysHashcodes != null) keysHashcodes.remove( key.hashCode() ) ;
-			return ;
-		}
-		
-		HashMap<String, int[]> keysTable = keysTableRef.get() ;
-		if (keysTable == null) {
-			if (keysHashcodes != null) keysHashcodes.remove( key.hashCode() ) ;
-			return ;
-		}
-		
-		int[] idents = keysTable.get(key) ;
-		
-		if (idents != null) {
-			keysHashcodes.remove( key.hashCode() ) ;
-			
-			idents = removeIdent(idents, blockIndex, blockSector) ;
-			
-			if (idents != null) {
-				keysTable.put(key, idents) ;
-			}
-			else {
-				keysTable.remove(key) ;
-			}
-		}
-		
-	}
+	////////////////////////////////////////////////////////////////////////
 	
 	static protected int[] joinIdents(int[] idents, int blockIndex, int blockSector) {
 		
@@ -901,70 +849,5 @@ final public class VDSector {
 		
 		return idents3 ;
 	}
-	
-	private HashMap<String, int[]> getMetaDataKeysTable() {
-		
-		if (keysTableRef == null) {
-			return loadMetaDataKeys(false) ;
-		}
-		else {
-			HashMap<String, int[]> keysTable = keysTableRef.get() ;
-			
-			if (keysTable == null) {
-				return loadMetaDataKeys(false) ;	
-			}
-			else {
-				return keysTable ;
-			}
-		}
-		
-	}
-	
-	private IntTable keysHashcodes ;
-	
-	synchronized protected HashMap<String, int[]> loadMetaDataKeys(boolean force) {
-		
-		if (!force && keysTableRef != null) {
-			HashMap<String, int[]> keysTable = keysTableRef.get() ;
-			if (keysTable != null) return keysTable ;
-		}
-		
-		HashMap<String, int[]> keysTable = new HashMap<String, int[]>();
-		IntTable keysHashcodes = new IntTable() ; 
-		
-		int sz = getTotalBlocks() ;
-		
-		for (int i = 0; i < sz; i++) {
-			VDBlock block = getBlock(i) ;
-			
-			if ( block != null && block.hasMetaData() ) {
-				try {
-					String key = block.getMetaDataKey() ;
-					
-					int[] prevIdents = keysTable.get(key) ;
-					
-					if (prevIdents == null) {
-						int[] ident = block.getIdent() ;
-						keysTable.put(key, ident) ;	
-						
-						keysHashcodes.put(key.hashCode()) ;
-					}
-					else {
-						int[] idents2 = joinIdents(prevIdents, block.getBlockIndex(), block.getSectorIndex()) ;
-						if (prevIdents != idents2) keysTable.put(key, idents2) ;
-					}
-					
-				}
-				catch (IOException e) {
-					e.printStackTrace() ;
-				}
-			}
-		}
-		
-		this.keysTableRef = new SoftReference<HashMap<String,int[]>>(keysTable) ;
-		this.keysHashcodes = keysHashcodes ;
-		
-		return keysTable ;
-	}
-	
+
 }
