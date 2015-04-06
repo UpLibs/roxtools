@@ -552,20 +552,14 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	synchronized protected void notifyMetaDataKeyChange(String key, int blockIndex, int blockSector) {
 		KeyGroup keyGroup = new KeyGroup(key) ;
 		
-		KeysTable keysTable = getKeysTableIfExists(keyGroup) ;
-		IntTable keysTableHashcode = getKeysTableHashcodeIfExists(keyGroup) ;
-		
-		if (keysTable == null) {
-			if (keysTableHashcode != null) keysTableHashcode.put( key.hashCode() ) ;
-			return ;
-		}
+		KeysTable keysTable = getKeysTable(keyGroup) ;
+		IntTable keysTableHashcode = getKeysTableHashcode(keyGroup) ;
 		
 		int[] prevIdents = keysTable.get(key) ;
 		
 		if (prevIdents == null) {
 			keysTable.put(key, new int[] {blockIndex , blockSector}) ;
-			
-			if (keysTableHashcode != null) keysTableHashcode.put( key.hashCode() ) ;
+			keysTableHashcode.put( key.hashCode() ) ;
 		}
 		else {
 			int[] idents2 = VDSector.joinIdents(prevIdents, blockIndex , blockSector) ;
