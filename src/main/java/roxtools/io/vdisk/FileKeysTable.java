@@ -114,6 +114,28 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 		}
 	}
 	
+	public KeysTable getKeysTableCleared(KeyGroup keyGroup) {
+		synchronized (keysTables) {
+			SoftReference<KeysTable> tableRef = keysTables.get(keyGroup) ;
+			
+			KeysTable table ;
+			
+			if (tableRef != null) {
+				table = tableRef.get() ;
+				if (table != null) {
+					table.clear();
+					return table ;
+				}
+			}
+			
+			table = new KeysTable() ;
+			
+			keysTables.put(keyGroup, new SoftReference<KeysTable>(table)) ;
+			
+			return table ;
+		}
+	}
+	
 	public KeysTable getKeysTableIfExists(KeyGroup keyGroup) {
 		synchronized (keysTables) {
 			SoftReference<KeysTable> tableRef = keysTables.get(keyGroup) ;
@@ -351,7 +373,7 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	}
 	
 	public List<String> getAllKeys() {
-		ArrayList<String> keys = new ArrayList<String>( getAllKeysSize() ) ;
+		ArrayList<String> keys = new ArrayList<String>() ;
 		
 		for (Entry<KeyGroup, SoftReference<KeysTable>> entry : keysTables.entrySet()) {
 			SoftReference<KeysTable> tableRef = entry.getValue() ;
@@ -363,12 +385,14 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 				if (table == null) continue ;
 			}
 			
+			keys.ensureCapacity( keys.size() + table.size() );
+			
 			for (String k : table.keySet()) {
 				keys.add(k) ;
 			}
 			
 		}
-	
+		
 		return keys ;
 	}
 	
@@ -507,10 +531,9 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 		
 		VDSector sector = this.sector ;
 		
-		KeysTable keysTable = getKeysTable(keyGroup) ;
+		KeysTable keysTable = getKeysTableCleared(keyGroup) ;
 		IntTable keysTableHashcode = getKeysTableHashcode(keyGroup) ;
 		
-		keysTable.clear();
 		keysTableHashcode.clear();
 		
 		int sz = sector.getTotalBlocks() ;
