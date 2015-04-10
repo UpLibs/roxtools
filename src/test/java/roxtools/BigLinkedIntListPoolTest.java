@@ -453,5 +453,132 @@ public class BigLinkedIntListPoolTest {
 		
 		return true ;
 	}
+	
+	///////////////////////////////////
+	
+	@Test
+	public void testClearReferencedList() {
+
+		BigLinkedIntListPool pool = new BigLinkedIntListPool() ;
+		
+		assertTrue( pool.size() == 0 );
+		
+		int valuesPerList = 100 ;
+		
+		BigLinkedIntList[] linkedLists = new BigLinkedIntList[100] ;
+		
+		int addedValues = 0 ;
+		
+		for (int i = 0; i < linkedLists.length; i++) {
+			BigLinkedIntList bigLinkedList = linkedLists[i] = pool.createLinkedList() ;
+			
+			for (int j = 0; j < valuesPerList; j++) {
+				Integer val = i*j ;
+				bigLinkedList.add(val);
+				addedValues++ ;
+			}
+			
+			assertTrue( bigLinkedList.size() == valuesPerList );
+		}
+		
+		assertTrue( pool.getReferencedListsSize() == linkedLists.length );
+		
+		assertTrue( pool.size() == addedValues );
+		
+		int unreferencedListsCount = 0 ;
+		
+		for (int i = 0; i < linkedLists.length; i+= 2) {
+			linkedLists[i] = null ;
+			unreferencedListsCount++ ;
+		}
+		
+		assertTrue( unreferencedListsCount > 0 );
+		
+		int clearCount = 0 ;
+		
+		for (int i = 0; i < 5; i++) {
+			
+			System.gc();
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			System.gc();
+			
+			clearCount += pool.clearUnreferencedLists();
+		}
+		
+		assertTrue( clearCount == unreferencedListsCount );
+		
+		assertTrue( pool.getReferencedListsSize() == linkedLists.length-unreferencedListsCount );
+		
+		assertTrue( pool.size() == (addedValues - (unreferencedListsCount * valuesPerList)) );
+		
+	}
+	
+
+	@Test
+	public void testClearUnreferencedList() {
+
+		BigLinkedIntListPool pool = new BigLinkedIntListPool() ;
+		
+		assertTrue( pool.size() == 0 );
+		
+		int valuesPerList = 100 ;
+		
+		BigLinkedIntList[] linkedLists = new BigLinkedIntList[100] ;
+		
+		int addedValues = 0 ;
+		
+		for (int i = 0; i < linkedLists.length; i++) {
+			BigLinkedIntList bigLinkedList = linkedLists[i] = pool.createLinkedListUnreferenced() ;
+			
+			for (int j = 0; j < valuesPerList; j++) {
+				Integer val = i*j ;
+				bigLinkedList.add(val);
+				addedValues++ ;
+			}
+			
+			assertTrue( bigLinkedList.size() == valuesPerList );
+		}
+		
+		assertTrue( ""+pool.getReferencedListsSize() , pool.getReferencedListsSize() == 0 );
+		
+		assertTrue( pool.size() == addedValues );
+		
+		int unreferencedListsCount = 0 ;
+		
+		for (int i = 0; i < linkedLists.length; i+= 2) {
+			linkedLists[i] = null ;
+			unreferencedListsCount++ ;
+		}
+		
+		assertTrue( unreferencedListsCount > 0 );
+		
+		int clearCount = 0 ;
+		
+		for (int i = 0; i < 5; i++) {
+			
+			System.gc();
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			System.gc();
+			
+			clearCount += pool.clearUnreferencedLists();
+		}
+		
+		assertTrue( clearCount == 0 );
+		
+		assertTrue( pool.getReferencedListsSize() == 0 );
+		
+		assertTrue( pool.size() == addedValues );
+		
+	}
+	
+	
 
 }

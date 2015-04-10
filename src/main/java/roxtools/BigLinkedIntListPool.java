@@ -1,5 +1,7 @@
 package roxtools;
 
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -142,24 +144,310 @@ final public class BigLinkedIntListPool {
 	}
 	
 	public BigLinkedIntList createLinkedList() {
+		clearUnreferencedLists() ;
+		
 		BigLinkedIntList linkedList = createLinkedListInstace() ;
 		return linkedList ;
 	}
 	
-	protected BigLinkedIntList createLinkedListInstace() {
-		BigLinkedIntList linkedList = new BigLinkedIntList(this) ;
+	public BigLinkedIntList createLinkedListUnreferenced() {
+		BigLinkedIntList linkedList = createLinkedListInstaceUnreferenced() ;
 		return linkedList ;
+	}
+	
+	protected BigLinkedIntList createLinkedListInstace() {
+		BigLinkedIntList linkedList = new BigLinkedIntListObj(this) ;
+		return linkedList ;
+	}
+
+	protected BigLinkedIntList createLinkedListInstaceUnreferenced() {
+		BigLinkedIntList linkedList = new BigLinkedIntListRef(this) ;
+		return linkedList ;
+	}
+	
+	
+	final private ReferenceQueue<BigLinkedIntList> referenceQueue = new ReferenceQueue<BigLinkedIntList>() ;
+	
+	private ReferenceQueue<BigLinkedIntList> getReferenceQueue() {
+		return referenceQueue;
+	}
+	
+	final private ArrayList<BigLinkedIntListRef> references = new ArrayList<BigLinkedIntListRef>() ;
+	
+	public int getReferencedListsSize() {
+		synchronized (references) {
+			return references.size() ;
+		}
+	}
+	
+	private void registerReference(BigLinkedIntListRef ref) {
+		synchronized (references) {
+			references.add(ref) ;	
+		}
+	}
+	
+	private void unregisterReference(BigLinkedIntListRef ref) {
+		synchronized (references) {
+			references.remove(ref) ;
+		}
+	}
+	
+	public int clearUnreferencedLists() {
+		
+		int clearCount = 0 ;
+		
+		while ( true ) {
+			
+			BigLinkedIntListRef ref = (BigLinkedIntListRef) referenceQueue.poll();
+			
+			if (ref == null) break ;
+			
+			ref.clear();
+			
+			unregisterReference(ref);
+			
+			clearCount++ ;
+		}
+		
+		return clearCount ;
 	}
 
 	////////////////////////////////////////////////
 	
-	static public class BigLinkedIntList implements Iterable<Integer> {
+	static public interface BigLinkedIntList extends Iterable<Integer> {
+		
+		public BigLinkedIntListPool getPool() ;
+
+		public Object getMUTEX() ;
+
+		public int size() ;
+
+		public boolean isEmpty() ;
+
+		public void add(int elem) ;
+
+		public void addAll(int[] elems) ;
+
+		public void addAll(int[] elems, int off, int length) ;
+
+		public void addAll(List<Integer> elems) ;
+
+		public void addAll(List<Integer> elems, int off, int length) ;
+
+		public void addAll(Iterable<Integer> elems) ;
+
+		public Integer removeFirst() ;
+
+		public Integer removeLast() ;
+
+		public Integer remove(int idx) ;
+
+		public void clear() ;
+
+		public Integer getFirst() ;
+
+		public Integer getLast() ;
+
+		public Integer get(int idx) ;
+
+		public Integer getFromHead(int idx) ;
+
+		public Integer getFromTail(int idx) ;
+
+		public void setAll(List<Integer> elems) ;
+
+		public void setAll(Integer... elems) ;
+
+		public void setAll(int... elems) ;
+
+		public Integer set(int idx, Integer elem) ;
+
+		public Integer setFromHead(int idx, Integer elem) ;
+
+		public Integer setFromTail(int idx, Integer elem) ;
+
+		public List<Integer> toList() ;
+
+		public Integer[] toArray() ;
+
+		public int[] toIntArray() ;
+
+		public void copyIntoArray(Integer[] a, int off) ;
+
+		public void copyIntoArray(Integer[] a, int off, int length) ;
+
+		public void copyIntoArray(int[] a, int off) ;
+
+		public void copyIntoArray(int[] a, int off, int length) ;
+
+		public Iterator<Integer> iterator() ;
+
+		public String toString() ;
+	}
+	
+	static public class BigLinkedIntListObj implements BigLinkedIntList {
+		final private BigLinkedIntListRef ref ;
+		
+		public BigLinkedIntListObj(BigLinkedIntListPool pool) {
+			ref = new BigLinkedIntListRef(pool, this) ;
+			pool.registerReference(ref);
+		}
+		
+		public BigLinkedIntListPool getPool() {
+			return ref.getPool();
+		}
+
+		public Object getMUTEX() {
+			return ref.getMUTEX();
+		}
+
+		public int size() {
+			return ref.size();
+		}
+
+		public boolean isEmpty() {
+			return ref.isEmpty();
+		}
+
+		public void add(int elem) {
+			ref.add(elem);
+		}
+
+		public void addAll(int[] elems) {
+			ref.addAll(elems);
+		}
+
+		public void addAll(int[] elems, int off, int length) {
+			ref.addAll(elems, off, length);
+		}
+
+		public void addAll(List<Integer> elems) {
+			ref.addAll(elems);
+		}
+
+		public void addAll(List<Integer> elems, int off, int length) {
+			ref.addAll(elems, off, length);
+		}
+
+		public void addAll(Iterable<Integer> elems) {
+			ref.addAll(elems);
+		}
+
+		public Integer removeFirst() {
+			return ref.removeFirst();
+		}
+
+		public Integer removeLast() {
+			return ref.removeLast();
+		}
+
+		public Integer remove(int idx) {
+			return ref.remove(idx);
+		}
+
+		public void clear() {
+			ref.clear();
+		}
+
+		public Integer getFirst() {
+			return ref.getFirst();
+		}
+
+		public Integer getLast() {
+			return ref.getLast();
+		}
+
+		public Integer get(int idx) {
+			return ref.get(idx);
+		}
+
+		public Integer getFromHead(int idx) {
+			return ref.getFromHead(idx);
+		}
+
+		public Integer getFromTail(int idx) {
+			return ref.getFromTail(idx);
+		}
+
+		public void setAll(List<Integer> elems) {
+			ref.setAll(elems);
+		}
+
+		public void setAll(Integer... elems) {
+			ref.setAll(elems);
+		}
+
+		public void setAll(int... elems) {
+			ref.setAll(elems);
+		}
+
+		public Integer set(int idx, Integer elem) {
+			return ref.set(idx, elem);
+		}
+
+		public Integer setFromHead(int idx, Integer elem) {
+			return ref.setFromHead(idx, elem);
+		}
+
+		public Integer setFromTail(int idx, Integer elem) {
+			return ref.setFromTail(idx, elem);
+		}
+
+		public List<Integer> toList() {
+			return ref.toList();
+		}
+
+		public Integer[] toArray() {
+			return ref.toArray();
+		}
+
+		public int[] toIntArray() {
+			return ref.toIntArray();
+		}
+
+		public void copyIntoArray(Integer[] a, int off) {
+			ref.copyIntoArray(a, off);
+		}
+
+		public void copyIntoArray(Integer[] a, int off, int length) {
+			ref.copyIntoArray(a, off, length);
+		}
+
+		public void copyIntoArray(int[] a, int off) {
+			ref.copyIntoArray(a, off);
+		}
+
+		public void copyIntoArray(int[] a, int off, int length) {
+			ref.copyIntoArray(a, off, length);
+		}
+
+		public Iterator<Integer> iterator() {
+			return ref.iterator();
+		}
+
+		public String toString() {
+			return ref.toString();
+		}
+		
+	}
+	
+	final static private class BigLinkedIntListRef extends WeakReference<BigLinkedIntList> implements BigLinkedIntList {
 		final private BigLinkedIntListPool pool ;
 		private int headLinkIdx ;
 		private int tailLinkIdx ;
 		private int size ;
 
-		public BigLinkedIntList(BigLinkedIntListPool pool) {
+		public BigLinkedIntListRef(BigLinkedIntListPool pool) {
+			super(null) ;
+			
+			this.pool = pool ;
+			this.headLinkIdx = this.tailLinkIdx = 0 ;
+			this.size = 0 ;
+		}
+		
+		public BigLinkedIntListRef(BigLinkedIntListPool pool, BigLinkedIntList list) {
+			super(list, pool.getReferenceQueue()) ;
+			
 			this.pool = pool ;
 			this.headLinkIdx = this.tailLinkIdx = 0 ;
 			this.size = 0 ;
@@ -576,6 +864,7 @@ final public class BigLinkedIntListPool {
 			return prevData ;
 		}
 		
+		@SuppressWarnings("unused")
 		protected int[] getLinks() {
 			int[] links = new int[size] ;
 			int linksSz = 0 ;
