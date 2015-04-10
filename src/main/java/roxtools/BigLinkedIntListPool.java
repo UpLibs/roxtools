@@ -156,12 +156,12 @@ final public class BigLinkedIntListPool {
 	}
 	
 	protected BigLinkedIntList createLinkedListInstace() {
-		BigLinkedIntList linkedList = new BigLinkedIntListObj(this) ;
+		BigLinkedIntList linkedList = new BigLinkedIntListReferenced(this) ;
 		return linkedList ;
 	}
 
 	protected BigLinkedIntList createLinkedListInstaceUnreferenced() {
-		BigLinkedIntList linkedList = new BigLinkedIntListRef(this) ;
+		BigLinkedIntList linkedList = new BigLinkedIntListReference(this) ;
 		return linkedList ;
 	}
 	
@@ -172,7 +172,7 @@ final public class BigLinkedIntListPool {
 		return referenceQueue;
 	}
 	
-	final private ArrayList<BigLinkedIntListRef> references = new ArrayList<BigLinkedIntListRef>() ;
+	final private ArrayList<BigLinkedIntListReference> references = new ArrayList<BigLinkedIntListReference>() ;
 	
 	public int getReferencedListsSize() {
 		synchronized (references) {
@@ -180,13 +180,13 @@ final public class BigLinkedIntListPool {
 		}
 	}
 	
-	private void registerReference(BigLinkedIntListRef ref) {
+	private void registerReference(BigLinkedIntListReference ref) {
 		synchronized (references) {
 			references.add(ref) ;	
 		}
 	}
 	
-	private void unregisterReference(BigLinkedIntListRef ref) {
+	private void unregisterReference(BigLinkedIntListReference ref) {
 		synchronized (references) {
 			references.remove(ref) ;
 		}
@@ -198,7 +198,7 @@ final public class BigLinkedIntListPool {
 		
 		while ( true ) {
 			
-			BigLinkedIntListRef ref = (BigLinkedIntListRef) referenceQueue.poll();
+			BigLinkedIntListReference ref = (BigLinkedIntListReference) referenceQueue.poll();
 			
 			if (ref == null) break ;
 			
@@ -285,11 +285,11 @@ final public class BigLinkedIntListPool {
 		public String toString() ;
 	}
 	
-	static public class BigLinkedIntListObj implements BigLinkedIntList {
-		final private BigLinkedIntListRef ref ;
+	static public class BigLinkedIntListReferenced implements BigLinkedIntList {
+		final private BigLinkedIntListReference ref ;
 		
-		public BigLinkedIntListObj(BigLinkedIntListPool pool) {
-			ref = new BigLinkedIntListRef(pool, this) ;
+		public BigLinkedIntListReferenced(BigLinkedIntListPool pool) {
+			ref = new BigLinkedIntListReference(pool, this) ;
 			pool.registerReference(ref);
 		}
 		
@@ -431,13 +431,13 @@ final public class BigLinkedIntListPool {
 		
 	}
 	
-	final static private class BigLinkedIntListRef extends WeakReference<BigLinkedIntList> implements BigLinkedIntList {
+	final static private class BigLinkedIntListReference extends WeakReference<BigLinkedIntList> implements BigLinkedIntList {
 		final private BigLinkedIntListPool pool ;
 		private int headLinkIdx ;
 		private int tailLinkIdx ;
 		private int size ;
 
-		public BigLinkedIntListRef(BigLinkedIntListPool pool) {
+		public BigLinkedIntListReference(BigLinkedIntListPool pool) {
 			super(null) ;
 			
 			this.pool = pool ;
@@ -445,9 +445,543 @@ final public class BigLinkedIntListPool {
 			this.size = 0 ;
 		}
 		
-		public BigLinkedIntListRef(BigLinkedIntListPool pool, BigLinkedIntList list) {
+		public BigLinkedIntListReference(BigLinkedIntListPool pool, BigLinkedIntList list) {
 			super(list, pool.getReferenceQueue()) ;
 			
+			this.pool = pool ;
+			this.headLinkIdx = this.tailLinkIdx = 0 ;
+			this.size = 0 ;
+		}
+		
+		public BigLinkedIntListPool getPool() {
+			return pool;
+		}
+		
+		public Object getMUTEX() {
+			return pool;
+		}
+		
+		public int size() {
+			return size ;
+		}
+		
+		public boolean isEmpty() {
+			return size == 0 ;
+		}
+		
+		public void add(int elem) {
+			int idx = pool.nextFreeIndex() ;
+			
+			if (this.size == 0) {
+				this.headLinkIdx = this.tailLinkIdx = idx ;
+			}
+			else {
+				pool.setLink(this.tailLinkIdx, idx);
+				this.tailLinkIdx = idx ;
+			}
+			
+			pool.setData(tailLinkIdx, elem);
+			
+			this.size++ ;
+		}
+		
+		private void addSlot() {
+			int idx = pool.nextFreeIndex() ;
+			
+			if (this.size == 0) {
+				this.headLinkIdx = this.tailLinkIdx = idx ;
+			}
+			else {
+				pool.setLink(this.tailLinkIdx, idx);
+				this.tailLinkIdx = idx ;
+			}
+			
+			this.size++ ;
+		}
+		
+		public void addAll(int[] elems) {
+			addAll(elems, 0, elems.length);
+		}
+		
+		public void addAll(int[] elems, int off, int length) {
+			int limit = off+length ;
+			
+			for (int i = off; i < limit; i++) {
+				int elem = elems[i] ;
+				add(elem);
+			}
+		}
+		
+		public void addAll(List<Integer> elems) {
+			addAll(elems, 0 , elems.size());
+		}
+		
+		public void addAll(List<Integer> elems, int off, int length) {
+			int limit = off+length ;
+			
+			for (int i = off; i < limit; i++) {
+				Integer elem = elems.get(i) ;
+				add(elem);
+			}
+		}
+		
+		public void addAll(Iterable<Integer> elems) {
+			for (Integer e : elems) {
+				add(e);
+			}
+		}
+		
+		public Integer removeFirst() {
+			if (this.size == 0) return null ;
+			
+			int prev = pool.getData(headLinkIdx);
+			
+			int nextLink = pool.getLink(headLinkIdx) ;
+			
+			pool.releaseIndex(headLinkIdx);
+			
+			this.headLinkIdx = nextLink ;
+			
+			this.size-- ;
+			
+			return prev ;
+		}
+		
+		public Integer removeLast() {
+			if (this.size == 0) return null ;
+			
+			int prev = pool.getData(tailLinkIdx);
+			
+			int prevLink = pool.getLinkReversed(tailLinkIdx) ;
+			
+			pool.releaseIndex(tailLinkIdx);
+			
+			this.tailLinkIdx = prevLink ;
+			
+			this.size-- ;
+			
+			return prev ;
+		}
+		
+		public Integer remove(int idx) {
+			if (idx >= size) return null ;
+			
+			if (idx == 0) {
+				return removeFirst() ;
+			}
+			else if (idx == size-1) {
+				return removeLast() ;
+			}
+			
+			int blockSize = pool.blockSize ;
+			int[][] links = pool.links ;
+			
+			int blockIdx ;
+			int innerIdx ;
+			
+			int cursor = this.headLinkIdx ;
+			int prevCursor = cursor ;
+			
+			for (int i = idx-1 ; i >= 0 ; i--) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor % blockSize ;
+				
+				prevCursor = cursor ;
+				cursor = links[blockIdx][innerIdx] ;
+			}
+			
+			blockIdx = cursor / blockSize ;
+			innerIdx = cursor % blockSize ;
+			
+			int prevData = pool.data[blockIdx][innerIdx] ;
+			
+			int linkNext = pool.links[blockIdx][innerIdx] ;
+			
+			pool.setLink(prevCursor, linkNext);
+			
+			pool.releaseIndex(cursor);
+			
+			this.size-- ;
+			
+			return prevData ;
+		}
+		
+		public void clear() {
+			while (size > 0) {
+				pool.setData(tailLinkIdx, 0);
+				
+				int prevLink = pool.getLinkReversed(tailLinkIdx) ;
+				
+				pool.releaseIndex(tailLinkIdx);
+				
+				this.tailLinkIdx = prevLink ;
+				
+				this.size-- ;
+			}
+		}
+
+		public Integer getFirst() {
+			if (size == 0) return null ;
+			return pool.getData(headLinkIdx) ;
+		}
+		
+		public Integer getLast() {
+			if (size == 0) return null ;
+			return pool.getData(tailLinkIdx) ;
+		}
+		
+		public Integer get(int idx) {
+			if ( idx < (size >>> 1) ) {
+				return getFromHead(idx) ;
+			}
+			else {
+				return getFromTail(idx) ;
+			}
+		}
+		
+		public Integer getFromHead(int idx) {
+			if (idx >= size) return null ;
+			
+			int blockSize = pool.blockSize ;
+			int[][] links = pool.links ;
+			
+			int blockIdx ;
+			int innerIdx ;
+			
+			int cursor = this.headLinkIdx ;
+			
+			for (int i = idx-1 ; i >= 0 ; i--) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor % blockSize ;
+				
+				cursor = links[blockIdx][innerIdx] ;
+			}
+			
+			blockIdx = cursor / blockSize ;
+			innerIdx = cursor % blockSize ;
+			
+			return pool.data[blockIdx][innerIdx] ;
+		}
+		
+		public Integer getFromTail(int idx) {
+			if (idx >= size) return null ;
+			
+			int blockSize = pool.blockSize ;
+			int[][] linksReversed = pool.linksReversed;
+			
+			int blockIdx ;
+			int innerIdx ;
+			
+			int cursor = this.tailLinkIdx ;
+			
+			for (int i = (size-idx)-2 ; i >= 0 ; i--) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor % blockSize ;
+				
+				
+				cursor = linksReversed[blockIdx][innerIdx] ;
+			}
+			
+			blockIdx = cursor / blockSize ;
+			innerIdx = cursor % blockSize ;
+			
+			return pool.data[blockIdx][innerIdx] ;
+		}
+		
+		public void setAll(List<Integer> elems) {
+			int elemsSz = elems.size() ;
+			if ( size > elemsSz ) {
+				do {
+					removeLast() ;
+				}
+				while ( size > elemsSz ) ;
+			}
+			else if ( size < elemsSz ) {
+				do {
+					addSlot();
+				}
+				while ( size < elemsSz ) ;
+			}
+			
+			int blockSize = pool.blockSize ;
+			
+			int cursor = this.headLinkIdx ;
+			int setSz = 0 ;
+			
+			int blockIdx ;
+			int innerIdx ;
+			
+			while ( setSz < size ) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor - (blockIdx*blockSize) ;
+				
+				pool.data[blockIdx][innerIdx] = elems.get(setSz) ;
+				cursor = pool.links[blockIdx][innerIdx] ;
+				
+				setSz++ ;
+			}
+			
+		}
+		
+		public void setAll(Integer... elems) {
+			
+			if ( size > elems.length ) {
+				do {
+					removeLast() ;
+				}
+				while ( size > elems.length ) ;
+			}
+			else if ( size < elems.length ) {
+				do {
+					addSlot();
+				}
+				while ( size < elems.length ) ;
+			}
+			
+			int blockSize = pool.blockSize ;
+			
+			int cursor = this.headLinkIdx ;
+			int setSz = 0 ;
+			
+			int blockIdx ;
+			int innerIdx ;
+			
+			while ( setSz < size ) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor - (blockIdx*blockSize) ;
+				
+				pool.data[blockIdx][innerIdx] = elems[setSz] ;
+				cursor = pool.links[blockIdx][innerIdx] ;
+				
+				setSz++ ;
+			}
+			
+		}
+		
+		public void setAll(int... elems) {
+			
+			if ( size > elems.length ) {
+				do {
+					removeLast() ;
+				}
+				while ( size > elems.length ) ;
+			}
+			else if ( size < elems.length ) {
+				do {
+					addSlot();
+				}
+				while ( size < elems.length ) ;
+			}
+			
+			int blockSize = pool.blockSize ;
+			
+			int cursor = this.headLinkIdx ;
+			int setSz = 0 ;
+			
+			int blockIdx ;
+			int innerIdx ;
+			
+			while ( setSz < size ) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor - (blockIdx*blockSize) ;
+				
+				pool.data[blockIdx][innerIdx] = elems[setSz] ;
+				cursor = pool.links[blockIdx][innerIdx] ;
+				
+				setSz++ ;
+			}
+			
+		}
+		
+		
+		public Integer set(int idx, Integer elem) {
+			if (idx == size) {
+				add(elem);
+				return null ;
+			}
+			else if ( idx < (size >>> 1) ) {
+				return setFromHead(idx, elem) ;
+			}
+			else {
+				return setFromTail(idx, elem) ;
+			}
+		}
+		
+		public Integer setFromHead(int idx, Integer elem) {
+			if (idx >= size) return null ;
+			
+			int blockSize = pool.blockSize ;
+			int[][] links = pool.links ;
+			
+			int blockIdx ;
+			int innerIdx ;
+			
+			int cursor = this.headLinkIdx ;
+			
+			for (int i = idx-1 ; i >= 0 ; i--) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor % blockSize ;
+				
+				cursor = links[blockIdx][innerIdx] ;
+			}
+			
+			blockIdx = cursor / blockSize ;
+			innerIdx = cursor % blockSize ;
+			
+			int prevData = pool.data[blockIdx][innerIdx] ;
+			
+			pool.data[blockIdx][innerIdx] = elem ;
+			
+			return prevData ;
+		}
+		
+		public Integer setFromTail(int idx, Integer elem) {
+			if (idx >= size) return null ;
+			
+			int blockSize = pool.blockSize ;
+			int[][] linksReversed = pool.linksReversed;
+			
+			int blockIdx ;
+			int innerIdx ;
+			
+			int cursor = this.tailLinkIdx ;
+			
+			for (int i = (size-idx)-2 ; i >= 0 ; i--) {
+				blockIdx = cursor / blockSize ;
+				innerIdx = cursor % blockSize ;
+				
+				
+				cursor = linksReversed[blockIdx][innerIdx] ;
+			}
+			
+			blockIdx = cursor / blockSize ;
+			innerIdx = cursor % blockSize ;
+			
+			int prevData = pool.data[blockIdx][innerIdx] ;
+			
+			pool.data[blockIdx][innerIdx] = elem ;
+			
+			return prevData ;
+		}
+		
+		@SuppressWarnings("unused")
+		protected int[] getLinks() {
+			int[] links = new int[size] ;
+			int linksSz = 0 ;
+			
+			int cursor = this.headLinkIdx ;
+			
+			while ( linksSz < size ) {
+				links[linksSz++] = cursor ;
+				cursor = pool.getLink(cursor);
+			}
+			
+			return links ;
+		}
+		
+		public List<Integer> toList() {
+			ArrayList<Integer> list = new ArrayList<Integer>(size) ;
+			Collections.addAll(list, toArray()) ;
+			return list ;
+		}
+		
+		public Integer[] toArray() {
+			Integer[] a = new Integer[size] ;
+			int aSz = 0 ;
+			
+			int cursor = this.headLinkIdx ;
+			
+			while ( aSz < size ) {
+				a[aSz++] = pool.getData(cursor);
+				cursor = pool.getLink(cursor);
+			}
+			
+			return a ;
+		}
+		
+		public int[] toIntArray() {
+			int[] a = new int[size] ;
+			int aSz = 0 ;
+			
+			int cursor = this.headLinkIdx ;
+			
+			while ( aSz < size ) {
+				a[aSz++] = pool.getData(cursor);
+				cursor = pool.getLink(cursor);
+			}
+			
+			return a ;
+		}
+		
+		public void copyIntoArray(Integer[] a, int off) {
+			copyIntoArray(a, off, size-off);
+		}
+		
+		public void copyIntoArray(Integer[] a, int off, int length) {
+			int cursor = this.headLinkIdx ;
+			
+			int copy = 0 ;
+			while ( copy < length ) {
+				a[off++] = pool.getData(cursor);
+				cursor = pool.getLink(cursor);
+			}
+		}
+		
+		public void copyIntoArray(int[] a, int off) {
+			copyIntoArray(a, off, size-off);
+		}
+		
+		public void copyIntoArray(int[] a, int off, int length) {
+			int cursor = this.headLinkIdx ;
+			
+			int copy = 0 ;
+			while ( copy < length ) {
+				a[off++] = pool.getData(cursor);
+				cursor = pool.getLink(cursor);
+			}
+		}
+		
+		public Iterator<Integer> iterator() {
+			return new Iterator<Integer>() {
+
+				int consumeCount = 0 ;
+				int cursor = headLinkIdx ;
+				
+				@Override
+				public boolean hasNext() {
+					return consumeCount < size ;
+				}
+
+				@Override
+				public Integer next() {
+					int data = pool.getData(cursor) ;
+					int next = pool.getLink(cursor) ;
+					cursor = next ;
+					consumeCount++ ;
+					return data;
+				}
+
+				@Override
+				public void remove() {
+					throw new UnsupportedOperationException() ;
+				}
+			};
+		}
+		
+		@Override
+		public String toString() {
+			return "[ head:"+ headLinkIdx +" ... tail:"+ tailLinkIdx +" ; size: "+ size +"]" ;
+		}
+	}
+	
+
+	final static private class BigLinkedIntListUnreferenced implements BigLinkedIntList {
+		final private BigLinkedIntListPool pool ;
+		private int headLinkIdx ;
+		private int tailLinkIdx ;
+		private int size ;
+
+		public BigLinkedIntListUnreferenced(BigLinkedIntListPool pool) {
 			this.pool = pool ;
 			this.headLinkIdx = this.tailLinkIdx = 0 ;
 			this.size = 0 ;
