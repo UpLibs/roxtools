@@ -18,10 +18,12 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	
 	final private VDSector sector ;
 	
-	final private BigLinkedIntListPool listPool = new BigLinkedIntListPool(1, 2000) ;
+	final private BigLinkedIntListPool listPool ;
 	
 	public FileKeysTable(VDSector sector) {
 		this.sector = sector;
+		
+		this.listPool = new BigLinkedIntListPool(1, sector.getTotalBlocks()) ;
 		
 		loadAllMetaDataKeys();
 	}
