@@ -212,9 +212,10 @@ final public class VDSector {
 	
 	synchronized protected void close() throws IOException {
 		
+		this.keysTable.close() ;
+		
 		this.io.close() ;
 		
-		this.keysTable.close() ;
 	}
 	
 	private void writeHeader() throws IOException {

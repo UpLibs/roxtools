@@ -18,14 +18,22 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	
 	final private VDSector sector ;
 	
-	final private BigLinkedIntListPool listPool ;
+	private BigLinkedIntListPool listPool ;
 	
 	public FileKeysTable(VDSector sector) {
 		this.sector = sector;
 		
-		this.listPool = new BigLinkedIntListPool(1, sector.getTotalBlocks()) ;
+		instantiateListPool();
 		
 		loadAllMetaDataKeys();
+	}
+	
+	private void instantiateListPool() {
+		if (this.listPool != null) {
+			this.listPool.clearUnreferencedLists() ;
+		}
+		
+		this.listPool = new BigLinkedIntListPool(1, sector.getTotalBlocks()) ;
 	}
 
 	public VDSector getSector() {
@@ -73,15 +81,23 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 		
 		synchronized (keysTables) {
 			
+			int countLostInstances = 0 ;
+			
 			for (Entry<KeyGroup, SoftReference<KeysTable>> entry : keysTables.entrySet()) {
 				SoftReference<KeysTable> tableRef = entry.getValue();
 				
 				KeysTable table = tableRef.get() ;
-				if (table == null) {
-					table = instantiateTable( entry.getKey() ) ;
-				}
 				
-				table.clear();
+				if (table != null) {
+					table.clear();
+				}
+				else {
+					countLostInstances++ ;
+				}
+			}
+			
+			if (countLostInstances > 0) {
+				instantiateListPool();
 			}
 			
 			keysTables.clear();
