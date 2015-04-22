@@ -1,4 +1,4 @@
-	package roxtools.io.vdisk;
+package roxtools.io.vdisk;
 
 import java.io.IOException;
 import java.lang.ref.SoftReference;
@@ -41,6 +41,24 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	}
 	
 	static final class KeyGroup {
+		
+		static final private HashMap<KeyGroup, KeyGroup> singletonInstances = new HashMap<KeyGroup, KeyGroup>() ;
+		
+		static public KeyGroup getSingletonInstance(String key) {
+			return toSingletonInstance( new KeyGroup(key) ) ;
+		}
+		
+		static public KeyGroup toSingletonInstance(KeyGroup keyGroup) {
+			synchronized (singletonInstances) {
+				KeyGroup prev = singletonInstances.get(keyGroup) ;
+				if (prev != null) return prev ;
+				
+				singletonInstances.put(keyGroup, keyGroup) ;
+				
+				return keyGroup ;
+			}
+		}
+		
 		private final int group ;
 		
 		public KeyGroup(String key) {
@@ -226,7 +244,7 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	}
 	
 	public int[] setFileIdent(String key, int[] ident) {
-		KeyGroup keyGroup = new KeyGroup(key) ;
+		KeyGroup keyGroup = KeyGroup.getSingletonInstance(key) ;
 		
 		KeysTable table = getKeysTable(keyGroup) ;
 		
@@ -513,7 +531,7 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 				try {
 					String key = block.getMetaDataKey() ;
 					
-					KeyGroup keyGroup = new KeyGroup(key) ;
+					KeyGroup keyGroup = KeyGroup.getSingletonInstance(key) ;
 					
 					KeysTable keysTable = getKeysTable(keyGroup) ;
 					
@@ -591,7 +609,7 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	
 
 	synchronized protected void notifyMetaDataKeyChange(String key, int blockIndex, int blockSector) {
-		KeyGroup keyGroup = new KeyGroup(key) ;
+		KeyGroup keyGroup = KeyGroup.getSingletonInstance(key) ;
 		
 		KeysTable keysTable = getKeysTable(keyGroup) ;
 		IntTable keysTableHashcode = getKeysTableHashcode(keyGroup) ;
@@ -609,7 +627,7 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	}
 	
 	synchronized protected void notifyMetaDataKeyRemove(String key, int blockIndex, int blockSector) {
-		KeyGroup keyGroup = new KeyGroup(key) ;
+		KeyGroup keyGroup = KeyGroup.getSingletonInstance(key) ;
 		
 		KeysTable keysTable = getKeysTableIfExists(keyGroup) ;
 		IntTable keysTableHashcode = getKeysTableHashcodeIfExists(keyGroup) ;
