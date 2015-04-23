@@ -1,5 +1,7 @@
 package roxtools;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -7,7 +9,13 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import org.slf4j.Logger;
+
+@SuppressWarnings("unchecked")
 final public class BigLinkedIntListPool {
+	
+	private static final Logger LOG = getLogger(BigLinkedIntListPool.class);
+	
 	final protected int blockSize ;
 	
 	private int poolCapacity ;
@@ -63,7 +71,7 @@ final public class BigLinkedIntListPool {
 		
 		poolCapacity += blockSize ;
 		
-		System.out.println("** "+ this.getClass().getName()+"> ADDED BLOCK> size/capacity: "+ this.poolSize +" / "+ this.poolCapacity +" ; memory: "+ (getUsedMemory()/1024) +"KB");
+		LOG.debug("ADDED BLOCK> size/capacity: {} / {} ; memory: {}KB", this.poolSize , this.poolCapacity , (getUsedMemory()/1024) );
 		
 	}
 	
@@ -161,7 +169,7 @@ final public class BigLinkedIntListPool {
 	}
 
 	protected BigLinkedIntList createLinkedListInstaceUnreferenced() {
-		BigLinkedIntList linkedList = new BigLinkedIntListReference(this) ;
+		BigLinkedIntList linkedList = new BigLinkedIntListUnreferenced(this) ;
 		return linkedList ;
 	}
 	
@@ -172,24 +180,135 @@ final public class BigLinkedIntListPool {
 		return referenceQueue;
 	}
 	
-	final private ArrayList<BigLinkedIntListReference> references = new ArrayList<BigLinkedIntListReference>() ;
-	
-	public int getReferencedListsSize() {
-		synchronized (references) {
-			return references.size() ;
+	static private class ReferencesTable {
+		private ArrayList<BigLinkedIntListReference>[] table ;
+		private int size ;
+		private int thresholdMin ;
+		private int thresholdMax ;
+		
+		public ReferencesTable(int groupsSize) {
+			this.table = createTable(groupsSize) ;
+			this.size = 0 ;
+			updateThreshold();
+			
 		}
+		
+		private ArrayList<BigLinkedIntListReference>[] createTable(int groupsSize) {
+			ArrayList<BigLinkedIntListReference>[] referencesTable = new ArrayList[groupsSize] ;
+			
+			for (int i = 0; i < referencesTable.length; i++) {
+				referencesTable[i] = new ArrayList<BigLinkedIntListPool.BigLinkedIntListReference>() ;
+			}
+			
+			return referencesTable ;
+		}
+		
+		private void rebuildTable(int groupsSize) {
+			if (groupsSize < 8) {
+				groupsSize = 8 ;
+			}
+			
+			synchronized (this) {
+				if (groupsSize == table.length) return ;
+				
+				LOG.debug("Rebuilding ReferenceTable. From size {} to {}.", groupsSize , table.length);
+				
+				ArrayList<BigLinkedIntListReference>[] referencesTable2 = createTable(groupsSize) ;
+			
+				for (int i = 0; i < table.length; i++) {
+					ArrayList<BigLinkedIntListReference> prevGroup = table[i] ;
+					
+					for (BigLinkedIntListReference ref : prevGroup) {
+						int idx2 = calcTableGroupIndex(ref, referencesTable2.length) ;
+						referencesTable2[idx2].add(ref) ;
+					}
+				}
+				
+				this.table = referencesTable2 ;	
+				updateThreshold();
+			}
+			
+		}
+
+		private int calcTableGroupIndex(BigLinkedIntListReference ref, int length) {
+			int idx = ref.hashCode() & (length-1);
+			return idx;
+		}
+		
+		private void updateThreshold() {
+			synchronized (this) {
+				this.thresholdMax = calcTableThreshold(this.table.length) ;
+				this.thresholdMin = calcTableThreshold( (int)(this.table.length * 0.40) ) ;
+			}
+		}
+		
+		private int calcTableThreshold(int size) {
+			int threshold = size * 100 ;
+			if (threshold < 100) threshold = 100;
+			return threshold ;
+		}
+		
+		private ArrayList<BigLinkedIntListReference> getTableGroup(BigLinkedIntListReference ref) {
+			synchronized (this) {
+				int idx = calcTableGroupIndex(ref, table.length);
+				return table[idx] ;	
+			}
+		}
+		
+		public int getListsSize() {
+			synchronized (this) {
+				int total = 0 ;
+				
+				for (ArrayList<BigLinkedIntListReference> refs : table) {
+					synchronized (refs) {
+						total += refs.size() ;
+					}	
+				}
+			
+				assert(total == size) ;
+				
+				return total ;
+			}
+		}
+		
+		public void registerReference(BigLinkedIntListReference ref) {
+			synchronized (this) {
+				if ( this.size >= this.thresholdMax ) {
+					rebuildTable( this.table.length * 2 ) ;
+				}
+				
+				ArrayList<BigLinkedIntListReference> group = getTableGroup(ref) ;
+				group.add(ref) ;	
+				size++ ;
+			}
+		}
+		
+		public void unregisterReference(BigLinkedIntListReference ref) {
+			synchronized (this) {
+				if ( this.size <= this.thresholdMin ) {
+					rebuildTable( this.table.length/2 ) ;
+				}
+				
+				ArrayList<BigLinkedIntListReference> group = getTableGroup(ref) ;
+				group.remove(ref) ;
+				size-- ;
+			}
+		}
+		
+	}
+	
+	private ReferencesTable referencesTable = new ReferencesTable(8) ;
+		
+	public int getReferencedListsSize() {
+		return referencesTable.getListsSize() ;
 	}
 	
 	private void registerReference(BigLinkedIntListReference ref) {
-		synchronized (references) {
-			references.add(ref) ;	
-		}
+		referencesTable.registerReference(ref);
 	}
 	
 	private void unregisterReference(BigLinkedIntListReference ref) {
-		synchronized (references) {
-			references.remove(ref) ;
-		}
+		referencesTable.unregisterReference(ref);
 	}
 	
 	public int clearUnreferencedLists() {
