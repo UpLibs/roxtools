@@ -1,12 +1,19 @@
 package roxtools;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import org.slf4j.Logger;
+
 final public class BigLinkedListPool<E> {
+	
+	private static final Logger LOG = getLogger(BigLinkedListPool.class);
+	
 	final protected Class<E> type ;
 	final protected Class<E[]> typeMulti ;
 	final protected int blockSize ;
@@ -73,7 +80,7 @@ final public class BigLinkedListPool<E> {
 		
 		poolCapacity += blockSize ;
 		
-		System.out.println("** "+ this.getClass().getName()+"> ADDED BLOCK> size/capacity: "+ this.poolSize +" / "+ this.poolCapacity +" ; memory: "+ (getUsedMemory()/1024) +"KB");
+		LOG.debug("ADDED BLOCK> size/capacity: {} / {} ; memory: {}KB", this.poolSize , this.poolCapacity , (getUsedMemory()/1024) );
 		
 	}
 	
