@@ -263,6 +263,7 @@ public class RoxThreadPool {
 	static public final int DEFAULT_THREAD_KEEP_ALIVE_SECONDS = 60 ;
 	
 	static public final ThreadPoolExecutor DEFAULT_THREAD_POOL = newThreadPool() ;
+	static public final ThreadPoolExecutor THREAD_POOL_FOR_CPU_CORES = newThreadPool( Math.max( AVAILABLE_CPU_CORES+1 , 4 ) ) ;
 	
 	static public ThreadPoolExecutor newThreadPoolUnlimited() {
 		return newThreadPool(0, Integer.MAX_VALUE, DEFAULT_THREAD_KEEP_ALIVE_SECONDS) ;
