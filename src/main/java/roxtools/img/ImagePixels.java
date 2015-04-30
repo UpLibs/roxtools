@@ -767,6 +767,16 @@ public class ImagePixels implements Cloneable {
 		return bs ;
 	}
 	
+	static public byte[] toBytes(float[] ns) {
+		byte[] bs = new byte[ns.length] ;
+		
+		for (int i = bs.length-1; i >= 0; i--) {
+			bs[i] = (byte) (ns[i] * 255) ;
+		}
+		
+		return bs ;
+	}
+	
 	static public int clip(int i) {
 		return i < 0 ? 0 : (i > 255 ? 255 : i) ;
 	}
@@ -862,7 +872,15 @@ public class ImagePixels implements Cloneable {
 		this(pixelsC1 , createChannel(pixelsC1.length , (byte)128) , createChannel(pixelsC1.length , (byte)128) , width , height, yuvFormat) ;
 	}
 	
+	public ImagePixels(float[] pixelsC1, int width, int height, boolean yuvFormat) {
+		this(toBytes(pixelsC1) , createChannel(pixelsC1.length , (byte)128) , createChannel(pixelsC1.length , (byte)128) , width , height, yuvFormat) ;
+	}
+	
 	public ImagePixels(int[] pixelsC1, int[] pixelsC2, int[] pixelsC3, int width, int height, boolean yuvFormat) {
+		this( toBytes(pixelsC1) , toBytes(pixelsC2) , toBytes(pixelsC3) , width , height , yuvFormat ) ;
+	}
+	
+	public ImagePixels(float[] pixelsC1, float[] pixelsC2, float[] pixelsC3, int width, int height, boolean yuvFormat) {
 		this( toBytes(pixelsC1) , toBytes(pixelsC2) , toBytes(pixelsC3) , width , height , yuvFormat ) ;
 	}
 	
