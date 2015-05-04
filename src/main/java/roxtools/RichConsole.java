@@ -1049,6 +1049,9 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 		public int getMaxConsoleElements() { return 0;}
 
 		@Override
+		public int getTotalConsoleElements() { return 0;}
+		
+		@Override
 		public void waitConsoleElementsBelowSize(int size) {}
 
 		@Override
@@ -1568,6 +1571,13 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 	@Override
 	public int getMaxConsoleElements() {
 		return maxConsoleElements;
+	}
+	
+	@Override
+	public int getTotalConsoleElements() {
+		synchronized (output) {
+			return output.size() ;
+		}
 	}
 	
 	private void checkMaxConsoleElements() {
