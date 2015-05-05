@@ -26,6 +26,8 @@ public interface RichConsoleInterface {
 	public abstract void setMaxConsoleElements(int maxConsoleElements);
 
 	public abstract int getMaxConsoleElements();
+	
+	public abstract int getTotalConsoleElements();
 
 	public abstract void waitConsoleElementsBelowSize(int size);
 
