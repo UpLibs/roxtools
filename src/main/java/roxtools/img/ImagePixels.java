@@ -2077,6 +2077,10 @@ public class ImagePixels implements Cloneable {
 	    }
 	}
 	
+	final public ImagePixels createGrayscaleImage() {
+		return createGrayscaleImage(0, false) ;
+	}
+	
 	final public ImagePixels createGrayscaleImage(int colorQuantizationBitz) {
 		return createGrayscaleImage(colorQuantizationBitz, false) ;
 	}
