@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -299,6 +300,10 @@ public class RoxThreadPool {
 		threadPoolExecutor.setRejectedExecutionHandler(new RejectedExecutionHandler() {
 			@Override
 			public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+				if ( executor.isShutdown() || executor.isTerminated() || executor.isTerminating() ) {
+					throw new RejectedExecutionException("Task "+ r.toString() +" rejected from "+ executor.toString());
+				}
+				
 				executor.execute(r);
 			}
 		});
