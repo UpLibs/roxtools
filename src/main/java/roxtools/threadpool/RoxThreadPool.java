@@ -182,7 +182,9 @@ public class RoxThreadPool {
 					return false ;
 				}
 				
-				return queue.offer(e) ;
+				boolean ok = queue.offer(e) ;
+				queue.notifyAll();
+				return ok ;
 			}
 		}
 
