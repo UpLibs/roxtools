@@ -326,7 +326,20 @@ public class RoxThreadPool {
 					throw new RejectedExecutionException("Task "+ r.toString() +" rejected from "+ executor.toString());
 				}
 				
-				executor.execute(r);
+				try {
+					synchronized (this) {
+						try {
+							// increase probability to have a new thread available.
+							this.wait(1);
+						}
+						catch (InterruptedException e) {}
+					}
+					
+					executor.execute(r);	
+				}
+				catch(StackOverflowError e) {
+					throw new RejectedExecutionException("StackOverflowError: Task "+ r.toString() +" rejected from "+ executor.toString());
+				}
 			}
 		});
 		
