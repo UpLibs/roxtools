@@ -107,7 +107,7 @@ public class RoxThreadPool {
 		public boolean addAll(Collection<? extends Runnable> c) {
 			synchronized (queue) {
 				boolean ret = queue.addAll(c) ;
-				queue.notifyAll();
+				if (waitingQueueCount > 0) queue.notifyAll() ;
 				return ret ;
 			}
 		}
@@ -137,11 +137,11 @@ public class RoxThreadPool {
 		public boolean add(Runnable e) {
 			synchronized (queue) {
 				boolean ret = queue.add(e) ;
-				queue.notifyAll();
+				if (waitingQueueCount > 0) queue.notifyAll() ;
 				return ret ;
 			}
 		}
-
+		
 		@Override
 		public boolean offer(Runnable e) {
 			synchronized (queue) {
@@ -150,7 +150,7 @@ public class RoxThreadPool {
 				}
 				
 				boolean ok = queue.offer(e);
-				queue.notifyAll();
+				if (waitingQueueCount > 0) queue.notifyAll() ;
 				return ok ;
 			}
 		}
@@ -159,10 +159,12 @@ public class RoxThreadPool {
 		public void put(Runnable e) throws InterruptedException {
 			synchronized (queue) {
 				queue.add(e) ;
-				queue.notifyAll();
+				if (waitingQueueCount > 0) queue.notifyAll() ;
 			}
 		}
 
+		private int waitingQueueCount = 0 ;
+		
 		private void waitQueueSize(int desiredMinimalSize, int desiredMaximalSize, long timeout, TimeUnit unit) throws InterruptedException {
 			synchronized (queue) {
 				long limitTime = System.currentTimeMillis() + unit.toMillis(timeout) ;
@@ -170,7 +172,16 @@ public class RoxThreadPool {
 				while ( queue.size() < desiredMinimalSize || queue.size() > desiredMaximalSize ) {
 					long time = limitTime - System.currentTimeMillis() ;
 					if (time < 1) break ;
-					queue.wait(time);
+					
+					try {
+						waitingQueueCount++ ;
+						
+						queue.wait();	
+					}
+					finally {
+						waitingQueueCount-- ;
+					}
+					
 				}	
 			}
 		}
@@ -183,7 +194,7 @@ public class RoxThreadPool {
 				}
 				
 				boolean ok = queue.offer(e) ;
-				queue.notifyAll();
+				if (waitingQueueCount > 0) queue.notifyAll() ;
 				return ok ;
 			}
 		}
@@ -192,7 +203,16 @@ public class RoxThreadPool {
 		public Runnable take() throws InterruptedException {
 			synchronized (queue) {
 				while (queue.isEmpty()) {
-					queue.wait();
+					
+					try {
+						waitingQueueCount++ ;
+						
+						queue.wait();	
+					}
+					finally {
+						waitingQueueCount-- ;
+					}
+					
 				}
 				return queue.remove();
 			}
