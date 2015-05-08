@@ -176,7 +176,7 @@ public class RoxThreadPool {
 					try {
 						waitingQueueCount++ ;
 						
-						queue.wait();	
+						queue.wait(time);	
 					}
 					finally {
 						waitingQueueCount-- ;
