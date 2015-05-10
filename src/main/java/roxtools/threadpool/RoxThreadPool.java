@@ -305,13 +305,13 @@ public class RoxThreadPool {
 		return newThreadPool(0, Math.max(1, (int) (RoxThreadPool.AVAILABLE_CPU_CORES * threadsPerCore)) , DEFAULT_THREAD_KEEP_ALIVE_SECONDS) ;
 	}
 	
-	static public ThreadPoolExecutor newThreadPool(int minThreads, int maxThreads, int threadKeepAliveSeconds) {
+	static public ThreadPoolExecutor newThreadPool(int minThreads, final int maxThreads, int threadKeepAliveSeconds) {
 		if (minThreads < 0) minThreads = 0 ;
 		if (maxThreads < 1) throw new IllegalArgumentException("maxThreads < 1: "+ maxThreads) ;
 		
 		PoolQueue poolQueue = new PoolQueue(maxThreads) ;
 		
-		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+		final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
 				minThreads, maxThreads,
 				threadKeepAliveSeconds, TimeUnit.SECONDS,
 				poolQueue
@@ -324,6 +324,11 @@ public class RoxThreadPool {
 			public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
 				if ( executor.isShutdown() || executor.isTerminated() || executor.isTerminating() ) {
 					throw new RejectedExecutionException("Task "+ r.toString() +" rejected from "+ executor.toString());
+				}
+				
+				synchronized (threadPoolExecutor) {
+					int max2 = Math.max( threadPoolExecutor.getMaximumPoolSize()+1 , maxThreads ) ;
+					threadPoolExecutor.setMaximumPoolSize(max2);	
 				}
 				
 				try {
