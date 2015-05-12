@@ -8,23 +8,35 @@ final public class JobCall implements Serializable , Runnable {
 	private static final long serialVersionUID = -5375821922993700225L;
 	
 	final private Object obj;
-	final private Method method ;
+	final private Class<?> codeClass ;
+	final private Method methodOriginal ;
+	final private Method methodToInvoke ;
 	final private Object[] args ;
 	
 	@SuppressWarnings("rawtypes")
 	final private JobResult result ;
 	
 	@SuppressWarnings("rawtypes")
-	protected JobCall(Object obj, Method method, Object[] args) {
+	protected JobCall(Class<?> codeClass, Object obj, Method methodOriginal, Method methodToInvoke, Object[] args) {
+		this.codeClass = codeClass;
 		this.obj = obj;
-		this.method = method;
+		this.methodOriginal = methodOriginal;
+		this.methodToInvoke = methodToInvoke;
 		this.args = args;
 		
 		this.result = new JobResult() ;
 	}
 	
-	public Method getMethod() {
-		return method;
+	public Class<?> getCodeClass() {
+		return codeClass;
+	}
+	
+	public Method getMethodOriginal() {
+		return methodOriginal;
+	}
+	
+	public Method getMethodToInvoke() {
+		return methodToInvoke;
 	}
 	
 	public Object[] getArgs() {
@@ -50,7 +62,7 @@ final public class JobCall implements Serializable , Runnable {
 	}
 
 	public Object invokeLocal() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		return method.invoke(obj, args) ;
+		return methodToInvoke.invoke(obj, args) ;
 	}
 	
 	@Override
