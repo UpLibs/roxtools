@@ -33,20 +33,23 @@ public class JobPool {
 	
 	private final JobPoolExecutor executor ;
 	
-	private final MyMethodHandler methodHandler ;
-	
 	public JobPool( JobPoolExecutor executor ) {
 		this.executor = executor ;
-		this.methodHandler = new MyMethodHandler() ;
 	}
 	
 	private ArrayList<JobCall> callsQueue = new ArrayList<JobCall>() ;
 	
 	final private class MyMethodHandler implements MethodHandler {
 
+		final private Class<?> codeClass ;
+		
+		public MyMethodHandler(Class<?> codeClass) {
+			this.codeClass = codeClass;
+		}
+
 		@Override
 		public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable {
-			JobCall call = new JobCall(self, proceed, args) ;
+			JobCall call = new JobCall(codeClass, self, thisMethod, proceed, args) ;
 			
 			synchronized (callsQueue) {
 				callsQueue.add(call) ;
@@ -71,6 +74,32 @@ public class JobPool {
 	public int getCallsQueueSize() {
 		synchronized (callsQueue) {
 			return callsQueue.size() ;
+		}
+	}
+	
+	///////////////////////////////
+	
+	final private HashMap<Class<?>, MyMethodHandler> methodHandlers = new HashMap<Class<?>, MyMethodHandler>() ;
+	
+	public MyMethodHandler getMethodHandler(Class<?> clazz) {
+		synchronized (methodHandlers) {
+			MyMethodHandler methodHandler = methodHandlers.get(clazz) ;
+			if (methodHandler != null) return methodHandler ;
+		}
+		
+		synchronized (clazz) {
+			synchronized (methodHandlers) {
+				MyMethodHandler methodHandler = methodHandlers.get(clazz) ;
+				if (methodHandler != null) return methodHandler ;
+			}
+			
+			MyMethodHandler methodHandler = new MyMethodHandler(clazz) ;
+			
+			synchronized (methodHandlers) {
+				methodHandlers.put(clazz, methodHandler) ;
+			}
+			
+			return methodHandler ;
 		}
 	}
 	
@@ -105,6 +134,8 @@ public class JobPool {
 	
 	public <T> T newJob(Class<T> clazz) {
 		ProxyFactory proxyFactory = getProxyFactory(clazz) ;
+		
+		MyMethodHandler methodHandler = getMethodHandler(clazz) ;
 		
 		try {
 			@SuppressWarnings("unchecked")
