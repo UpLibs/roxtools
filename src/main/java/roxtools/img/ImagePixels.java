@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
@@ -20,8 +21,8 @@ import roxtools.DigestMD5;
 import roxtools.ImageUtils;
 import roxtools.SerializationUtils;
 
-public class ImagePixels implements Cloneable {
-	
+public class ImagePixels implements Cloneable , Serializable {
+	private static final long serialVersionUID = -3570047060045369142L;
 
 	static public void writePixels(OutputStream out , byte[] pixels, int w, int h) throws IOException {
 		
