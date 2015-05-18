@@ -24,11 +24,15 @@ public class JobPool {
 		@Override
 		public boolean isHandled(Method method) {
 			if ( method.getDeclaringClass() == Object.class ) return false ;
+			
 			if ( method.getName().equals("toString") && method.getParameterTypes().length == 0 ) return false ;
+			if ( method.getName().equals("equals") && method.getParameterTypes().length == 1 ) return false ;
+			if ( method.getName().equals("hashCode") && method.getParameterTypes().length == 0 ) return false ;
+			
 			return true ;
 		}
 	}
-
+	
 	///////////////////////////////
 	
 	private final JobPoolExecutor executor ;
