@@ -105,7 +105,7 @@ final public class JobResult<T> {
 		}
 	}
 	
-	public Object waitResult() {
+	public T waitResult() {
 		
 		synchronized (this) {
 			checkDispatched(); 
@@ -121,7 +121,7 @@ final public class JobResult<T> {
 		
 	}
 	
-	public Object waitResult(long timeout) {
+	public T waitResult(long timeout) {
 		
 		long init = System.currentTimeMillis() ;
 		
