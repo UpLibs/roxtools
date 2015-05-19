@@ -1,9 +1,11 @@
 package roxtools.io.vdisk;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.ref.SoftReference;
 
-final public class VDBlock {
+final public class VDBlock implements Serializable {
+	private static final long serialVersionUID = 6967344815644813651L;
 
 	private final VDSector sector ;
 	
@@ -280,8 +282,8 @@ final public class VDBlock {
 		}
 	}
 	
-	private SoftReference<VDMetaData> metaDataRef ;
-	private String metaDataKey ;
+	transient private SoftReference<VDMetaData> metaDataRef ;
+	transient private String metaDataKey ;
 	
 	public void setMetaData(VDMetaData metaData) throws IOException {
 		

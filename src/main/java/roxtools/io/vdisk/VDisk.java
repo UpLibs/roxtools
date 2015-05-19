@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -13,12 +14,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 
-final public class VDisk {
-	
+final public class VDisk implements Serializable {
+	private static final long serialVersionUID = 5767308745082861624L;
+
 	static final private ArrayList<WeakReference<VDisk>> vDiskInstances = new ArrayList<WeakReference<VDisk>>() ;
 	
 	private final File vdiskDir ;
-	private final File vdiskLockFile ;
 	
 	protected final int blockSize ;
 	
@@ -32,7 +33,7 @@ final public class VDisk {
 	
 	final private Object sectorMUTEX = new Object() ;
 	private VDSector[] sectors ;
-	volatile private VDSector[] sectorsVolatile ;
+	transient volatile private VDSector[] sectorsVolatile ;
 	private boolean staticSectorSize ;
 	
 	////////////////////////////////////////////////////////
@@ -40,8 +41,8 @@ final public class VDisk {
 	final private VDisk metadataDisk ;
 	
 	///////////////////////////////////////////// size ; nextBlkIdx ; nextBlkSect ; prevBlkIdx ; prevBlkSect ; meta0 ; meta1
-	final private int BLOCK_USAGE_SIZE          = 1    + 1          + 1           + 1          + 1           + 1     + 1     ;
-	final private int BLOCK_USAGE_SIZE_METADATA = 1    + 1          + 1           + 1          + 1                            ;
+	static final private int BLOCK_USAGE_SIZE          = 1    + 1          + 1           + 1          + 1           + 1     + 1     ;
+	static final private int BLOCK_USAGE_SIZE_METADATA = 1    + 1          + 1           + 1          + 1                            ;
 	
 	final protected int blockUsageSize ;
 	final protected int blockUsageSizeBytes ;
@@ -58,7 +59,6 @@ final public class VDisk {
 		if ( sectorSize < 4 || sectorSize > MAX_SECTOR_SIZE ) throw new IllegalArgumentException("Invalid sectorSize: "+ sectorSize) ;
 		
 		this.vdiskDir = vdiskDir;
-		this.vdiskLockFile = new File( vdiskDir , "vdisk.lock" ) ;
 		
 		if (!metadataDisk) {
 			lockDisk() ;
@@ -115,17 +115,23 @@ final public class VDisk {
 			this.staticSectorSize = false ;
 		}
 		
+		addToVDiskInstances();
+	}
+
+	private void addToVDiskInstances() {
 		synchronized (vDiskInstances) {
 			vDiskInstances.add( new WeakReference<VDisk>(this) ) ;
 		}
-		
 	}
-
-	private RandomAccessFile lockIO ;
-	private FileLock lock ;
+	
+	transient private File vdiskLockFile ;
+	transient private RandomAccessFile lockIO ;
+	transient private FileLock lock ;
 	
 	synchronized private void lockDisk() throws IOException {
 		if (this.lockIO != null) return ;
+		
+		this.vdiskLockFile = new File( vdiskDir , "vdisk.lock" ) ;
 		
 		this.lockIO = new RandomAccessFile(vdiskLockFile, "rw") ;
 		
@@ -770,6 +776,10 @@ final public class VDisk {
 			}
 		}
 		
+		if (this.metadataDisk != null) {
+			this.metadataDisk.flush();
+		}
+		
 	}
 	
 	private boolean closed = false ;
@@ -799,6 +809,10 @@ final public class VDisk {
 			}
 		}
 		
+		if (this.metadataDisk != null) {
+			this.metadataDisk.close(); 
+		}
+		
 		synchronized (this) {
 			try {
 				unlockDisk() ;
@@ -810,6 +824,26 @@ final public class VDisk {
 		}
 		
 	}
+	
+
+	///////////////////////////////////////////////////////////////////
+	
+	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+		this.flush();
+		out.defaultWriteObject();
+	}
+	
+	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+
+		this.sectorsVolatile = this.sectors ;
+		
+		if ( !isMetaDataDisk() ) {
+			lockDisk() ;
+		}
+	}
+
+	///////////////////////////////////////////////////////////////////
 	
 	private void removeFromVDiskInstances() {
 	
@@ -835,7 +869,6 @@ final public class VDisk {
 		closeImplem() ;
 	}
 	
-
 	static {
 		
 		Runtime.getRuntime().addShutdownHook(new Shutdown()) ;

@@ -4,9 +4,11 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 
-final public class VDFile {
-
+final public class VDFile implements Serializable {
+	private static final long serialVersionUID = 9196561280215962085L;
+	
 	final private VDisk vDisk ;
 	final private VDBlock initBlock ;
 	
@@ -600,7 +602,7 @@ final public class VDFile {
 		
 	}
 
-	private MyInputStream inputStream ;
+	transient private MyInputStream inputStream ;
 	
 	private void closeInputStream(MyInputStream stream) {
 		synchronized (this) {
@@ -675,7 +677,7 @@ final public class VDFile {
 		
 	}
 
-	private MyOutputStream outputStream ;
+	transient private MyOutputStream outputStream ;
 	
 	private void closeOutputStream(MyOutputStream stream) {
 		synchronized (this) {

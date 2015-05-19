@@ -49,15 +49,14 @@ final public class VDSector {
 	
 	final private File sectorFile ;
 	
-	final private SoftReference<VDBlock>[] blocks ;
+	transient private SoftReference<VDBlock>[] blocks ;
 	
-	private RandomAccessFile io ;
+	transient private RandomAccessFile io ;
 
-	final private byte[] header ;
+	transient private byte[] header ;
 	
-	final private FileKeysTable keysTable ;
+	transient private FileKeysTable keysTable ;
 	
-	@SuppressWarnings("unchecked")
 	protected VDSector(VDisk vDisk, int sectorIndex) throws IOException {
 		super();
 		this.vDisk = vDisk;
@@ -68,10 +67,15 @@ final public class VDSector {
 		
 		this.sectorIndex = sectorIndex ;
 		this.sectorFile = createSectorFile(vDisk, sectorIndex) ; 
+	
+		openIO();
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void openIO() throws IOException {
+		this.io = new RandomAccessFile(sectorFile, "rw") ;
 		
 		this.blocks = new SoftReference[ vDisk.sectorSize ] ;
-		
-		this.io = new RandomAccessFile(sectorFile, "rw") ;
 		
 		if (this.io.length() != vDisk.totalSectorSize) {
 			eraseSector() ;
@@ -849,6 +853,19 @@ final public class VDSector {
 		System.arraycopy(idents2, 0, idents3, idents1.length, idents2.length) ;
 		
 		return idents3 ;
+	}
+	
+	//////////////////////////////////////////
+
+	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+		this.flushHeader();
+		out.defaultWriteObject();
+	}
+	
+	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		
+		openIO();
 	}
 
 }

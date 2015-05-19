@@ -7,13 +7,15 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
 import roxtools.SerializationUtils;
 
-final public class VDMetaData implements Comparable<VDMetaData> {
-	
+final public class VDMetaData implements Comparable<VDMetaData> , Serializable {
+	private static final long serialVersionUID = 2615409379776005156L;
+
 	static String readKeyFromSerial( InputStream in ) throws IOException {
 		int sz = SerializationUtils.readInt(in) ;
 		
