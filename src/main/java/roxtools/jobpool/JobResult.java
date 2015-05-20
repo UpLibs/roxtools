@@ -1,11 +1,13 @@
 package roxtools.jobpool;
 
+import java.io.Serializable;
 import java.util.List;
 
 
 
-final public class JobResult<T> {
-	
+final public class JobResult<T> implements Serializable {
+	private static final long serialVersionUID = 5022181341681235801L;
+
 	@SuppressWarnings("rawtypes")
 	static public void waitAllFinished(JobResult... results) {
 		for (JobResult jobResult : results) {
