@@ -37,6 +37,10 @@ import roxtools.SerializationUtils;
 
 public class RoxCompiler<T> {
 	
+	static final public String ROX_COMPILER_CACHE_ROOT = System.getProperty("ROX_COMPILER_CACHE_ROOT") ;
+	static final public boolean IGNORE_ROX_COMPILER_CACHE_ROOT = System.getProperty("IGNORE_ROX_COMPILER_CACHE_ROOT") != null ;
+
+	///////////////////////////////////////////////////
 
 	static final private ArrayList<MyRef> instances = new ArrayList<MyRef>() ;
 	
@@ -57,9 +61,7 @@ public class RoxCompiler<T> {
 	}
 	
 	
-	/////////////////////
-	
-	static final public String ROX_COMPILER_CACHE_ROOT = System.getProperty("ROX_COMPILER_CACHE_ROOT") ;
+	///////////////////////////////////////////////////
 	
 	private final int id ;
 	private final ClassLoaderImpl classLoader;
@@ -98,20 +100,22 @@ public class RoxCompiler<T> {
 		
 		File compilerClassPathCache = null ;
 		
-		if ( ROX_COMPILER_CACHE_ROOT != null && !ROX_COMPILER_CACHE_ROOT.isEmpty() ) {
-			File cacheRoot = new File(ROX_COMPILER_CACHE_ROOT) ;
-			compilerClassPathCache = new File(cacheRoot , "roxcompiler-classpath-"+ System.currentTimeMillis() +"-"+ id +"-cache") ;
-			compilerClassPathCache.mkdirs() ;
-		}
-		
-		if (compilerClassPathCache == null) {
-			try {
-				compilerClassPathCache = File.createTempFile("roxcompiler-classpath-", "-"+id+"-cache") ;
-				compilerClassPathCache.delete() ;
+		if (!IGNORE_ROX_COMPILER_CACHE_ROOT) {
+			if ( ROX_COMPILER_CACHE_ROOT != null && !ROX_COMPILER_CACHE_ROOT.isEmpty() ) {
+				File cacheRoot = new File(ROX_COMPILER_CACHE_ROOT) ;
+				compilerClassPathCache = new File(cacheRoot , "roxcompiler-classpath-"+ System.currentTimeMillis() +"-"+ id +"-cache") ;
 				compilerClassPathCache.mkdirs() ;
 			}
-			catch (IOException e1) {
-				e1.printStackTrace(); 
+			
+			if (compilerClassPathCache == null) {
+				try {
+					compilerClassPathCache = File.createTempFile("roxcompiler-classpath-", "-"+id+"-cache") ;
+					compilerClassPathCache.delete() ;
+					compilerClassPathCache.mkdirs() ;
+				}
+				catch (IOException e1) {
+					e1.printStackTrace(); 
+				}
 			}
 		}
 		
@@ -287,9 +291,13 @@ public class RoxCompiler<T> {
 		return (Class<T>) classLoader.loadClass(qualifiedClassName);
 	}
 
-	static URI toURI(String name) {
+	static URI toURIClassName(String className, Kind kind) {
+		return toURI( className.replaceAll("\\.", "/") + kind.extension ) ;
+	}
+	
+	static URI toURI(String path) {
 		try {
-			return new URI(name);
+			return new URI(path);
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
@@ -327,22 +335,28 @@ public class RoxCompiler<T> {
 			return super.getFileForInput(location, packageName, relativeName);
 		}
 
-		public void putFileForInput(StandardLocation location, String packageName, String relativeName, JavaFileObject file) {
+		public void putFileForInput(StandardLocation location, String packageName, String relativeName, JavaFileObject objFile) {
 			URI key = uri(location, packageName, relativeName) ;
 			
 			synchronized (fileObjects) {
 				if (fileObjects.containsKey(key)) return ;
-				fileObjects.put(key, file);	
+				fileObjects.put(key, objFile);	
 			}
 			
-			if (compilerClassPathCache != null && relativeName.endsWith(".class")) {
+			if (
+					compilerClassPathCache != null
+					&& relativeName.endsWith(".class")
+					&& objFile.getKind() == Kind.CLASS
+					&& !(objFile instanceof JavaFileObjectMemorySource)
+					)
+			{
 				String classNamePath = packageName.replaceAll("\\.", "/") +"/"+ relativeName ;
 				
 				File classFileInCache = new File( compilerClassPathCache , classNamePath ) ;
 				
 				try {
-					System.out.println("-- Saved in cache: "+classFileInCache);
-					byte[] classBytes = SerializationUtils.readAll( file.openInputStream() ) ;
+					System.out.println("-- Saved in cache: "+classFileInCache +" > "+ objFile.getClass() +" > "+ objFile);
+					byte[] classBytes = SerializationUtils.readAll( objFile.openInputStream() ) ;
 					
 					File parentFile = classFileInCache.getParentFile() ;
 					if (parentFile != null) parentFile.mkdirs() ;
@@ -371,16 +385,6 @@ public class RoxCompiler<T> {
 			return file;
 		}
 		
-		@Override
-		public boolean hasLocation(Location location) {
-			if ( location == StandardLocation.CLASS_PATH || location == StandardLocation.SOURCE_PATH ) {
-				return true ;
-			}
-			
-			boolean hasLocation = super.hasLocation(location);
-			return hasLocation;
-		}
-
 		@Override
 		public ClassLoader getClassLoader(JavaFileManager.Location location) {
 			return classLoader;
@@ -460,7 +464,7 @@ public class RoxCompiler<T> {
 			for (JavaFileObject javaFileObject : files) {
 				String name2 = javaFileObject.getName().replaceFirst("\\.class$", "").replaceFirst("^.*?([^\\.]+)$", "$1") ;
 					
-				if ( name.equals(name2) ) return true ;
+				if ( name.equals(name2) || name2.endsWith("/"+name) ) return true ;
 			}
 			
 			return false ;
@@ -488,7 +492,7 @@ public class RoxCompiler<T> {
 		private String className ;
 		
 		public MyJavaFileObject(String className, String classFileName, Kind kind) {
-			super(RoxCompiler.toURI(classFileName), kind);
+			super(toURIClassName(className, kind), kind);
 			this.className = className ;
 		}
 		
@@ -577,6 +581,11 @@ public class RoxCompiler<T> {
 				throw new IllegalStateException(e) ;
 			}
     	}
+    	
+    	@Override
+    	public String toString() {
+    		return super.toString() +"@"+ this.classURL;
+    	}
     }
 
     static final class ClassLoaderImpl extends ClassLoader {
@@ -664,6 +673,7 @@ public class RoxCompiler<T> {
     
 
 	static private void deleteCompilerClassPathCache(File dir, boolean deletetDir) {
+		if (dir == null) return ;
 		
 		File[] files = dir.listFiles() ;
 		if (files == null) return ;
