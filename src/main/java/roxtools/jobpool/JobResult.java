@@ -1,6 +1,7 @@
 package roxtools.jobpool;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -34,6 +35,35 @@ final public class JobResult<T> implements Serializable {
 		for (JobResult jobResult : results) {
 			jobResult.waitFinished(timeout);
 		}
+	}
+
+	/////////////////////////////////////////
+	
+	@SuppressWarnings("rawtypes")
+	static public <T> List<T> grabResults(JobResult... results) {
+		ArrayList<T> list = new ArrayList<T>() ;
+		
+		for (JobResult jobResult : results) {
+			@SuppressWarnings("unchecked")
+			T res = (T) jobResult.waitResult() ;
+			list.add(res) ;
+		}
+		
+		return list ;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	static public <T> List<T> grabResults(List<JobResult> results) {
+		
+		ArrayList<T> list = new ArrayList<T>() ;
+		
+		for (JobResult jobResult : results) {
+			@SuppressWarnings("unchecked")
+			T res = (T) jobResult.waitResult() ;
+			list.add(res) ;
+		}
+		
+		return list ;
 	}
 	
 	/////////////////////////////////////////

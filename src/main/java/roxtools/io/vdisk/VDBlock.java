@@ -239,6 +239,8 @@ final public class VDBlock implements Serializable {
 	}
 	
 	protected boolean hasMetaDataParameterSet() {
+		if ( !canHaveMetaData() ) return false ;
+		
 		return this.usage.length > 5 && (this.usage[5] != 0 || this.usage[6] != 0) ;
 	}
 	
@@ -257,7 +259,7 @@ final public class VDBlock implements Serializable {
 	
 
 	private VDFile getMetaDataFile() throws IOException {
-		if ( sector.getVDisk().isMetaDataDisk() ) throw new UnsupportedOperationException() ;
+		if ( !canHaveMetaData() ) throw new UnsupportedOperationException() ;
 		
 		if ( hasPrevBlock() ) throw new IOException("Can't have meta data with previous block!") ;
 		
@@ -370,7 +372,13 @@ final public class VDBlock implements Serializable {
 		
 	}
 	
+	public boolean canHaveMetaData() {
+		return !sector.getVDisk().isMetaDataDisk() ;
+	}
+	
 	public boolean hasMetaData() {
+		if ( !canHaveMetaData() ) return false ;
+		
 		return hasMetaDataParameterSet() ;
 	}
 	

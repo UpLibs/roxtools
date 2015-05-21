@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 
+import roxtools.Mutex;
+
 final public class VDisk implements Serializable {
 	private static final long serialVersionUID = 5767308745082861624L;
 
@@ -31,7 +33,7 @@ final public class VDisk implements Serializable {
 	final protected int sectorHeaderSize ;
 	final protected int totalSectorSize ;
 	
-	final private Object sectorMUTEX = new Object() ;
+	final private Mutex sectorMUTEX = new Mutex() ;
 	private VDSector[] sectors ;
 	transient volatile private VDSector[] sectorsVolatile ;
 	private boolean staticSectorSize ;
@@ -883,10 +885,13 @@ final public class VDisk implements Serializable {
 			
 			synchronized (vDiskInstances) {
 				
-				int sz = vDiskInstances.size() ;
+				@SuppressWarnings("unchecked")
+				ArrayList<WeakReference<VDisk>> instances = (ArrayList<WeakReference<VDisk>>) vDiskInstances.clone() ;
+				
+				int sz = instances.size() ;
 				
 				for (int i = 0; i < sz; i++) {
-					WeakReference<VDisk> ref = vDiskInstances.get(i) ;
+					WeakReference<VDisk> ref = instances.get(i) ;
 					VDisk vDisk = ref.get() ;
 					
 					if (vDisk != null) {

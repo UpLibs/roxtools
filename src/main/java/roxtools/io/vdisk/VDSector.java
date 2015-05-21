@@ -4,6 +4,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.Serializable;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -15,8 +16,9 @@ import java.util.TimerTask;
 import roxtools.SerializationUtils;
 import roxtools.io.vdisk.VDisk.FilesMetaDataKeyFilter;
 
-final public class VDSector {
-	
+final public class VDSector implements Serializable {
+	private static final long serialVersionUID = -8341019527380883321L;
+
 	static public final String SECTOR_FILE_SUFIX = ".sector" ;
 	
 	static public int getSectorFileIndex(File sectorFile) {
