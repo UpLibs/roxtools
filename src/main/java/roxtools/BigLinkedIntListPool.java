@@ -50,54 +50,61 @@ final public class BigLinkedIntListPool {
 	}
 	
 	private void addBlock() {
-		int prevSize = links.length ;
-		int newSize = prevSize+1 ;
 		
-		int[][] links2 = new int[newSize][] ;
-		int[][] linksReversed2 = new int[newSize][] ;
-		int[][] data2 = new int[newSize][] ;
-		
-		System.arraycopy(links, 0, links2, 0, prevSize);
-		System.arraycopy(linksReversed, 0, linksReversed2, 0, prevSize);
-		System.arraycopy(data, 0, data2, 0, prevSize);
-		
-		links2[prevSize] = new int[blockSize] ;
-		linksReversed2[prevSize] = new int[blockSize] ;
-		data2[prevSize] = new int[blockSize] ;
-		
-		this.links = links2 ;
-		this.linksReversed = linksReversed2 ;
-		this.data = data2 ;
-		
-		poolCapacity += blockSize ;
+		synchronized (freeIndex_MUTEX) {
+			int prevSize = links.length ;
+			int newSize = prevSize+1 ;
+			
+			int[][] links2 = new int[newSize][] ;
+			int[][] linksReversed2 = new int[newSize][] ;
+			int[][] data2 = new int[newSize][] ;
+			
+			System.arraycopy(links, 0, links2, 0, prevSize);
+			System.arraycopy(linksReversed, 0, linksReversed2, 0, prevSize);
+			System.arraycopy(data, 0, data2, 0, prevSize);
+			
+			links2[prevSize] = new int[blockSize] ;
+			linksReversed2[prevSize] = new int[blockSize] ;
+			data2[prevSize] = new int[blockSize] ;
+			
+			this.links = links2 ;
+			this.linksReversed = linksReversed2 ;
+			this.data = data2 ;
+			
+			poolCapacity += blockSize ;
+		}
 		
 		LOG.debug("ADDED BLOCK> size/capacity: {} / {} ; memory: {}KB", this.poolSize , this.poolCapacity , (getUsedMemory()/1024) );
 		
 	}
+	
+	final private Mutex freeIndex_MUTEX = new Mutex() ;
 	
 	private int poolSize = 0 ;
 	private int freeIndex = 1 ;
 	
 	protected int nextFreeIndex() {
 		
-		if (poolSize == poolCapacity) {
-			addBlock();
+		synchronized (freeIndex_MUTEX) {
+			if (poolSize == poolCapacity) {
+				addBlock();
+			}
+		
+			int freeIndex = this.freeIndex ;
+			int nextFreeIndex = getLink(freeIndex) ;
+			
+			if (nextFreeIndex == 0) {
+				this.freeIndex = freeIndex +1 ;	
+			}
+			else {
+				releasedIndexesSize-- ;
+				this.freeIndex = nextFreeIndex ;
+			}
+			
+			poolSize++ ;
+			
+			return freeIndex ;
 		}
-		
-		int freeIndex = this.freeIndex ;
-		int nextFreeIndex = getLink(freeIndex) ;
-		
-		if (nextFreeIndex == 0) {
-			this.freeIndex = freeIndex +1 ;	
-		}
-		else {
-			releasedIndexesSize-- ;
-			this.freeIndex = nextFreeIndex ;
-		}
-		
-		poolSize++ ;
-		
-		return freeIndex ;
 	}
 	
 	private int releaseIndexCount = 0 ;
@@ -107,13 +114,15 @@ final public class BigLinkedIntListPool {
 		int blockIdx = idx / blockSize ;
 		int innerIdx = idx - (blockIdx*blockSize) ;
 		
-		this.links[blockIdx][innerIdx] = freeIndex ;
-		this.freeIndex = idx ;
-		
-		releaseIndexCount++ ;
-		releasedIndexesSize++ ;
-		
-		this.poolSize-- ;
+		synchronized (freeIndex_MUTEX) {
+			this.links[blockIdx][innerIdx] = this.freeIndex ;
+			this.freeIndex = idx ;
+			
+			releaseIndexCount++ ;
+			releasedIndexesSize++ ;
+			
+			this.poolSize-- ;
+		}
 	}
 	
 	protected void setData(int idx , int elem) {
