@@ -41,12 +41,19 @@ final public class JobResult<T> implements Serializable {
 	
 	@SuppressWarnings("rawtypes")
 	static public <T> List<T> grabResults(JobResult... results) {
+		return grabResults(false, results) ;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	static public <T> List<T> grabResults(boolean verbose, JobResult... results) {
 		ArrayList<T> list = new ArrayList<T>() ;
 		
 		for (JobResult jobResult : results) {
 			@SuppressWarnings("unchecked")
 			T res = (T) jobResult.waitResult() ;
 			list.add(res) ;
+			
+			if (verbose) System.out.println("-- JobResult.grabResults: "+ list.size() +" / "+ results.length);
 		}
 		
 		return list ;
@@ -54,6 +61,11 @@ final public class JobResult<T> implements Serializable {
 	
 	@SuppressWarnings("rawtypes")
 	static public <T> List<T> grabResults(List<JobResult> results) {
+		return grabResults(false, results) ;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	static public <T> List<T> grabResults(boolean verbose, List<JobResult> results) {
 		
 		ArrayList<T> list = new ArrayList<T>() ;
 		
@@ -61,6 +73,8 @@ final public class JobResult<T> implements Serializable {
 			@SuppressWarnings("unchecked")
 			T res = (T) jobResult.waitResult() ;
 			list.add(res) ;
+			
+			if (verbose) System.out.println("-- JobResult.grabResults: "+ list.size() +" / "+ results.size());
 		}
 		
 		return list ;
