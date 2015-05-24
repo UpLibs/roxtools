@@ -50,13 +50,17 @@ final public class FileUtils {
 	}
 	
 	static public File createTempDirectory(String prefix, String suffix) throws IOException {
-		while (true) {
+		for (int i = 0; i < 100; i++) {
 			File file = File.createTempFile(prefix, suffix) ;
 			file.delete() ;
 			file.mkdirs() ;
 			
 			if (file.isDirectory()) return file ;
+			
+			try { Thread.sleep(1) ;} catch (InterruptedException e) {}
 		}
+		
+		throw new IOException("Can't create temporary directory at: "+ getTemporaryDirectory()) ;
 	}
 	
 }
