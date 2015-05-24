@@ -90,7 +90,7 @@ final public class LongTable {
 		return size;
 	}
 	
-	public void put(int n) {
+	public void put(long n) {
 		int hash = hash(n) ;
 		
 		int tableIdx = tableIndexFor(hash, table.length) ;
@@ -125,7 +125,7 @@ final public class LongTable {
 		this.size++ ;
 	}
 	
-	public boolean contains(int n) {
+	public boolean contains(long n) {
 		int hash = hash(n) ;
 		
 		int tableIdx = tableIndexFor(hash, table.length) ;
@@ -141,7 +141,7 @@ final public class LongTable {
 		return false ;
 	}
 	
-	public boolean remove(int n) {
+	public boolean remove(long n) {
 		int hash = hash(n) ;
 		
 		int tableIdx = tableIndexFor(hash, table.length) ;
