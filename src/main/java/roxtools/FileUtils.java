@@ -5,6 +5,12 @@ import java.io.IOException;
 
 final public class FileUtils {
 
+	public static void main(String[] args) {
+		
+		setTemporaryFileToClassicPath() ;
+		
+	}
+	
 	static public File getTemporaryDirectory() {
 		String path = System.getProperty("java.io.tmpdir") ;
 		File dir = new File(path).getAbsoluteFile() ;
@@ -17,7 +23,7 @@ final public class FileUtils {
 		File tempClassic = new File("/tmp/").getAbsoluteFile() ;
 		
 		String tempClassicStr = tempClassic.toString() ;
-		if (tempClassicStr.endsWith("/")) tempClassicStr += "/" ; 
+		if (!tempClassicStr.endsWith("/")) tempClassicStr += "/" ; 
 		
 		return tempDir0.toString().startsWith(tempClassicStr) ;
 	}
@@ -29,12 +35,17 @@ final public class FileUtils {
 		
 		if (!tempDir.isDirectory()) return false ;
 		
-		File jvmTempDir = new File(tempDir, "/tmp/jvm-tmpdir/") ;
+		File jvmTempDir = new File("/tmp/jvm-tmpdir/") ;
 		jvmTempDir.mkdirs() ;
 		
-		System.setProperty("java.io.tmpdir" , "/tmp/jvm-tmpdir/") ;
+		if (jvmTempDir.isDirectory()) {
+			System.setProperty("java.io.tmpdir" , "/tmp/jvm-tmpdir/") ;
+			return true ;
+		}
+		else {
+			return false ;
+		}
 		
-		return true ;
 	}
 	
 	static public File createTempFile(String prefix) throws IOException {
