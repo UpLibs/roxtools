@@ -33,6 +33,7 @@ import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
+import roxtools.FileUtils;
 import roxtools.SerializationUtils;
 
 public class RoxCompiler<T> {
@@ -40,6 +41,10 @@ public class RoxCompiler<T> {
 	static final public String ROX_COMPILER_CACHE_ROOT = System.getProperty("ROX_COMPILER_CACHE_ROOT") ;
 	static final public boolean IGNORE_ROX_COMPILER_CACHE_ROOT = System.getProperty("IGNORE_ROX_COMPILER_CACHE_ROOT") != null ;
 
+	static {
+		FileUtils.setTemporaryFileToClassicPath();
+	}
+	
 	///////////////////////////////////////////////////
 
 	static final private ArrayList<MyRef> instances = new ArrayList<MyRef>() ;
@@ -109,9 +114,7 @@ public class RoxCompiler<T> {
 			
 			if (compilerClassPathCache == null) {
 				try {
-					compilerClassPathCache = File.createTempFile("roxcompiler-classpath-", "-"+id+"-cache") ;
-					compilerClassPathCache.delete() ;
-					compilerClassPathCache.mkdirs() ;
+					compilerClassPathCache = FileUtils.createTempDirectory("roxcompiler-classpath-", "-"+id+"-cache") ;
 				}
 				catch (IOException e1) {
 					e1.printStackTrace(); 
