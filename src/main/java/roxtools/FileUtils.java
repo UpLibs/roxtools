@@ -1,6 +1,8 @@
 package roxtools;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 final public class FileUtils {
@@ -72,6 +74,31 @@ final public class FileUtils {
 		}
 		
 		throw new IOException("Can't create temporary directory at: "+ getTemporaryDirectory()) ;
+	}
+	
+	static public void copyFile(File src, File dest) throws IOException {
+		FileInputStream fin = new FileInputStream(src) ;
+		
+		try {
+			FileOutputStream fout = new FileOutputStream(dest) ;
+			
+			try {
+				byte[] buffer = new byte[1024*8] ;
+				int r ;
+				
+				while ( (r = fin.read(buffer)) >= 0 ) {
+					fout.write(buffer, 0, r);
+				}
+				
+			}
+			finally {
+				fout.close();
+			}
+		}
+		finally {
+			fin.close();
+		}
+		
 	}
 	
 }
