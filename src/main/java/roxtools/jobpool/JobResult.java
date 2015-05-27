@@ -46,12 +46,18 @@ final public class JobResult<T> implements Serializable {
 	
 	@SuppressWarnings("rawtypes")
 	static public <T> List<T> grabResults(boolean verbose, JobResult... results) {
+		return grabResults(verbose, false, results) ;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	static public <T> List<T> grabResults(boolean verbose, boolean ignoreNullResults, JobResult... results) {
 		ArrayList<T> list = new ArrayList<T>() ;
 		
 		for (JobResult jobResult : results) {
 			@SuppressWarnings("unchecked")
 			T res = (T) jobResult.waitResult() ;
-			list.add(res) ;
+			
+			if (!ignoreNullResults || res!= null) list.add(res) ;
 			
 			if (verbose) System.out.println("-- JobResult.grabResults: "+ list.size() +" / "+ results.length);
 		}
@@ -66,13 +72,18 @@ final public class JobResult<T> implements Serializable {
 	
 	@SuppressWarnings("rawtypes")
 	static public List<Throwable> grabErrors(boolean verbose, JobResult... results) {
+		return grabErrors(verbose, false, results) ;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	static public List<Throwable> grabErrors(boolean verbose, boolean ignoreNullResults, JobResult... results) {
 		ArrayList<Throwable> list = new ArrayList<Throwable>() ;
 		
 		for (JobResult jobResult : results) {
 			jobResult.waitFinished();
 			
 			Throwable error = jobResult.getError() ;
-			list.add(error) ;
+			if (!ignoreNullResults || error != null) list.add(error) ;
 			
 			if (verbose) System.out.println("-- JobResult.grabErrors: "+ list.size() +" / "+ results.length);
 		}
@@ -87,13 +98,18 @@ final public class JobResult<T> implements Serializable {
 	
 	@SuppressWarnings("rawtypes")
 	static public <T> List<T> grabResults(boolean verbose, List<JobResult> results) {
+		return grabResults(verbose, false, results) ;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	static public <T> List<T> grabResults(boolean verbose, boolean ignoreNullResults, List<JobResult> results) {
 		
 		ArrayList<T> list = new ArrayList<T>() ;
 		
 		for (JobResult jobResult : results) {
 			@SuppressWarnings("unchecked")
 			T res = (T) jobResult.waitResult() ;
-			list.add(res) ;
+			if (!ignoreNullResults || res != null) list.add(res) ;
 			
 			if (verbose) System.out.println("-- JobResult.grabResults: "+ list.size() +" / "+ results.size());
 		}
@@ -108,13 +124,18 @@ final public class JobResult<T> implements Serializable {
 	
 	@SuppressWarnings("rawtypes")
 	static public List<Throwable> grabErrors(boolean verbose, List<JobResult> results) {
+		return grabErrors(verbose, false, results) ;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	static public List<Throwable> grabErrors(boolean verbose, boolean ignoreNullResults, List<JobResult> results) {
 		ArrayList<Throwable> list = new ArrayList<Throwable>() ;
 		
 		for (JobResult jobResult : results) {
 			jobResult.waitFinished();
 			
 			Throwable error = jobResult.getError() ;
-			list.add(error) ;
+			if (!ignoreNullResults || error != null) list.add(error) ;
 			
 			if (verbose) System.out.println("-- JobResult.grabErrors: "+ list.size() +" / "+ results.size());
 		}
