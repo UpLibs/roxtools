@@ -87,6 +87,28 @@ final public class VDFile implements Serializable {
 			assert(removed) ;
 		}
 		
+		assert( sizeInDisk() <= sizeInDiskForSize ) ;
+		
+		{
+			VDBlock cursor = initBlock ;
+			
+			while (cursor != null && cursor != endBlock) {
+				cursor.setSize(blockSize);
+				
+				assert( cursor.size() == blockSize ) ;
+				
+				cursor = cursor.getNextBlock() ;
+			}
+		}
+		
+		while ( sizeInDisk() < sizeInDiskForSize ) {
+			this.endBlock.setSize(blockSize);
+			assert( this.endBlock.size() == blockSize ) ;
+			
+			boolean added = this.appendNewBlock() ;
+			assert(added) ;
+		}
+		
 		int endBlockSize = size - sizeInDiskForSize_fullBlocks ;
 		
 		assert( endBlockSize > 0 ) ;
