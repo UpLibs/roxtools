@@ -76,10 +76,12 @@ final public class VDFile implements Serializable {
 		
 		int blockSize = vDisk.blockSize ;
 		
-		int sizeInDiskForSize = (size / blockSize) * blockSize ;
-		int sizeInDiskForSize_fullBlocks = sizeInDiskForSize ; 
-		if (sizeInDiskForSize < size) sizeInDiskForSize += blockSize ;
+		int totalFullBlocks = (size / blockSize) ;
+		int sizeInDiskForSize_fullBlocks = totalFullBlocks * blockSize ;
 		
+		int totalBlocks = sizeInDiskForSize_fullBlocks == size ? totalFullBlocks : totalFullBlocks+1 ;
+		int sizeInDiskForSize = totalBlocks * blockSize ;
+		 
 		///////////////////////////////////////
 		
 		while ( sizeInDisk() > sizeInDiskForSize ) {
@@ -109,7 +111,9 @@ final public class VDFile implements Serializable {
 			assert(added) ;
 		}
 		
-		int endBlockSize = size - sizeInDiskForSize_fullBlocks ;
+		assert( sizeInDisk() == sizeInDiskForSize ) ;
+		
+		int endBlockSize = size - ( (totalBlocks-1) * blockSize ) ;
 		
 		assert( endBlockSize > 0 ) ;
 		
