@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 
 final public class FileUtils {
 
@@ -99,6 +103,34 @@ final public class FileUtils {
 			fin.close();
 		}
 		
+	}
+	
+	static public long getFileCreationTime(File file, long defaultValue) {
+		long creationTime = defaultValue ;
+		
+		try {
+			BasicFileAttributes basicFileAttributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class) ;
+			
+			FileTime creationFileTime = basicFileAttributes.creationTime() ;
+			
+			if (creationFileTime != null) creationTime = creationFileTime.toMillis() ;
+		}
+		catch (Exception e) {
+			e.printStackTrace(); 
+		}
+		
+		return creationTime ;
+	}
+
+	static public boolean setFileCreationTime(File file, long creationTime) {
+		try {
+			Files.setAttribute(file.toPath(), "basic:creationTime", creationTime, LinkOption.NOFOLLOW_LINKS);
+			return true ;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return false ;
+		}
 	}
 	
 }
