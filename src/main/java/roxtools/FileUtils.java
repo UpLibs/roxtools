@@ -124,7 +124,8 @@ final public class FileUtils {
 
 	static public boolean setFileCreationTime(File file, long creationTime) {
 		try {
-			Files.setAttribute(file.toPath(), "basic:creationTime", creationTime, LinkOption.NOFOLLOW_LINKS);
+			FileTime fileTime = FileTime.fromMillis(creationTime);
+			Files.setAttribute(file.toPath(), "basic:creationTime", fileTime, LinkOption.NOFOLLOW_LINKS);
 			return true ;
 		}
 		catch (Exception e) {
