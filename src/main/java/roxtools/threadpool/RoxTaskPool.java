@@ -27,6 +27,14 @@ final public class RoxTaskPool {
 		this.threadPool = threadPool;
 	}
 	
+	public ExecutorService getThreadPool() {
+		return threadPool;
+	}
+	
+	public void shutdownThreadPool() {
+		threadPool.shutdown();
+	}
+	
 	public <T extends RoxTask> void executeTask( T task ) {
 		synchronized (this.tasks) {
 			allTasksFinished = false ;
