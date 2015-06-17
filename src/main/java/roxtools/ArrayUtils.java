@@ -146,6 +146,36 @@ public class ArrayUtils {
 		return res ;
 	}
 	
+	static public boolean[] toBooleans(int[] vals, int threshold) {
+		boolean[] res = new boolean[vals.length] ;
+		
+		for (int i = res.length-1; i >= 0; i--) {
+			res[i] = vals[i] >= threshold ;
+		}
+		
+		return res ;
+	}
+	
+	static public boolean[] toBooleans(float[] vals, float threshold) {
+		boolean[] res = new boolean[vals.length] ;
+		
+		for (int i = res.length-1; i >= 0; i--) {
+			res[i] = vals[i] >= threshold ;
+		}
+		
+		return res ;
+	}
+	
+	static public boolean[] toBooleans(double[] vals, double threshold) {
+		boolean[] res = new boolean[vals.length] ;
+		
+		for (int i = res.length-1; i >= 0; i--) {
+			res[i] = vals[i] >= threshold ;
+		}
+		
+		return res ;
+	}
+	
 	static public void scale(int[] vals, int min, int max, int min2, int max2) {
 		int scale = max - min ;
 		int scale2 = max2 - min2 ;
