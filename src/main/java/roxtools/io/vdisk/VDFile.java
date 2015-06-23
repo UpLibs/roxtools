@@ -74,14 +74,36 @@ final public class VDFile implements Serializable {
 	
 	public void setSize(int size) throws IOException {
 		
+		if (size < 0) throw new IllegalArgumentException("negative size: "+ size) ;
+		
 		int blockSize = vDisk.blockSize ;
 		
-		int totalFullBlocks = (size / blockSize) ;
-		int sizeInDiskForSize_fullBlocks = totalFullBlocks * blockSize ;
+		// Optimized version for: size == 0 or size <= blockSize
+		if (size <= blockSize) {
+			while ( totalBlocks > 1 ) {
+				boolean removed = removeBlock() ;
+				assert(removed) ;
+			}
+			
+			assert( initBlock == endBlock ) ;
+			
+			initBlock.setSize(size);
+			
+			assert( size() == size ) ;
+			
+			return ;
+		}
 		
-		int totalBlocks = sizeInDiskForSize_fullBlocks == size ? totalFullBlocks : totalFullBlocks+1 ;
+		int totalBlocks ;
+		{
+			int totalFullBlocks = (size / blockSize) ;
+			int sizeInDiskForSize_fullBlocks = totalFullBlocks * blockSize ;
+			
+			totalBlocks = sizeInDiskForSize_fullBlocks == size ? totalFullBlocks : totalFullBlocks+1 ;
+		} 
+		
 		int sizeInDiskForSize = totalBlocks * blockSize ;
-		 
+		
 		///////////////////////////////////////
 		
 		while ( sizeInDisk() > sizeInDiskForSize ) {
