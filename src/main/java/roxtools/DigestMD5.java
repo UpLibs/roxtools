@@ -10,6 +10,8 @@ import java.security.NoSuchAlgorithmException;
 
 final public class DigestMD5 {
 
+	static final public int MD5_BYTES_SIZE = 16 ;
+	
 	final private MessageDigest digestMD5 ;
 	{
 		try {
