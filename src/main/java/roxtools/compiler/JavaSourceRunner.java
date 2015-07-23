@@ -6,16 +6,49 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaFileObject;
 
 import org.slf4j.Logger;
 
 import roxtools.SerializationUtils;
 
 final public class JavaSourceRunner {
-
-	private static final Logger LOG = getLogger(JavaSourceRunner.class);
+	
+	private static Logger logger ;
+	
+	static private void logError(String msg, Throwable e) {
+		Logger log = log() ;
+		if (log == null) {
+			System.err.println("[ERROR]: "+msg);
+			if (e != null) e.printStackTrace();
+			return ;
+		}
+		log.error(msg, e);
+	}
+	
+	static private Logger log() {
+		if ( logger == null ) {
+			synchronized (JavaSourceRunner.class) {
+				if ( logger != null ) return logger ;
+				
+				try {
+					logger = getLogger(JavaSourceRunner.class);	
+				}
+				catch (Throwable e) {
+					return null;
+				}
+					
+			}
+		}
+		return logger ;
+	}
 	
 	static private class Source {
 		
@@ -76,20 +109,36 @@ final public class JavaSourceRunner {
 	@SuppressWarnings("rawtypes")
 	final static private RoxCompiler<?> COMPILER = new RoxCompiler(JavaSourceRunner.class.getClassLoader()) ;
 	
-	static public boolean execute( Source source ) {
+	static public boolean execute( Source source , String[] args ) {
 		
 		try {
 			Class<?> clazz = COMPILER.compile( source.getFullClassName() , source.getCode() ) ;
 			
 			try {
-				Method method = clazz.getDeclaredMethod("name", String[].class) ;
+				Method method = clazz.getDeclaredMethod("main", String[].class) ;
+				method.setAccessible(true);
+				
+				if ( !Modifier.isStatic( method.getModifiers() ) ) {
+					logError("Found main method that is not static: "+ method +" Source: "+ source, null);
+				}
 				
 				try {
-					method.invoke(null) ;
+					if ( args == null ) {
+						method.invoke(null, new Object[] { new String[0] }) ;
+					}
+					else {
+						method.invoke(null, new Object[] { args }) ;	
+					}
+					
 					return true ;
 				}
-				catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					LOG.error("Can't execute main method class in code: "+ source, e);
+				catch (IllegalAccessException | IllegalArgumentException e) {
+					logError("Can't execute main method class in code: "+ source, e);
+					return false ;
+				}
+				catch (InvocationTargetException e) {
+					logError("Can't execute main method class in code: "+ source, e);
+					logError("Execution cause: "+ source, e.getCause());
 					return false ;
 				}
 			}
@@ -97,13 +146,14 @@ final public class JavaSourceRunner {
 				
 				try {
 					Method method = clazz.getDeclaredMethod("run") ;
+					method.setAccessible(true);
 					
 					Object object;
 					try {
 						object = clazz.newInstance();
 					}
 					catch (InstantiationException | IllegalAccessException e2) {
-						LOG.error("Can't create class instance to call run() method: "+ source, e2);
+						logError("Can't create class instance to call run() method: "+ source, e2);
 						return false ;
 					}
 					
@@ -112,19 +162,35 @@ final public class JavaSourceRunner {
 						return true ;
 					}
 					catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
-						LOG.error("Can't execute run() method class in code: "+ source, e1);
+						logError("Can't execute run() method class in code: "+ source, e1);
 						return false ;
 					}
 				}
 				catch (NoSuchMethodException | SecurityException e1) {
-					LOG.error("Can't find main(String[]) or run() method in class: "+ source, e1);
+					logError("Can't find main(String[]) or run() method in class: "+ source, e1);
 					return false ;
 				}
 				
 			}
 		}
-		catch (ClassCastException | RoxCompilerException e) {
-			LOG.error("Can't compile source: "+ source, e);
+		catch (ClassCastException e) {
+			logError("Can't compile source: "+ source, e);
+			
+			return false ;
+		}
+		catch (RoxCompilerException e) {
+			logError("Can't compile source: "+ source, e);
+			
+			DiagnosticCollector<JavaFileObject> diagnostics = e.getDiagnostics() ;
+			
+			for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
+				logError("Compile diagnostic: "+ diagnostic, null);
+			}
+			
+			if ( e.getCause() != null ) {
+				logError("Compile cause", e.getCause());	
+			}
+			
 			return false ;
 		}
 		
@@ -158,11 +224,17 @@ final public class JavaSourceRunner {
 		}
 		else if ( args[0].equals("-e") && args.length >= 2 ) {
 			Source source = new Source(args[1]) ;
-			execute(source) ;
+			
+			String[] codeArgs = args.length > 2 ? Arrays.copyOfRange(args, 2, args.length) : new String[0] ;
+			
+			execute(source, codeArgs) ;
 		}
 		else if ( args[0].equals("-f") && args.length >= 2 ) {
 			Source source = new Source(new File(args[1])) ;
-			execute(source) ;
+			
+			String[] codeArgs = args.length > 2 ? Arrays.copyOfRange(args, 2, args.length) : new String[0] ;
+			
+			execute(source, codeArgs) ;
 		}
 		else {
 			showHelp();
