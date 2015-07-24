@@ -1,5 +1,8 @@
 package roxtools;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -33,9 +36,24 @@ final public class JVMInfos {
 		
 		Map<Thread, StackTraceElement[]> allStackTraces = Thread.getAllStackTraces() ;
 		
+		ArrayList<Thread> threads = new ArrayList<Thread>() ;
+		
 		for (Entry<Thread, StackTraceElement[]> entry : allStackTraces.entrySet()) {
+			threads.add( entry.getKey() ) ;
+		}
+		
+		Collections.sort(threads , new Comparator<Thread>() {
+			@Override
+			public int compare(Thread o1, Thread o2) {
+				return Long.compare( o1.getId() , o2.getId() );
+			}
+		});
+		
+		Thread currentThread = Thread.currentThread() ;
+		
+		for (Thread thread : threads) {
 			
-			Thread thread = entry.getKey() ;
+			if ( thread == currentThread ) str.append("** ") ;
 			
 			str.append(thread) ;
 			str.append(": ") ;
@@ -43,7 +61,7 @@ final public class JVMInfos {
 			
 			str.append("\n") ;
 			
-			StackTraceElement[] stack = entry.getValue() ;
+			StackTraceElement[] stack = allStackTraces.get(thread) ;
 			
 			for (StackTraceElement stackTraceElement : stack) {
 				str.append("    ") ;
