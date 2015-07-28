@@ -54,6 +54,20 @@ jar {
     }
 }
 
+
+task fatjar(type: Jar) {
+	manifest {
+        attributes(
+                'Implementation-Title': 'Roxtools - All Dependencies'
+        )
+    }
+    
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+
 uploadArchives {
     repositories {
         mavenDeployer {
