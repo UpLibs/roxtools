@@ -184,9 +184,9 @@ public class RoxCompiler<T> {
 	}
 	
 	/**
-	 * Compile Java source in <var>javaSource</var> and return the resulting
-	 * class.
-	 * <p/>
+	 * <p>Compile Java source in <var>javaSource</var> and return the resulting
+	 * class.</p>
+	 * 
 	 * Thread safety: this method is thread safe if the <var>javaSource</var>
 	 * and <var>diagnosticsList</var> are isolated to this thread.
 	 * 
