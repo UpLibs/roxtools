@@ -45,8 +45,7 @@ final public class VDFile implements Serializable {
 			this.totalBlocks = 1 ;
 		}
 		
-		this.blockCursor = initBlock ;
-		this.blockCursorIdx = 0 ;
+		resetBlockCursor();
 	}
 	
 	public String getID() {
@@ -152,6 +151,10 @@ final public class VDFile implements Serializable {
 		
 		this.endBlock.delete() ;
 		
+		if ( this.blockCursor == this.endBlock ) {
+			resetBlockCursor();
+		}
+		
 		this.endBlock = prevBlock ;
 		this.totalBlocks-- ;
 		
@@ -181,6 +184,8 @@ final public class VDFile implements Serializable {
 		
 		this.initBlock.setSize(0) ;
 		
+		resetBlockCursor();
+		
 	}
 	
 	public void delete() throws IOException {
@@ -198,6 +203,8 @@ final public class VDFile implements Serializable {
 		
 		this.endBlock = null ;
 		this.totalBlocks = 0 ;
+		
+		resetBlockCursor();
 		
 	}
 	
@@ -408,6 +415,11 @@ final public class VDFile implements Serializable {
 		totalBlocks++ ;
 		
 		return true ;
+	}
+	
+	private void resetBlockCursor() {
+		this.blockCursor = this.initBlock ;
+		this.blockCursorIdx = 0 ;
 	}
 	
 	private VDBlock getMyBlock(int myBlockIdx) {
