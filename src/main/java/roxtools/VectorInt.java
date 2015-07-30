@@ -17,7 +17,7 @@ final public class VectorInt implements Iterable<Integer> , Cloneable {
 
 	/**
 	 * PS: If {@code initialCapacity} &lt;= 0 it will be set to 1.
-	 * @param initialCapacity
+	 * @param initialCapacity Initial capacity of internal array.
 	 */
 	public VectorInt(int initialCapacity) {
 		this.elems = new int[ Math.max(initialCapacity, 1) ] ;

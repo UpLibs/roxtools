@@ -17,7 +17,7 @@ final public class VectorLong implements Iterable<Long> , Cloneable {
 
 	/**
 	 * PS: If {@code initialCapacity} &lt;= 0 it will be set to 1.
-	 * @param initialCapacity
+	 * @param initialCapacity Initial capacity of internal array.
 	 */
 	public VectorLong(int initialCapacity) {
 		this.elems = new long[ Math.max(initialCapacity, 1) ] ;

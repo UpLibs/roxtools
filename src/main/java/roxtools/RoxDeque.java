@@ -865,7 +865,7 @@ final public class RoxDeque<E> extends AbstractCollection<E> implements Deque<E>
 	 *             of its elements (each an object reference) in first-to-last
 	 *             order.
 	 *             
-	 * @throws IOException
+	 * @throws IOException I/O errors.
 	 * 
 	 */
 	private void writeObject(ObjectOutputStream s) throws IOException {
@@ -883,8 +883,8 @@ final public class RoxDeque<E> extends AbstractCollection<E> implements Deque<E>
 	/**
 	 * Deserialize this deque.
 	 * @param s ObjectInputStream
-	 * @throws IOException
-	 * @throws ClassNotFoundException
+	 * @throws IOException I/O errors.
+	 * @throws ClassNotFoundException If can't find deserialized class.
 	 */
 	@SuppressWarnings("unchecked")
 	private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {

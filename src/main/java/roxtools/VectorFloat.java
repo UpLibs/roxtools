@@ -17,7 +17,7 @@ final public class VectorFloat implements Iterable<Float> , Cloneable {
 
 	/**
 	 * PS: If {@code initialCapacity} &lt;= 0 it will be set to 1.
-	 * @param initialCapacity
+	 * @param initialCapacity Initial capacity of internal array.
 	 */
 	public VectorFloat(int initialCapacity) {
 		this.elems = new float[ Math.max(initialCapacity, 1) ] ;

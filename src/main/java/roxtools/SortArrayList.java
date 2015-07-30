@@ -18,7 +18,7 @@ final public class SortArrayList<E> extends AbstractList<E> implements Iterable<
 	
 	/**
 	 * PS: If {@code initialCapacity} &lt;= 0 it will be set to 1.
-	 * @param initialCapacity
+	 * @param initialCapacity Initial capacity of internal array.
 	 */
 	public SortArrayList(int initialCapacity) {
 		this.elems = new Object[ Math.max(initialCapacity, 1) ] ;
