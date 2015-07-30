@@ -16,7 +16,7 @@ final public class VectorLong implements Iterable<Long> , Cloneable {
 	}
 
 	/**
-	 * PS: If {@code initialCapacity} <= 0 it will be set to 1.
+	 * PS: If {@code initialCapacity} &lt;= 0 it will be set to 1.
 	 * @param initialCapacity
 	 */
 	public VectorLong(int initialCapacity) {

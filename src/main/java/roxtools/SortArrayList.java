@@ -17,7 +17,7 @@ final public class SortArrayList<E> extends AbstractList<E> implements Iterable<
 	}
 	
 	/**
-	 * PS: If {@code initialCapacity} <= 0 it will be set to 1.
+	 * PS: If {@code initialCapacity} &lt;= 0 it will be set to 1.
 	 * @param initialCapacity
 	 */
 	public SortArrayList(int initialCapacity) {

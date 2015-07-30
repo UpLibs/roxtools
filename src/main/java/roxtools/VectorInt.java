@@ -16,7 +16,7 @@ final public class VectorInt implements Iterable<Integer> , Cloneable {
 	}
 
 	/**
-	 * PS: If {@code initialCapacity} <= 0 it will be set to 1.
+	 * PS: If {@code initialCapacity} &lt;= 0 it will be set to 1.
 	 * @param initialCapacity
 	 */
 	public VectorInt(int initialCapacity) {

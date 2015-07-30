@@ -864,6 +864,9 @@ final public class RoxDeque<E> extends AbstractCollection<E> implements Deque<E>
 	 * @serialData The current size (<tt>int</tt>) of the deque, followed by all
 	 *             of its elements (each an object reference) in first-to-last
 	 *             order.
+	 *             
+	 * @throws IOException
+	 * 
 	 */
 	private void writeObject(ObjectOutputStream s) throws IOException {
 		s.defaultWriteObject();
@@ -879,6 +882,9 @@ final public class RoxDeque<E> extends AbstractCollection<E> implements Deque<E>
 
 	/**
 	 * Deserialize this deque.
+	 * @param s ObjectInputStream
+	 * @throws IOException
+	 * @throws ClassNotFoundException
 	 */
 	@SuppressWarnings("unchecked")
 	private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
