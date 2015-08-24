@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 
+import roxtools.FileUtils;
 import roxtools.Mutex;
 
 final public class VDisk implements Serializable {
@@ -791,6 +792,8 @@ final public class VDisk implements Serializable {
 	}
 	
 	public void close() {
+		flush();
+		
 		closeImplem() ;
 		
 		removeFromVDiskInstances() ;
@@ -827,6 +830,13 @@ final public class VDisk implements Serializable {
 		
 	}
 	
+	public boolean delete() {
+		
+		close();
+		
+		return FileUtils.deleteTree(vdiskDir.getParentFile(), vdiskDir) ;
+		
+	}
 
 	///////////////////////////////////////////////////////////////////
 	

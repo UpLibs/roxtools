@@ -73,9 +73,13 @@ final public class VDSector implements Serializable {
 		openIO();
 	}
 	
+	private volatile boolean closed = false ;
+	
 	@SuppressWarnings("unchecked")
 	private void openIO() throws IOException {
 		this.io = new RandomAccessFile(sectorFile, "rw") ;
+		
+		this.closed = false ;
 		
 		this.blocks = new SoftReference[ vDisk.sectorSize ] ;
 		
@@ -216,11 +220,19 @@ final public class VDSector implements Serializable {
 		
 	}
 	
+	synchronized protected boolean isClose() throws IOException {
+		return closed ;
+	}
+	
 	synchronized protected void close() throws IOException {
+		
+		flushHeader();
 		
 		this.keysTable.close() ;
 		
 		this.io.close() ;
+		
+		this.closed = true;
 		
 	}
 	
@@ -263,6 +275,8 @@ final public class VDSector implements Serializable {
 	private void writeHeaderScheduled() throws IOException {
 	
 		synchronized (this) {
+			if ( isClose() ) return ;
+			
 			if ( hasUnflushedHeader() ) {
 				writeHeaderImplem() ;
 			}
@@ -276,8 +290,7 @@ final public class VDSector implements Serializable {
 		
 		if (unflushedLng <= 0) {
 			//System.out.println(sectorIndex+"> HEADER WRITE> full");
-			
-			new Throwable().printStackTrace() ;
+			//new Throwable().printStackTrace() ;
 			
 			io.seek(0) ;
 			io.write(header) ;	
