@@ -191,7 +191,7 @@ public class FileUtilsTest {
 	@Test(expected=IllegalArgumentException.class)
 	public void testAuthorityPoint_IllegalArgumentException2() {
 		
-		FileUtils.checkAuthorityPoint( new File("../../../../../") );
+		FileUtils.checkAuthorityPoint( new File("../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../") );
 
 	}
 	
