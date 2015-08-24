@@ -861,6 +861,8 @@ final public class RoxDeque<E> extends AbstractCollection<E> implements Deque<E>
 	/**
 	 * Serialize this deque.
 	 * 
+	 * @param s output stream
+	 * 
 	 * @serialData The current size (<tt>int</tt>) of the deque, followed by all
 	 *             of its elements (each an object reference) in first-to-last
 	 *             order.
