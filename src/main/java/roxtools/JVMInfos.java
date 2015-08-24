@@ -11,11 +11,24 @@ final public class JVMInfos {
 	static public String getInfos() {
 		StringBuilder str = new StringBuilder() ;
 		
-		str.append("MEMORY: ") ;
+		str.append("MEMORY:\n\n    ") ;
 		str.append( getMemoryInfos() ) ;
 		str.append("\n") ;
 		
-		str.append("\nJVM THREADS: \n\n") ;
+		str.append("\nJVM: \n\n") ;
+		str.append("    java.vm.name: ") ;
+		str.append( System.getProperty("java.vm.name") ) ;
+		str.append("\n") ;
+		
+		str.append("    java.version: ") ;
+		str.append( System.getProperty("java.version") ) ;
+		str.append("\n") ;
+		
+		str.append("    java.vendor: ") ;
+		str.append( System.getProperty("java.vendor") ) ;
+		str.append("\n") ;
+		
+		str.append("\nTHREADS: \n\n") ;
 		str.append( getThreadInfos() ) ;
 		
 		return str.toString() ;
