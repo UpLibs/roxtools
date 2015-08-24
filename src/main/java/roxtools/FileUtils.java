@@ -182,5 +182,126 @@ final public class FileUtils {
 			return false ;
 		}
 	}
+
+	//////////////////////////////////
+	
+	static public void saveFile(File file, String content) throws IOException {
+		saveFile(file, content.getBytes());
+	}
+	
+	static public void saveFile(File file, byte[] content) throws IOException {
+		SerializationUtils.writeFile(file, content);
+	}
+	
+	static public String readFileAsString(File file) throws IOException {
+		return new String( readFile(file) ) ;
+	}
+	
+	static public byte[] readFile(File file) throws IOException {
+		return SerializationUtils.readFile(file) ;
+	}
+	
+	//////////////////////////////////
+	
+	static public File resolveFilePath(File file) {
+		file = file.getAbsoluteFile() ;
+		
+		try {
+			file = file.getCanonicalFile() ;
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return file ;
+	}
+	
+	static public boolean isSamePath(File path, File subPath) {
+		if (path == null || subPath == null) return false ;
+		
+		if (path.equals(subPath)) return true ;
+		
+		path = resolveFilePath(path) ;
+		subPath = resolveFilePath(subPath) ;
+		
+		return path.equals(subPath) ;
+	}
+	
+	static public boolean isSubPath(File path, File subPath) {
+		return isSubPath(path, subPath, false) ;
+	}
+	
+	static public boolean isSubPath(File path, File subPath, boolean acceptSamePath) {
+		if (path == null || subPath == null) return false ;
+		
+		if (path.equals(subPath)) return acceptSamePath ;
+		
+		path = resolveFilePath(path) ;
+		subPath = resolveFilePath(subPath) ;
+		
+		if ( path.equals(subPath) ) return acceptSamePath ;
+		
+		while (true) {
+			File parent = subPath.getParentFile() ;
+			if (parent == null) return false ;
+			
+			if ( path.equals(parent) ) return true ;
+			
+			subPath = parent ;
+		}
+	}
+
+	static public void checkAuthorityPoint(File authorityPoint) {
+		if (authorityPoint == null) throw new NullPointerException("Can't have a null authorityPoint") ;
+		
+		File resolved = resolveFilePath(authorityPoint) ;
+		
+		if ( resolved.equals( resolveFilePath(new File("/")) )) throw new IllegalArgumentException("Can't have a root authorityPoint: "+ authorityPoint +" -> "+ resolved) ;
+		
+		if ( !resolved.isAbsolute() ) throw new IllegalArgumentException("Can't have a non absolute authorityPoint: "+ authorityPoint +" -> "+ resolved) ;
+		
+	}
+	
+	static public boolean hasAuthorityOverFile(File authorityPoint, File targetFile) {
+		checkAuthorityPoint(authorityPoint);
+		
+		if ( !isSubPath(authorityPoint, targetFile) ) return false ;
+		
+		return true ;
+	}
+	
+	static public boolean deleteTree(File authorityPoint, File targetDir) {
+		checkAuthorityPoint(authorityPoint);
+		
+		if ( !isSubPath(authorityPoint, targetDir) ) throw new IllegalArgumentException("Target directory not in authority point: "+ authorityPoint +" -> "+ targetDir) ;
+		
+		return deleteTreeImplem(authorityPoint, targetDir);
+	}
+
+	private static boolean deleteTreeImplem(File authorityPoint, File targetDir) {
+		if ( !isSubPath(authorityPoint, targetDir) ) return false ;
+		
+		if ( targetDir.isDirectory() ) {
+			
+			File[] files = targetDir.listFiles() ;
+			
+			if ( files != null ) {
+				for (File file : files) {
+					
+					if (file.isDirectory()) {
+						deleteTree(authorityPoint , file);
+					}
+					else {
+						file.delete() ;
+					}
+				}
+			}
+			
+		}
+		
+		boolean ok = targetDir.delete() ;
+		
+		return ok ;
+	}
 	
 }
