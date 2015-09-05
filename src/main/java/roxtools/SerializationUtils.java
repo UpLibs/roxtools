@@ -51,21 +51,22 @@ final public class SerializationUtils {
 	
 	static public void readFull(InputStream in, byte[] buffer, int size) throws IOException {
 		int read = 0 ;
-		do {
+		
+		while (read < size) {
 			int r = in.read(buffer, read, size-read) ;
 			
 			if (r < 0) throw new EOFException() ;
 			
 			read += r ;
 		}
-		while (read < size) ;
 	}
 	
 	static public void readFull(InputStream in, OutputStream out, int size) throws IOException {
 		byte[] buffer = new byte[1024*8] ;
 		
 		int read = 0 ;
-		do {
+		
+		while (read < size) {
 			int lng = size-read ;
 			if (lng > buffer.length) lng = buffer.length ;
 			
@@ -77,19 +78,18 @@ final public class SerializationUtils {
 			
 			read += r ;
 		}
-		while (read < size) ;
 	}
 	
 	static public void skip(InputStream in, int size) throws IOException {
 		int read = 0 ;
-		do {
+		
+		while (read < size) {
 			long r = in.skip(size-read) ;
 			
 			if (r < 0) throw new EOFException() ;
 			
 			read += r ;
 		}
-		while (read < size) ;
 	}
 	
 	static public byte[] readAll(InputStream in) throws IOException {
