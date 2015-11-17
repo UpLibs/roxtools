@@ -1006,7 +1006,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 	
 	/////////////////////////////////////////////////////////
 	
-	static private class DummyRichConsole implements RichConsoleInterface , RichConsoleListener {
+	static public class DummyRichConsole implements RichConsoleInterface , RichConsoleListener {
 
 		private DummyRichConsole() {}
 		
@@ -1128,7 +1128,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 		
 	}
 	
-	static private final RichConsoleInterface dummyInstance = new DummyRichConsole() ;
+	static public final RichConsoleInterface DUMMY_RICHCONSOLE = new DummyRichConsole() ;
 	
 	static private RichConsoleInterface defaultInstance ;
 	
@@ -1143,7 +1143,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 	}
 	
 	public static RichConsoleInterface getDefaultInstance() {
-		if (DISABLE_RICHCONSOLE) return dummyInstance ;
+		if (DISABLE_RICHCONSOLE) return DUMMY_RICHCONSOLE ;
 		
 		RichConsoleInterface threadLocalInstance = threadDefaultInstance.get() ;
 		
