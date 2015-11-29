@@ -447,9 +447,11 @@ final public class PixelsMark implements Cloneable {
 					int[] walkClip = walkClipClean.clone() ;
 					walkPixelImplem(i, j, walkMemory, memoryId, walkClip) ;
 					
-					Rectangle rec = new Rectangle( walkClip[0] , walkClip[1] , walkClip[2]-walkClip[0]+1 , walkClip[3]-walkClip[1]+1 ) ;
+					int w = walkClip[2]-walkClip[0]+1;
+					int h = walkClip[3]-walkClip[1]+1;
 					
-					if ( rec.width*rec.height >= minRectArea ) {
+					if ( w*h >= minRectArea ) {
+						Rectangle rec = new Rectangle( walkClip[0] , walkClip[1] , w , h ) ;
 						rectangles.add(rec) ;
 					}
 					
