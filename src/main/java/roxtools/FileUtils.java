@@ -1,6 +1,7 @@
 package roxtools;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,9 +9,87 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
 import java.util.Random;
 
 final public class FileUtils {
+	
+	static public String getFilePathFromRoot(File root, File file) {
+		ArrayList<String> keyParts = new ArrayList<String>() ;
+		
+		while (true) {
+			keyParts.add( file.getName() ) ;
+			
+			File parentFile = file.getParentFile() ;
+			
+			if ( parentFile.equals(root) ) break ;
+		}
+		
+		StringBuilder key = new StringBuilder() ;
+		
+		for (int i = keyParts.size()-1; i >= 0; i--) {
+			if (key.length() > 0) key.append("/") ;
+			key.append( keyParts.get(i) ) ;
+		}
+		
+		return key.toString() ;
+	}
+	
+	static public class FileInTree {
+		private final File root ;
+		private final File file ;
+		
+		public FileInTree(File root, File file) {
+			this.root = root;
+			this.file = file;
+		}
+		
+		public File getFile() {
+			return file;
+		}
+		
+		public File getRoot() {
+			return root;
+		}
+		
+		public long lastModified() {
+			return file.lastModified();
+		}
+
+		public String getPathFromRoot() {
+			return getFilePathFromRoot(root, file) ;
+		}
+		
+		@Override
+		public String toString() {
+			return file.toString() ;
+		}
+	}
+
+	
+	static public FileInTree[] listTree(File dir, FileFilter filter) {
+		ArrayList<FileInTree> tree = new ArrayList<FileInTree>() ;
+		
+		listTree(dir, dir, filter, tree);
+		
+		return tree.toArray( new FileInTree[tree.size()] ) ;
+	}
+	
+	static private void listTree(File root, File dir, FileFilter filter, ArrayList<FileInTree> tree) {
+		File[] files = dir.listFiles(filter) ;
+		
+		if (files == null || files.length == 0) return ;
+		
+		for (File file : files) {
+			if ( file.isDirectory() ) {
+				listTree(root, file, filter, tree); 
+			}
+			else {
+				FileInTree fileWrapper = new FileInTree(root, file) ;
+				tree.add(fileWrapper);
+			}
+		}
+	}
 	
 	static public File getTemporaryDirectory() {
 		String path = System.getProperty("java.io.tmpdir") ;
