@@ -23,6 +23,8 @@ final public class FileUtils {
 			File parentFile = file.getParentFile() ;
 			
 			if ( parentFile.equals(root) ) break ;
+			
+			file = parentFile ;
 		}
 		
 		StringBuilder key = new StringBuilder() ;
