@@ -16,7 +16,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.regex.Matcher;
@@ -839,6 +841,37 @@ final public class ImageUtils {
 	static public BufferedImage readImage( byte[] imgBytes ) throws IOException {
 		ByteArrayInputStream bin = new ByteArrayInputStream(imgBytes) ;
 		return ImageIO.read(bin);
+	}
+
+	static public String guessImageMimeType(byte[] bytes) throws IOException {
+		return guessImageMimeType( new ByteArrayInputStream(bytes) ) ;
+	}
+	
+	static public String guessImageMimeType(InputStream in) throws IOException {
+		String mimeType = URLConnection.guessContentTypeFromStream(in);
+		return mimeType ;
+	}
+	
+	static public String guessImageType(byte[] bytes) throws IOException {
+		return guessImageType( new ByteArrayInputStream(bytes) ) ;
+	}
+	
+	static public String guessImageType(InputStream in) throws IOException {
+		String mimeType = guessImageMimeType(in) ;
+		
+		if (mimeType == null) return null ;
+		
+		mimeType = mimeType.toLowerCase().trim() ;
+		
+		if (!mimeType.startsWith("image/") ) {
+			return null ;
+		}
+		
+		String type = mimeType.substring( "image/".length() ) ;
+		
+		if ( type.isEmpty() ) return null ;
+		
+		return type ;
 	}
 
 }
