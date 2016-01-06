@@ -306,7 +306,7 @@ final public class BigLinkedIntListPool {
 		
 	}
 	
-	private ReferencesTable referencesTable = new ReferencesTable(8) ;
+	private ReferencesTable referencesTable = new ReferencesTable(32) ;
 		
 	public int getReferencedListsSize() {
 		return referencesTable.getListsSize() ;
