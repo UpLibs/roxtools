@@ -220,6 +220,25 @@ final public class ImageUtils {
 		return buffImg;
 	}
 
+	static public BufferedImage mergeImages(int x1, int y1, Image img1, int x2, int y2, Image img2) {
+		int w = Math.max( x1+img1.getWidth(null) , x2+img2.getWidth(null) ) ;
+		int h = Math.max( y1+img1.getHeight(null) , y2+img2.getHeight(null) ) ;
+		
+		BufferedImage buffImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+
+		Graphics2D g = buffImg.createGraphics();
+
+		g.setColor(Color.BLACK);
+		g.fillRect(0, 0, w, h);
+
+		g.drawImage(img1, x1,y1, null);
+		g.drawImage(img2, x2,y2, null);
+
+		g.dispose();
+
+		return buffImg;
+	}
+
 	static public int[] mergePixels(byte[] pixelsR, byte[] pixelsG, byte[] pixelsB, int w, int h) {
 		int[] pixels = new int[w * h];
 
