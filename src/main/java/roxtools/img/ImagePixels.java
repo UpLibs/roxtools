@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import roxtools.ArrayUtils;
 import roxtools.DigestMD5;
 import roxtools.ImageUtils;
 import roxtools.SerializationUtils;
@@ -1040,6 +1041,10 @@ public class ImagePixels implements Cloneable , Serializable {
 		return yuvFormat;
 	}
 	
+	final public String getInternalFormat() {
+		return isYUVFormat() ? "YUV" : "RGB" ;
+	}
+	
 	final public ImagePixels convertToYUV() {
 		if (yuvFormat) return this ;
 		
@@ -2044,15 +2049,65 @@ public class ImagePixels implements Cloneable , Serializable {
 		return similar ;
 	}
 	
+	static public boolean containsRectangle(Rectangle rect, ImagePixels img) {
+		return containsRectangle(rect, img.getWidth() , img.getHeight()) ;
+	}
+	
+	static public boolean containsRectangle(int x, int y, int w, int h, ImagePixels img) {
+		return containsRectangle(x,y,w,h, img.getWidth() , img.getHeight()) ;
+	}
+	
+	static public boolean containsRectangle(Rectangle rect, int imgWidth, int imgHeight) {
+		return containsRectangle(rect.x, rect.y, rect.width, rect.height, imgWidth, imgHeight) ;
+	}
+	
+	static public boolean containsRectangle(int x, int y, int w, int h, int imgWidth, int imgHeight) {
+        if ((imgWidth | imgHeight | w | h) < 0) return false;
+        
+        if (x < 0 || y < 0) return false;
+        
+        w += x;
+        
+        if (w <= x) {
+            if (imgWidth >= 0 || w > imgWidth) return false;
+        } else {
+            if (imgWidth >= 0 && w > imgWidth) return false;
+        }
+        
+        h += y;
+        
+        if (h <= y) {
+            if (imgHeight >= 0 || h > imgHeight) return false;
+        } else {
+            if (imgHeight >= 0 && h > imgHeight) return false;
+        }
+        
+        return true;
+	}
+	
 	final public ImagePixels createSubImagePixels(int x, int y, int width, int height) {
-		Rectangle bounds = new Rectangle(0,0,this.width,this.height) ;
-		Rectangle sub = new Rectangle(x,y,width,height) ;
-		if ( !bounds.contains(sub) ) throw new IllegalArgumentException("Sub image out of bounds: "+ bounds +" !~ "+ sub) ;
+		if ( !containsRectangle(x, y, width, height, this) ) throw new IllegalArgumentException("Sub image out of bounds: "+ this.width+"x"+this.height +" !~ "+ x+" ; "+y+" ; "+width+" ; "+height) ;
 		
 		byte[] subC1 = new byte[width * height] ;
 		byte[] subC2 = new byte[width * height] ;
 		byte[] subC3 = new byte[width * height] ;
 		
+		return createSubImagePixelsImplem(x, y, width, height, subC1, subC2, subC3);
+	}
+	
+	final public ImagePixels createSubImagePixels(int x, int y, int width, int height, byte[] subC1, byte[] subC2, byte[] subC3) {
+		if ( !containsRectangle(x, y, width, height, this) ) throw new IllegalArgumentException("Sub image out of bounds: "+ this.width+"x"+this.height +" !~ "+ x+" ; "+y+" ; "+width+" ; "+height) ;
+		
+		int subLenght = width * height ;
+		
+		if (subC1.length != subLenght) throw new IllegalArgumentException("Invalid size of subC1: "+ subC1.length +" != "+ subLenght) ;
+		if (subC2.length != subLenght) throw new IllegalArgumentException("Invalid size of subC2: "+ subC2.length +" != "+ subLenght) ;
+		if (subC3.length != subLenght) throw new IllegalArgumentException("Invalid size of subC3: "+ subC3.length +" != "+ subLenght) ;
+		
+		return createSubImagePixelsImplem(x, y, width, height, subC1, subC2, subC3);
+	}
+
+	private ImagePixels createSubImagePixelsImplem(int x, int y, int width, int height, byte[] subC1, byte[] subC2, byte[] subC3) {
 		int subSz = 0 ;
 		
 		for (int j = 0; j < height; j++) {
@@ -2069,6 +2124,31 @@ public class ImagePixels implements Cloneable , Serializable {
 		return new ImagePixels(subC1, subC2, subC3, width, height, this.yuvFormat) ;
 	}
 	
+	public boolean containsImagePixels(int x, int y, ImagePixels img2) {
+		if ( this.isYUVFormat() != img2.isYUVFormat() ) throw new IllegalArgumentException("Not of same format: "+ img2.getInternalFormat() +" != "+ this.getInternalFormat() ) ;
+		
+		int width = img2.getWidth() ;
+		int height = img2.getHeight() ;
+		
+		byte[] c1 = img2.getPixelsC1() ;
+		byte[] c2 = img2.getPixelsC2() ;
+		byte[] c3 = img2.getPixelsC3() ;
+		
+		int subSz = 0 ;
+		
+		for (int j = 0; j < height; j++) {
+			int jIdx = (y+j)*this.width ;
+			int iIdx = jIdx+x ;
+			
+			if ( !ArrayUtils.equals(this.pixelsC1, iIdx, c1, subSz, width) ) return false ;
+			if ( !ArrayUtils.equals(this.pixelsC2, iIdx, c2, subSz, width) ) return false ;
+			if ( !ArrayUtils.equals(this.pixelsC3, iIdx, c3, subSz, width) ) return false ;
+			
+			subSz += width ;
+		}
+		
+		return true ;
+	}
 
 	public static void colorQuantization(byte[] data, int bits) {
 		int mask = -1 << bits;
@@ -2131,5 +2211,11 @@ public class ImagePixels implements Cloneable , Serializable {
 		
 		return new ImagePixels(c1, c2, c3, getWidth(), getHeight(), true) ;
 	}
+
+	@Override
+	public String toString() {
+		return this.getClass().getName()+"["+ width +"x"+ height +" ; "+ (yuvFormat ? "YUV":"RGB") +"]" ;
+	}
+	
 
 }
