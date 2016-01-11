@@ -312,12 +312,35 @@ final public class VectorInt implements Iterable<Integer> , Cloneable {
 	
 	///////////////////////////////////////
 	
+	@Override
     public int hashCode() {
     	int hashCode = 1;
     	for (int i = 0; i < this.count; i++) {
     	    hashCode = 31*hashCode + elems[i] ;
 		}
     	return hashCode;
+    }
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null) return false;
+		
+		if (getClass() != obj.getClass()) return false;
+		
+		VectorInt other = (VectorInt) obj;
+		
+		return equals(other.elems, 0, other.count) ;
+	}
+
+	public boolean equals(int[] a, int offset, int length) {
+    	if ( this.count != length ) return false ;
+    		
+    	for (int i = 0; i < length; i++) {
+    		if ( a[offset+i] != elems[i] ) return false ;
+		}
+    	
+    	return true ;
     }
     
     public boolean addAll(Collection<Integer> c) {

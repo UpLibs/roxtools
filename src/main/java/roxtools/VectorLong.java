@@ -312,6 +312,7 @@ final public class VectorLong implements Iterable<Long> , Cloneable {
 	
 	///////////////////////////////////////
 	
+	@Override
     public int hashCode() {
     	int hashCode = 1;
     	for (int i = 0; i < this.count; i++) {
@@ -320,6 +321,28 @@ final public class VectorLong implements Iterable<Long> , Cloneable {
     		hashCode = 31*hashCode + h ;
 		}
     	return hashCode;
+    }
+    
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null) return false;
+		
+		if (getClass() != obj.getClass()) return false;
+		
+		VectorLong other = (VectorLong) obj;
+		
+		return equals(other.elems, 0, other.count) ;
+	}
+
+	public boolean equals(long[] a, int offset, int length) {
+    	if ( this.count != length ) return false ;
+    		
+    	for (int i = 0; i < length; i++) {
+    		if ( a[offset+i] != elems[i] ) return false ;
+		}
+    	
+    	return true ;
     }
     
     public boolean addAll(Collection<Long> c) {

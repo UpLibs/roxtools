@@ -326,12 +326,35 @@ final public class VectorFloat implements Iterable<Float> , Cloneable {
 	}
 
 	
+	@Override
     public int hashCode() {
     	int hashCode = 1;
     	for (int i = 0; i < this.count; i++) {
     	    hashCode = 31*hashCode + hashCode(elems[i]) ;
 		}
     	return hashCode;
+    }
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null) return false;
+		
+		if (getClass() != obj.getClass()) return false;
+		
+		VectorFloat other = (VectorFloat) obj;
+		
+		return equals(other.elems, 0, other.count) ;
+	}
+
+	public boolean equals(float[] a, int offset, int length) {
+    	if ( this.count != length ) return false ;
+    		
+    	for (int i = 0; i < length; i++) {
+    		if ( Float.floatToIntBits( a[offset+i] ) != Float.floatToIntBits( elems[i] ) ) return false ;
+		}
+    	
+    	return true ;
     }
     
     public boolean addAll(Collection<Float> c) {
