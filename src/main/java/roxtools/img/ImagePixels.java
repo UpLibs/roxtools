@@ -2126,9 +2126,11 @@ public class ImagePixels implements Cloneable , Serializable {
 	
 	public boolean containsImagePixels(int x, int y, ImagePixels img2) {
 		if ( this.isYUVFormat() != img2.isYUVFormat() ) throw new IllegalArgumentException("Not of same format: "+ img2.getInternalFormat() +" != "+ this.getInternalFormat() ) ;
-		
+
 		int width = img2.getWidth() ;
 		int height = img2.getHeight() ;
+		
+		if ( !containsRectangle(x, y, width, height, this) ) return false ;
 		
 		byte[] c1 = img2.getPixelsC1() ;
 		byte[] c2 = img2.getPixelsC2() ;
