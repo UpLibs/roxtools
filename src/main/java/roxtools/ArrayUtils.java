@@ -480,4 +480,18 @@ public class ArrayUtils {
 		return toArray(map.values(), a) ;
 	}
 	
+	static public boolean equals(int[] a1, int offset1, int[] a2, int offset2, int length) {
+		for (int i = 0; i < length; i++) {
+			if ( a1[offset1+i] != a2[offset2+i] ) return false ;
+		}
+		return true ;
+	}
+	
+	static public boolean equals(byte[] a1, int offset1, byte[] a2, int offset2, int length) {
+		for (int i = 0; i < length; i++) {
+			if ( a1[offset1+i] != a2[offset2+i] ) return false ;
+		}
+		return true ;
+	}
+	
 }
