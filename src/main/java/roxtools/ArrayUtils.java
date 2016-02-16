@@ -1,9 +1,11 @@
 package roxtools;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 
@@ -316,6 +318,86 @@ public class ArrayUtils {
 		return -1 ;
 	}
 	
+	static public String joinInSingleString(String delimiter, String... strs) {
+		StringBuilder str = new StringBuilder() ;
+		
+		for (int i = 0; i < strs.length; i++) {
+			if (str.length() > 0) str.append(delimiter) ;
+			str.append( strs[i] ) ;
+		}
+		
+		return str.toString() ;
+	}
+	
+	static public String[] joinToStrings(Object... objs) {
+		int total = 0 ;
+		
+		for (int i = objs.length-1; i >= 0; i--) {
+			Object obj = objs[i] ;
+			
+			if ( obj.getClass().isArray() ) {
+				total += Array.getLength(obj) ;
+			}
+			else {
+				total++ ;
+			}
+		}
+		
+		String[] all = new String[total] ;
+		int allSz = 0 ;
+
+		for (int i = 0; i < objs.length; i++) {
+			Object obj = objs[i] ;
+			Class<? extends Object> objClass = obj.getClass() ;
+			
+			
+			if ( objClass == String[].class ) {
+				String[] strs = (String[]) obj ;
+				
+				System.arraycopy(strs, 0, all, allSz, strs.length);
+				allSz += strs.length ;
+			}
+			else if ( objClass == Object[].class ) {
+				Object[] strs = (Object[]) obj ;
+				
+				System.arraycopy(strs, 0, all, allSz, strs.length);
+				allSz += strs.length ;
+			}
+			else if ( objClass.isArray() ) {
+				int sz = Array.getLength(obj) ;
+				
+				for (int j = 0; j < sz; j++) {
+					Object o = Array.get(obj, j) ;
+					all[allSz++] = String.valueOf(o) ;
+				}
+			}
+			else {
+				all[allSz++] = String.valueOf(obj) ;
+			}
+		}
+
+		return all ;
+	}
+	
+	static public String[] join(String[]... strs) {
+		int total = 0 ;
+		
+		for (int i = strs.length-1; i >= 0; i--) {
+			total += strs[i].length ;
+		}
+		
+		String[] all = new String[total] ;
+		int allSz = 0 ;
+
+		for (int i = 0; i < strs.length; i++) {
+			String[] a = strs[i];
+			System.arraycopy(a, 0, all, allSz, a.length);
+			allSz += a.length ;
+		}
+
+		return all ;
+	}
+	
 	static public int[] join(int[]... fs) {
 		int total = 0 ;
 		
@@ -478,6 +560,52 @@ public class ArrayUtils {
 	
 	static public <K,V> V[] toArrayValues(Map<K,V> map, V[] a) {
 		return toArray(map.values(), a) ;
+	}
+	
+	@SuppressWarnings("unchecked")
+	static public Object[] toArrayObjects(Map<?,?> map, Object[] a) {
+		return toArray( (Map<Object,Object>)map , a) ;
+	}
+	
+	@SuppressWarnings("unchecked")
+	static public <T> T[] toArray(Map<T,T> map, T[] a) {
+		int sz = map.size() * 2 ;
+		
+		Object[] pairs ;
+		
+		if (a == null) {
+			T k = null ;
+			
+			if ( !map.isEmpty() ) {
+				Iterator<T> iterator = map.keySet().iterator() ;
+				
+				if ( iterator.hasNext() ) {
+					k = iterator.next() ;
+				}
+			}
+			
+			if (k != null) {
+				pairs = (T[]) Array.newInstance(k.getClass(), sz) ;
+			}
+			else {
+				pairs = new Object[sz] ; 
+			}
+		}
+		else if (a.length < sz) {
+			pairs = (Object[]) Array.newInstance(a.getClass().getComponentType(), sz) ;
+		}
+		else {
+			pairs = a ;
+		}
+		
+		int pairsSz = 0 ;
+		
+		for (Entry<T, T> entry : map.entrySet()) {
+			pairs[ pairsSz++ ] = entry.getKey() ;
+			pairs[ pairsSz++ ] = entry.getValue() ;
+		}
+		
+		return (T[]) pairs ;
 	}
 	
 	static public boolean equals(int[] a1, int offset1, int[] a2, int offset2, int length) {
