@@ -14,6 +14,10 @@ import java.util.Random;
 
 final public class FileUtils {
 	
+	static public File getCurrentDirectory() {
+		return new File("./").getAbsoluteFile() ;
+	}
+	
 	static public String getFilePathFromRoot(File root, File file) {
 		ArrayList<String> keyParts = new ArrayList<String>() ;
 		
