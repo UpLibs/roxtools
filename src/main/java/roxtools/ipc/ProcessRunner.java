@@ -116,6 +116,20 @@ public class ProcessRunner {
 			new Thread(this).start();
 		}
 
+		private long maxOutputSize = 1024*1024*20 ;
+		
+		public void setMaxOutputSize(long maxOutputSize) {
+			synchronized (output) {
+				this.maxOutputSize = maxOutputSize;	
+			}
+		}
+		
+		public long getMaxOutputSize() {
+			synchronized (output) {
+				return maxOutputSize;
+			}
+		}
+		
 		final private ByteArrayOutputStream output = new ByteArrayOutputStream(1024) ; 
 		
 		public byte[] getOutput() {
@@ -164,6 +178,10 @@ public class ProcessRunner {
 					
 					synchronized (output) {
 						output.write(buffer, 0, r);	
+						
+						if (maxOutputSize > 0 && output.size() > maxOutputSize) {
+							checkMaxOutputSize() ;
+						}
 					}
 				}
 			}
@@ -187,6 +205,22 @@ public class ProcessRunner {
 				output.notifyAll(); 
 			}
 			
+		}
+
+		private void checkMaxOutputSize() {
+			synchronized (output) {
+				if (maxOutputSize <= 0) return ;
+				
+				byte[] bs = output.toByteArray() ;
+				
+				output.reset();
+				
+				int remainSize = bs.length/2 ;
+				
+				if (remainSize > 0) {
+					output.write(bs, bs.length-remainSize, remainSize);
+				}
+			}
 		}
 	}
 
