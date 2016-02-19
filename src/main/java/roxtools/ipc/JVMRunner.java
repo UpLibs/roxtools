@@ -218,8 +218,11 @@ public class JVMRunner {
 		return processRunner != null ;
 	}
 	
+	public void execute() throws IOException {
+		execute(false);
+	}
 	
-	synchronized public void execute() throws IOException {
+	synchronized public void execute( boolean redirectErrorToNormalOutput ) throws IOException {
 		
 		String[] processArgs = getJVMProcessArguments();
 		
