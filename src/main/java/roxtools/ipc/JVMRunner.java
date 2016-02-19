@@ -228,7 +228,7 @@ public class JVMRunner {
 		
 		this.processRunner = new ProcessRunner(getJvmBinary() , processArgs) ;
 		
-		this.processRunner.execute() ;
+		this.processRunner.execute(redirectErrorToNormalOutput) ;
 		
 	}
 
