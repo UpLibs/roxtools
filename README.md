@@ -10,7 +10,7 @@ General tools for Java.
 
 ## Code status
 
-- [![Build Status](http://jenkins.uppoints.com/buildStatus/icon?job=roxtools-ci)](http://jenkins.uppoints.com/job/roxtools-ci/) *(master branch)*
+- [![Build Status](https://github.com/UpLibs/roxtools)](https://github.com/UpLibs/roxtools) *(master branch)*
 
 ## Requirements
 
@@ -48,4 +48,4 @@ General tools for Java.
 
 ## Getting help
 
-For more information or help, please send email to: *andres@uppoints.com*
+For more information or help, please send email to: *gracilianomp@gmail.com*
