@@ -8,7 +8,7 @@ import java.lang.ref.SoftReference;
  * A pool of {@link BigHashMapPool}. Since construction of {@link BigHashMapPool} is slow,
  * this can be handy when many instance need to be created and discarded in a code.  
  * 
- * @author Graciliano M. P. <gracilianomp@gmail.com>
+ * @author Graciliano M. P. (gracilianomp@gmail.com)
  *
  * @param <K>
  * @param <V>
