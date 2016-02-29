@@ -20,7 +20,7 @@ import java.util.Set;
  * <li>
  * The standard {@link java.util.HashMap} creates an object {@code Hashtable.Entry} for each
  * entry stored. This slow down the reHash algorithm, since a reHash will
- * need to re-allocate a new <@code Hashtable.Entry> for each element.
+ * need to re-allocate a new {@code Hashtable.Entry} for each element.
  * </li>
  * <li>
  * The use of a {@code Hashtable.Entry} for each element in the HashMap will increase the
@@ -37,7 +37,7 @@ import java.util.Set;
  * memory usage, speed up reHash algorithm, and increases GC speed. The internal abstraction
  * of {@code BigHashMap} is similar to {@code java.util.HashMap}, based in groups of
  * linked lists, but in {@code BigHashMap} the linked list is not represented with dynamic allocation
- * like on <@code Hashtable.Entry>.
+ * like on {@code Hashtable.Entry}.
  * <p>
  * The internal data structure of {@code BigHashMap} is bases in two parts, table of groups and
  * the memory used to represent the linked lists of the groups. All of them based in
@@ -54,7 +54,7 @@ import java.util.Set;
  * group has the minimal and maximal {@code hashcode} stored on it. This will allow to know the
  * range of {@code hashcode} stored in the group, reducing search and speeding up insertion. 
  * 
- * @author Graciliano M. P. <gracilianomp@gmail.com>
+ * @author Graciliano M. P. (gracilianomp@gmail.com)
  *
  * @param <K>
  * @param <V>
@@ -1347,8 +1347,8 @@ final public class BigHashMap<K,V> implements Iterable<K> , Map<K, V> {
 	}
 	
 	/**
-	 * Returns a @{code Iterator} of keys. The keys order of this
-	 * @{code Iterator} is random. 
+	 * Returns a {@code Iterator} of keys. The keys order of this
+	 * {@code Iterator} is random. 
 	 */
 	public Iterator<K> iteratorRandom() {
 		return new MyRandomIterator() ;
@@ -1369,8 +1369,8 @@ final public class BigHashMap<K,V> implements Iterable<K> , Map<K, V> {
 	}
 	
 	/**
-	 * Returns a @{code Iterator} of values. The values order of this
-	 * @{code Iterator} is random. 
+	 * Returns a {@code Iterator} of values. The values order of this
+	 * {@code Iterator} is random. 
 	 */
 	public Iterator<V> iteratorRandomValues() {
 		return new MyRandomIteratorValues() ;
@@ -1390,8 +1390,8 @@ final public class BigHashMap<K,V> implements Iterable<K> , Map<K, V> {
 	}
 		
 	/**
-	 * Returns a @{code Iterator} of pair of keys and values ({@code Entry<K, V>}).
-	 * The entries order of this @{code Iterator} is random. 
+	 * Returns a {@code Iterator} of pair of keys and values ({@code Entry<K, V>}).
+	 * The entries order of this {@code Iterator} is random. 
 	 */
 	public Iterator<Entry<K, V>> iteratorRandomEntries() {
 		return new MyRandomIteratorEntries() ;
@@ -1482,8 +1482,8 @@ final public class BigHashMap<K,V> implements Iterable<K> , Map<K, V> {
 	}
 	
 	/**
-	 * Returns a @{code Iterator} of keys. The keys order of this
-	 * @{code Iterator} is the same order of insertion of the keys in this table group. 
+	 * Returns a {@code Iterator} of keys. The keys order of this
+	 * {@code Iterator} is the same order of insertion of the keys in this table group. 
 	 */
 	public Iterator<K> iteratorTableGroup(int groupIdx) {
 		return new MyTableGroupIterator(groupIdx) ;
@@ -1554,8 +1554,8 @@ final public class BigHashMap<K,V> implements Iterable<K> , Map<K, V> {
 	}
 	
 	/**
-	 * Returns a @{code Iterator} of reversed keys. The keys order of this
-	 * @{code Iterator} is the same order of insertion of the keys in this table group. 
+	 * Returns a {@code Iterator} of reversed keys. The keys order of this
+	 * {@code Iterator} is the same order of insertion of the keys in this table group. 
 	 */
 	public Iterator<K> iteratorTableGroupReverse(int groupIdx) {
 		return new MyTableGroupIteratorReverse(groupIdx) ;
@@ -1601,8 +1601,8 @@ final public class BigHashMap<K,V> implements Iterable<K> , Map<K, V> {
 	}
 	
 	/**
-	 * Returns a @{code Iterator} of keys. The keys order of this
-	 * @{code Iterator} is the same order of insertion of the keys. 
+	 * Returns a {@code Iterator} of keys. The keys order of this
+	 * {@code Iterator} is the same order of insertion of the keys. 
 	 */
 	public Iterator<K> iterator() {
 		return new MyIterator() ;
@@ -1623,8 +1623,8 @@ final public class BigHashMap<K,V> implements Iterable<K> , Map<K, V> {
 	}
 	
 	/**
-	 * Returns a @{code Iterator} of values. The values order of this
-	 * @{code Iterator} is the same order of insertion of the keys. 
+	 * Returns a {@code Iterator} of values. The values order of this
+	 * {@code Iterator} is the same order of insertion of the keys. 
 	 */
 	public Iterator<V> iteratorValues() {
 		return new MyIteratorValues() ;
@@ -1670,8 +1670,8 @@ final public class BigHashMap<K,V> implements Iterable<K> , Map<K, V> {
 	}
 	
 	/**
-	 * Returns a @{code Iterator} of pair of keys and values ({@code Entry<K, V>}).
-	 * The entries order of this @{code Iterator} is the same order of insertion of the keys. 
+	 * Returns a {@code Iterator} of pair of keys and values ({@code Entry<K, V>}).
+	 * The entries order of this {@code Iterator} is the same order of insertion of the keys. 
 	 */
 	public Iterator<Entry<K, V>> iteratorEntries() {
 		return new MyIteratorEntries() ;

@@ -12,11 +12,10 @@ import java.util.Set;
  * Same implementation of {@link BigHashMap} but for Integer values.
  * 
  * @see BigHashMap
- * 
- * @author Graciliano M. P. <gracilianomp@gmail.com>
+ *
+ * @author Graciliano M. P. (gracilianomp@gmail.com)
  *
  * @param <K>
- * @param <V>
  */
 final public class BigHashMapInteger<K> implements Iterable<K> , Map<K, Integer> {
 	
@@ -673,8 +672,8 @@ final public class BigHashMapInteger<K> implements Iterable<K> , Map<K, Integer>
 	}
 	
 	/**
-	 * Returns a @{code Iterator} of keys. The keys order of this
-	 * @{code Iterator} is the same order of insertion of the keys. 
+	 * Returns a {@code Iterator} of keys. The keys order of this
+	 * {@code Iterator} is the same order of insertion of the keys.
 	 */
 	public Iterator<K> iterator() {
 		return new MyIterator() ;
@@ -694,8 +693,8 @@ final public class BigHashMapInteger<K> implements Iterable<K> , Map<K, Integer>
 	}
 	
 	/**
-	 * Returns a @{code Iterator} of values. The values order of this
-	 * @{code Iterator} is the same order of insertion of the keys. 
+	 * Returns a {@code Iterator} of values. The values order of this
+	 * {@code Iterator} is the same order of insertion of the keys.
 	 */
 	public Iterator<Integer> iteratorValues() {
 		return new MyIteratorValues() ;
