@@ -9,8 +9,15 @@ import roxtools.math.FastMathSqrtInt;
 public class YUV {
 	
 	static final public DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.###") ;
-	static final private FastMathSqrt FAST_MATH_SQRT = new FastMathSqrt(1024*128, 256*256*2) ;
-	static final private FastMathSqrtInt FAST_MATH_SQRT_INT = new FastMathSqrtInt(1024*65, 256*256*2) ;
+	static final private FastMathSqrt FAST_MATH_SQRT = new FastMathSqrt(256*256*3, 256*256*3) ;
+	static final private FastMathSqrtInt FAST_MATH_SQRT_INT = new FastMathSqrtInt(256*256*3, 256*256*3) ;
+	
+	public static void main(String[] args) {
+		
+		System.out.println(FAST_MATH_SQRT);
+		System.out.println(FAST_MATH_SQRT_INT);
+		
+	}
 	
 	static public float[] pixelRGB_to_arrayYUV(int pixelRGB) {
 		float[] yuv = new float[3] ;
