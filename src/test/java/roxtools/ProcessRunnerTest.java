@@ -51,7 +51,7 @@ public class ProcessRunnerTest {
 		
 		ProcessRunner processRunner = new ProcessRunner("/bin/ls" , "/") ;
 		
-		StringBuilder outputBuffer = new StringBuilder() ;
+		final StringBuilder outputBuffer = new StringBuilder() ;
 		
 		processRunner.setOutputConsumerListener(new OutputConsumerListener() {
 			@Override
