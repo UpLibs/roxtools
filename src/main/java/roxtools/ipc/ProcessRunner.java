@@ -54,6 +54,16 @@ public class ProcessRunner {
 		return errorConsumer;
 	}
 	
+	private OutputConsumerListener outputConsumerListener ;
+	
+	synchronized public void setOutputConsumerListener(OutputConsumerListener outputListener) {
+		this.outputConsumerListener = outputListener ;
+	}
+	
+	synchronized public OutputConsumerListener getOutputConsumerListener() {
+		return outputConsumerListener;
+	}
+	
 	synchronized public void execute() throws IOException {
 		execute(false);
 	}
@@ -71,8 +81,8 @@ public class ProcessRunner {
 		
 		this.runningProcess = processBuilder.start() ;
 		
-		this.outputConsumer = new OutputConsumer( this.runningProcess.getInputStream() , true ) ;
-		this.errorConsumer = !redirectErrorToNormalOutput ? new OutputConsumer( this.runningProcess.getErrorStream() , false ) : null ;
+		this.outputConsumer = new OutputConsumer( this.runningProcess.getInputStream() , true , outputConsumerListener ) ;
+		this.errorConsumer = !redirectErrorToNormalOutput ? new OutputConsumer( this.runningProcess.getErrorStream() , false , outputConsumerListener ) : null ;
 		
 	}
 	
@@ -116,17 +126,23 @@ public class ProcessRunner {
 		final private boolean mainOutput ;
 		
 		private OutputConsumer(InputStream in, boolean mainOutput) {
+			this(in, mainOutput, null) ;
+		}
+		
+		private OutputConsumer(InputStream in, boolean mainOutput, OutputConsumerListener listener) {
 			this.in = in;
 			this.mainOutput = mainOutput ;
+			this.listener = listener != null ? listener : this ;
 			
 			new Thread(this).start();
 		}
 		
 		public void onReadBytes(OutputConsumer outputConsumer, byte[] bytes, int length) {}
 		
-		private OutputConsumerListener listener ;
+		private OutputConsumerListener listener = this ;
 		
 		public void setListener(OutputConsumerListener listener) {
+			if (listener == null) throw new NullPointerException("null listener") ;
 			this.listener = listener;
 		}
 		
@@ -204,7 +220,9 @@ public class ProcessRunner {
 					
 					try {
 						listener.onReadBytes(this, buffer, r);
-					} catch (Throwable e) {}
+					} catch (Throwable e) {
+						e.printStackTrace();
+					}
 				}
 			}
 			catch (IOException e) {

@@ -6,6 +6,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import roxtools.ipc.ProcessRunner;
+import roxtools.ipc.ProcessRunner.OutputConsumer;
+import roxtools.ipc.ProcessRunner.OutputConsumerListener;
 
 public class ProcessRunnerTest {
 
@@ -34,6 +36,37 @@ public class ProcessRunnerTest {
 		Assert.assertTrue(exitCode == 0);
 		
 		String output = processRunner.getOutputConsumer().getOutputAsString() ;
+		
+		Assert.assertTrue( output.trim().length() > 1 );
+		
+		Assert.assertTrue( output.trim().split("\\r?\\n").length >= 3 );
+		
+	}
+	
+	@Test
+	public void testOutputConsumerListener() throws IOException, InterruptedException {
+		if ( !isOSLinuxCompatible() ) {
+			throw new IllegalStateException("Can't test if OS is not Linux compatible!") ;
+		}
+		
+		ProcessRunner processRunner = new ProcessRunner("/bin/ls" , "/") ;
+		
+		StringBuilder outputBuffer = new StringBuilder() ;
+		
+		processRunner.setOutputConsumerListener(new OutputConsumerListener() {
+			@Override
+			public void onReadBytes(OutputConsumer outputConsumer, byte[] bytes, int length) {
+				outputBuffer.append(new String(bytes,0,length)) ;
+			}
+		});
+		
+		processRunner.execute(true) ;
+		
+		int exitCode = processRunner.waitForProcess(true) ;
+		
+		Assert.assertTrue(exitCode == 0);
+		
+		String output = outputBuffer.toString() ;
 		
 		Assert.assertTrue( output.trim().length() > 1 );
 		
