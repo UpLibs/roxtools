@@ -105,7 +105,13 @@ public class ProcessRunner {
 		return true ;
 	}
 	
-	public class OutputConsumer implements Runnable {
+	static public interface OutputConsumerListener {
+		
+		public void onReadBytes(OutputConsumer outputConsumer, byte[] bytes, int length) ;
+		
+	}
+	
+	public class OutputConsumer implements Runnable , OutputConsumerListener {
 		final private InputStream in ;
 		final private boolean mainOutput ;
 		
@@ -114,6 +120,18 @@ public class ProcessRunner {
 			this.mainOutput = mainOutput ;
 			
 			new Thread(this).start();
+		}
+		
+		public void onReadBytes(OutputConsumer outputConsumer, byte[] bytes, int length) {}
+		
+		private OutputConsumerListener listener ;
+		
+		public void setListener(OutputConsumerListener listener) {
+			this.listener = listener;
+		}
+		
+		public OutputConsumerListener getListener() {
+			return listener;
 		}
 
 		private long maxOutputSize = 1024*1024*20 ;
@@ -183,6 +201,10 @@ public class ProcessRunner {
 							checkMaxOutputSize() ;
 						}
 					}
+					
+					try {
+						listener.onReadBytes(this, buffer, r);
+					} catch (Throwable e) {}
 				}
 			}
 			catch (IOException e) {
