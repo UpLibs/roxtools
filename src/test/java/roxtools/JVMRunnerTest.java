@@ -66,7 +66,7 @@ public class JVMRunnerTest {
 		
 		Assert.assertTrue( jvmRunner.containsVMProperty("test.jvmrunner") )  ;
 		
-		ArrayList<String> lines = new ArrayList<>() ;
+		final ArrayList<String> lines = new ArrayList<String>() ;
 		
 		jvmRunner.execute(true , new OutputConsumerListener() {
 			@Override
