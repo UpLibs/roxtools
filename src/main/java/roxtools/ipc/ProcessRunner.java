@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 
 import roxtools.ArrayUtils;
 
@@ -118,6 +119,8 @@ public class ProcessRunner {
 	static public interface OutputConsumerListener {
 		
 		public void onReadBytes(OutputConsumer outputConsumer, byte[] bytes, int length) ;
+
+		public void onReadLine(OutputConsumer outputConsumer, String line);
 		
 	}
 	
@@ -137,7 +140,10 @@ public class ProcessRunner {
 			new Thread(this).start();
 		}
 		
+		@Override
 		public void onReadBytes(OutputConsumer outputConsumer, byte[] bytes, int length) {}
+		@Override
+		public void onReadLine(OutputConsumer outputConsumer, String line) {}
 		
 		private OutputConsumerListener listener = this ;
 		
@@ -205,6 +211,10 @@ public class ProcessRunner {
 			int r ;
 			
 			try {
+				
+				byte[] lineBuffer = new byte[1024*2] ;
+				int lineBufferSz = 0 ;
+				
 				while (true) {
 					r = in.read(buffer) ;
 					
@@ -223,6 +233,31 @@ public class ProcessRunner {
 					} catch (Throwable e) {
 						e.printStackTrace();
 					}
+					
+					
+					for (int i = 0; i < r; i++) {
+						byte b = buffer[i] ;
+						
+						
+						if (lineBufferSz >= lineBuffer.length) {
+							lineBuffer = Arrays.copyOf(lineBuffer, lineBufferSz+(1024*2) ) ;
+						}
+						
+						lineBuffer[lineBufferSz++] = b ;
+						
+						char c = (char) (b & 0xFF) ;
+						if (c == '\n') {
+							String line = new String(lineBuffer,0,lineBufferSz) ;
+							listener.onReadLine(this, line) ;
+							lineBufferSz = 0 ;
+						}
+					}
+					
+				}
+				
+				if (lineBufferSz > 0) {
+					String line = new String(lineBuffer,0,lineBufferSz) ;
+					listener.onReadLine(this, line) ;
 				}
 			}
 			catch (IOException e) {

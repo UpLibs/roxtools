@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import roxtools.ArrayUtils;
 import roxtools.FileUtils;
 import roxtools.ipc.ProcessRunner.OutputConsumer;
+import roxtools.ipc.ProcessRunner.OutputConsumerListener;
 
 public class JVMRunner {
 
@@ -223,10 +224,18 @@ public class JVMRunner {
 	}
 	
 	synchronized public void execute( boolean redirectErrorToNormalOutput ) throws IOException {
+		execute(redirectErrorToNormalOutput, null);
+	}
+	
+	synchronized public void execute( boolean redirectErrorToNormalOutput, OutputConsumerListener outputListener ) throws IOException {
 		
 		String[] processArgs = getJVMProcessArguments();
 		
 		this.processRunner = new ProcessRunner(getJvmBinary() , processArgs) ;
+		
+		if (outputListener != null) {
+			this.processRunner.setOutputConsumerListener(outputListener);
+		}
 		
 		this.processRunner.execute(redirectErrorToNormalOutput) ;
 		

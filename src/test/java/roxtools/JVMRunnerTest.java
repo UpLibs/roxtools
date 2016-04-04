@@ -1,12 +1,14 @@
 package roxtools;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import roxtools.ipc.JVMRunner;
-import roxtools.ipc.ProcessRunner;
+import roxtools.ipc.ProcessRunner.OutputConsumer;
+import roxtools.ipc.ProcessRunner.OutputConsumerListener;
 
 public class JVMRunnerTest {
 
@@ -45,6 +47,47 @@ public class JVMRunnerTest {
 		String output = jvmRunner.getOutputConsumer().waitFinished().getOutputAsString() ;
 		
 		Assert.assertEquals( "Hello World!\n" , output );
+		
+	}
+	
+	@Test
+	public void testOutputListener() throws IOException, InterruptedException {
+		if ( !isOSLinuxCompatible() ) {
+			throw new IllegalStateException("Can't test if OS is not Linux compatible!") ;
+		}
+		
+		JVMRunner jvmRunner = new JVMRunner( this.getClass().getName() ) ;
+		
+		Assert.assertTrue( jvmRunner.addVmArgument("-Xmx100m") );
+		
+		Assert.assertTrue( jvmRunner.containsVmArgument("-Xmx100m") );
+		
+		jvmRunner.setVMProperty("test.jvmrunner","123") ;
+		
+		Assert.assertTrue( jvmRunner.containsVMProperty("test.jvmrunner") )  ;
+		
+		ArrayList<String> lines = new ArrayList<>() ;
+		
+		jvmRunner.execute(true , new OutputConsumerListener() {
+			@Override
+			public void onReadLine(OutputConsumer outputConsumer, String line) {
+				lines.add(line) ;
+			}
+			
+			@Override
+			public void onReadBytes(OutputConsumer outputConsumer, byte[] bytes, int length) {}
+		});
+		
+		Assert.assertTrue( jvmRunner.isRunning() );
+		
+		jvmRunner.waitForProcess() ;
+		
+		String output = jvmRunner.getOutputConsumer().waitFinished().getOutputAsString() ;
+		
+		Assert.assertEquals( "Hello World!\n" , output );
+		
+		Assert.assertEquals( "Hello World!\n" , lines.get(0) );
+		Assert.assertTrue( lines.size() == 1 ) ;
 		
 	}
 	

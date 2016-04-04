@@ -52,11 +52,17 @@ public class ProcessRunnerTest {
 		ProcessRunner processRunner = new ProcessRunner("/bin/ls" , "/") ;
 		
 		final StringBuilder outputBuffer = new StringBuilder() ;
+		final StringBuilder outputLinesBuffer = new StringBuilder() ;
 		
 		processRunner.setOutputConsumerListener(new OutputConsumerListener() {
 			@Override
 			public void onReadBytes(OutputConsumer outputConsumer, byte[] bytes, int length) {
 				outputBuffer.append(new String(bytes,0,length)) ;
+			}
+			
+			@Override
+			public void onReadLine(OutputConsumer outputConsumer, String line) {
+				outputLinesBuffer.append(line) ;
 			}
 		});
 		
@@ -69,8 +75,11 @@ public class ProcessRunnerTest {
 		String output = outputBuffer.toString() ;
 		
 		Assert.assertTrue( output.trim().length() > 1 );
-		
 		Assert.assertTrue( output.trim().split("\\r?\\n").length >= 3 );
+		
+		String outputLines = outputLinesBuffer.toString() ;
+		
+		Assert.assertTrue( outputLines.equals(output) );
 		
 	}
 	
