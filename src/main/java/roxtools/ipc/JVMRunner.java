@@ -2,6 +2,7 @@ package roxtools.ipc;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -274,6 +275,11 @@ public class JVMRunner {
 		return processRunner.getErrorConsumer();
 	}
 
+	public InputStream getProcessInputStream() {
+		ProcessRunner processRunner = this.processRunner ;
+		return processRunner != null ? processRunner.getProcessInputStream() : null ;
+	}
+	
 	public int waitForProcess() throws InterruptedException {
 		synchronized (this) {
 			if (processRunner == null) return -1 ;

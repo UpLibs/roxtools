@@ -55,6 +55,12 @@ public class ProcessRunner {
 		return errorConsumer;
 	}
 	
+	private InputStream processInputStream ;
+	
+	public InputStream getProcessInputStream() {
+		return processInputStream;
+	}
+	
 	private OutputConsumerListener outputConsumerListener ;
 	
 	synchronized public void setOutputConsumerListener(OutputConsumerListener outputListener) {
@@ -84,6 +90,8 @@ public class ProcessRunner {
 		
 		this.outputConsumer = new OutputConsumer( this.runningProcess.getInputStream() , true , outputConsumerListener ) ;
 		this.errorConsumer = !redirectErrorToNormalOutput ? new OutputConsumer( this.runningProcess.getErrorStream() , false , outputConsumerListener ) : null ;
+		
+		this.processInputStream = this.runningProcess.getInputStream() ;
 		
 	}
 	
