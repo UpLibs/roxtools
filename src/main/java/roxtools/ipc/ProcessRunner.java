@@ -3,6 +3,7 @@ package roxtools.ipc;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
@@ -55,10 +56,10 @@ public class ProcessRunner {
 		return errorConsumer;
 	}
 	
-	private InputStream processInputStream ;
+	private OutputStream processInput ;
 	
-	public InputStream getProcessInputStream() {
-		return processInputStream;
+	public OutputStream getProcessInput() {
+		return processInput;
 	}
 	
 	private OutputConsumerListener outputConsumerListener ;
@@ -91,7 +92,7 @@ public class ProcessRunner {
 		this.outputConsumer = new OutputConsumer( this.runningProcess.getInputStream() , true , outputConsumerListener ) ;
 		this.errorConsumer = !redirectErrorToNormalOutput ? new OutputConsumer( this.runningProcess.getErrorStream() , false , outputConsumerListener ) : null ;
 		
-		this.processInputStream = this.runningProcess.getInputStream() ;
+		this.processInput = this.runningProcess.getOutputStream() ;
 		
 	}
 	
