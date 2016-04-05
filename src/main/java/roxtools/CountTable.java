@@ -3,6 +3,8 @@ package roxtools;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 final public class CountTable<K> {
@@ -445,6 +447,10 @@ final public class CountTable<K> {
 		return list ;
 	}
 	
+	public List<K> getKeysOrdered() {
+		return sortKeys( getKeys() ) ;
+	}
+	
 	public Object[] getKeysArray() {
 		Object[] keys = new Object[size] ;
 		int keysSz = 0 ;
@@ -472,5 +478,38 @@ final public class CountTable<K> {
 		
 		return keys ;
 	}
+	
+	public K[] getKeysArrayOrdered(K[] keys) {
+		return sortKeys( getKeysArray(keys) ) ;
+	}
+
+	public List<K> sortKeys(List<K> keys) {
+		if (keys == null) return null ;
+		
+		Collections.sort( keys , new Comparator<K>() {
+			@Override
+			public int compare(K o1, K o2) {
+				int c1 = get(o1) ;
+				int c2 = get(o2) ;
+				return Integer.compare(c1, c2);
+			}
+		});
+		return keys ;
+	}
+	
+	public K[] sortKeys(K[] keys) {
+		if (keys == null) return null ;
+		
+		Arrays.sort( keys , new Comparator<K>() {
+			@Override
+			public int compare(K o1, K o2) {
+				int c1 = get(o1) ;
+				int c2 = get(o2) ;
+				return Integer.compare(c1, c2);
+			}
+		});
+		return keys ;
+	}
+
 	
 }
