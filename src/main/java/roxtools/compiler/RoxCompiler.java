@@ -151,7 +151,7 @@ public class RoxCompiler<T> {
 					str.append( cpFile.toString() ) ;
 				}
 				catch (Exception e) {
-					e.printStackTrace() ;
+					new IllegalStateException("Error handling claspath, should be a file: "+ cp, e).printStackTrace(); 
 				}
 			}
 			
