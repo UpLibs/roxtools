@@ -72,6 +72,18 @@ final public class FileUtils {
 		}
 	}
 
+	static public FileInTree[] listDirectory(File dir, FileFilter filter) {
+		ArrayList<FileInTree> tree = new ArrayList<FileInTree>() ;
+		
+		File[] files = dir.listFiles(filter) ;
+		
+		for (File file : files) {
+			FileInTree fileWrapper = new FileInTree(dir, file) ;
+			tree.add(fileWrapper);
+		}
+		
+		return tree.toArray( new FileInTree[tree.size()] ) ;
+	}
 	
 	static public FileInTree[] listTree(File dir, FileFilter filter) {
 		ArrayList<FileInTree> tree = new ArrayList<FileInTree>() ;
