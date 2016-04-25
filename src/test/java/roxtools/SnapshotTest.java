@@ -7,9 +7,9 @@ import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
 
-import roxtools.snapshot.ScanpshotCapturer;
+import roxtools.snapshot.SnapshotCapturer;
 import roxtools.snapshot.Snapshot;
-import roxtools.snapshot.directory.DirectoryScanpshotCapturer;
+import roxtools.snapshot.directory.DirectorySnapshotCapturer;
 
 public class SnapshotTest {
 
@@ -25,7 +25,7 @@ public class SnapshotTest {
 		
 		try {
 			
-			ScanpshotCapturer scanpshotCapturer = new DirectoryScanpshotCapturer(directoryRoot, directory) ;
+			SnapshotCapturer snapshotCapturer = new DirectorySnapshotCapturer(directoryRoot, directory) ;
 			
 			double ver = 1.0 ;
 			
@@ -40,7 +40,7 @@ public class SnapshotTest {
 				Assert.assertEquals("test"+i+"--"+ ver, content);
 			}
 			
-			Snapshot snapshot1 = scanpshotCapturer.takeSnapshot() ;
+			Snapshot snapshot1 = snapshotCapturer.takeSnapshot() ;
 			
 			ver = 2.0 ;
 			
@@ -55,7 +55,7 @@ public class SnapshotTest {
 				Assert.assertEquals("test"+i+"--"+ ver, content);
 			}
 
-			scanpshotCapturer.restoreSnapshot(snapshot1); 
+			snapshotCapturer.restoreSnapshot(snapshot1); 
 			
 			ver = 1.0 ;
 			

@@ -4,18 +4,18 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 
-import roxtools.snapshot.ScanpshotCapturer;
+import roxtools.snapshot.SnapshotCapturer;
 
-public class DirectoryScanpshotCapturer implements ScanpshotCapturer<SnapshotIDDirectory , DirectorySnapshot> {
+public class DirectorySnapshotCapturer implements SnapshotCapturer<SnapshotIDDirectory , DirectorySnapshot> {
 
 	final private File directoryRoot ;
 	final private File directory ;
 	
-	public DirectoryScanpshotCapturer(File directoryRoot, String path) {
+	public DirectorySnapshotCapturer(File directoryRoot, String path) {
 		this(directoryRoot, new File(directoryRoot, path)) ;
 	}
 	
-	public DirectoryScanpshotCapturer(File directoryRoot, File directory) {
+	public DirectorySnapshotCapturer(File directoryRoot, File directory) {
 		this.directoryRoot = directoryRoot;
 		this.directory = directory;
 	}

@@ -2,7 +2,7 @@ package roxtools.snapshot;
 
 import java.io.IOException;
 
-public interface ScanpshotCapturer<I extends SnapshotID, S extends Snapshot<I>> {
+public interface SnapshotCapturer<I extends SnapshotID, S extends Snapshot<I>> {
 	
 	public S takeSnapshot() throws IOException ;
 	
