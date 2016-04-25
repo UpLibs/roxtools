@@ -168,11 +168,11 @@ abstract public class SnapshotStorage<I extends SnapshotID, S extends Snapshot<I
 	
 	abstract public I storeSnapshot( S snapshot ) ;
 	
-	abstract public S loadSnapshot( I snapshotID ) ;
+	abstract public S loadSnapshot( I snapshotID , boolean ignoreTimeAndGetLatest ) ;
 	
-	abstract public byte[] readSnapshotData( I snapshotID ) ;
+	abstract public byte[] readSnapshotData( I snapshotID , boolean ignoreTimeAndGetLatest ) ;
 	
-	abstract public boolean containsSnapshot( I snapshotID ) ;
+	abstract public boolean containsSnapshot( I snapshotID , boolean ignoreTimeAndGetLatest ) ;
 	
 }
 
