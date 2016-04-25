@@ -808,6 +808,18 @@ final public class SerializationUtils {
 
 	//////////////////////////////////////////////////////////////////
 	
+	static public void writeBlock(byte[] block, OutputStream out) throws IOException {
+		writeInt(block.length, out);
+		out.write(block);
+	}
+	
+	static public byte[] readBlock(InputStream in) throws IOException {
+		int sz = readInt(in) ;
+		return readFull(in, sz) ;
+	}
+	
+	//////////////////////////////////////////////////////////////////
+	
 	static public void writeStringUTF8( String str , OutputStream out ) throws IOException {
 		writeString(str, out, CHARSET_UTF8);
 	}
