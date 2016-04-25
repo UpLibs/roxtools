@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.List;
 
 import roxtools.FileUtils;
 import roxtools.FileUtils.FileInTree;
@@ -168,5 +169,34 @@ public class DirectorySnapshot extends Snapshot<SnapshotIDDirectory> {
 		}
 		
 	}
+	
+	///////////////////////////////////////////////////////////////////////
+	
+	public File restoreDirectory(File directoryRoot) throws IOException {
+		File targetDirectory = new File( directoryRoot , this.snapshotID.getDirectoryPath() ) ;
+		
+		FileUtils.deleteTree(directoryRoot, targetDirectory) ;
+		
+		targetDirectory.mkdirs() ;
+		
+		List<DirectoryFileData> files = this.getFiles() ;
+		
+		for (DirectoryFileData fileData : files) {
+			String path = fileData.getPath() ;
+			byte[] data = fileData.getData() ;
+			
+			File file = new File( targetDirectory , path ) ;
+			
+			File parentFile = file.getParentFile() ;
+			if ( !parentFile.equals(targetDirectory) ) {
+				parentFile.mkdirs() ;
+			}
+			
+			FileUtils.saveFile(file, data);
+		}
+		
+		return targetDirectory ;
+	}
+
 	
 }
