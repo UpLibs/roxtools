@@ -18,6 +18,8 @@ abstract public class SnapshotID {
 		return snapshotTime;
 	}
 	
+	abstract public String getUID() ;
+	
 	@Override
 	abstract public int hashCode() ;
 	

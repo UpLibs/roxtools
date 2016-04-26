@@ -25,6 +25,11 @@ public class SnapshotIDDirectory extends SnapshotID {
 	public String getDirectoryPath() {
 		return directoryPath;
 	}
+	
+	@Override
+	public String getUID() {
+		return getSnapshotTime() +"-"+ directoryPath.replaceAll("\\s", "-_-") ;
+	}
 
 	@Override
 	public int hashCode() {
