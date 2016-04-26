@@ -1,5 +1,6 @@
 package roxtools.snapshot;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -166,13 +167,13 @@ abstract public class SnapshotStorage<I extends SnapshotID, S extends Snapshot<I
 
 	abstract public Class<S> getSnapshotType() ;
 	
-	abstract public I storeSnapshot( S snapshot ) ;
+	abstract public I storeSnapshot( S snapshot ) throws IOException ;
 	
-	abstract public S loadSnapshot( I snapshotID , boolean ignoreTimeAndGetLatest ) ;
+	abstract public S loadSnapshot( I snapshotID , boolean ignoreTimeAndGetLatest ) throws IOException ;
 	
-	abstract public byte[] readSnapshotData( I snapshotID , boolean ignoreTimeAndGetLatest ) ;
+	abstract public byte[] readSnapshotData( I snapshotID , boolean ignoreTimeAndGetLatest ) throws IOException ;
 	
-	abstract public boolean containsSnapshot( I snapshotID , boolean ignoreTimeAndGetLatest ) ;
+	abstract public boolean containsSnapshot( I snapshotID , boolean ignoreTimeAndGetLatest ) throws IOException ;
 	
 }
 
