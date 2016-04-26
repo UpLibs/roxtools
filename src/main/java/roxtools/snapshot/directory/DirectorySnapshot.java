@@ -66,7 +66,7 @@ public class DirectorySnapshot extends Snapshot<SnapshotIDDirectory> {
 	
 	////////////////////////////////////////////////////////////////////////////////
 	
-	private ArrayList<DirectoryFileData> files = new ArrayList<>() ;
+	private ArrayList<DirectoryFileData> files ;
 	
 	public DirectorySnapshot(File directoryRoot, String path) throws IOException {
 		this( directoryRoot , new File(directoryRoot , path) ) ;
@@ -104,6 +104,8 @@ public class DirectorySnapshot extends Snapshot<SnapshotIDDirectory> {
 		else {
 			files = FileUtils.listDirectory(directory, filter) ;
 		}
+		
+		this.files = new ArrayList<>( files.length ) ;
 		
 		for (FileInTree fileInTree : files) {
 			String pathFromRoot = fileInTree.getPathFromRoot() ;
@@ -161,7 +163,7 @@ public class DirectorySnapshot extends Snapshot<SnapshotIDDirectory> {
 		
 		int sz = SerializationUtils.readInt(in) ;
 		
-		this.files.clear();
+		this.files = new ArrayList<>(sz) ;
 		
 		for (int i = 0; i < sz; i++) {
 			DirectoryFileData fileData = new DirectoryFileData(in) ;
