@@ -68,16 +68,16 @@ public class DirectorySnapshot extends Snapshot<SnapshotIDDirectory> {
 	
 	private ArrayList<DirectoryFileData> files ;
 	
-	public DirectorySnapshot(File directoryRoot, String path) throws IOException {
-		this( directoryRoot , new File(directoryRoot , path) ) ;
+	public DirectorySnapshot(String groupId, File directoryRoot, String path) throws IOException {
+		this( groupId, directoryRoot , new File(directoryRoot , path) ) ;
 	}
 	
-	public DirectorySnapshot(File directoryRoot, File directory) throws IOException {
-		this(directoryRoot, directory, true) ;
+	public DirectorySnapshot(String groupId, File directoryRoot, File directory) throws IOException {
+		this(groupId, directoryRoot, directory, true) ;
 	}
 	
-	public DirectorySnapshot(File directoryRoot, File directory, boolean recursive) throws IOException {
-		this(directoryRoot, directory, recursive, new FileFilter() {
+	public DirectorySnapshot(String groupId, File directoryRoot, File directory, boolean recursive) throws IOException {
+		this(groupId, directoryRoot, directory, recursive, new FileFilter() {
 			@Override
 			public boolean accept(File pathname) {
 				String name = pathname.getName() ;
@@ -86,8 +86,8 @@ public class DirectorySnapshot extends Snapshot<SnapshotIDDirectory> {
 		}) ;
 	}
 	
-	public DirectorySnapshot(File directoryRoot, File directory, boolean recursive, FileFilter filter) throws IOException {
-		super(new SnapshotIDDirectory(System.currentTimeMillis(), directoryRoot, directory)) ;
+	public DirectorySnapshot(String groupId, File directoryRoot, File directory, boolean recursive, FileFilter filter) throws IOException {
+		super(new SnapshotIDDirectory(groupId, System.currentTimeMillis(), directoryRoot, directory)) ;
 		
 		loadFromDirectory(directory, recursive, filter);
 	}

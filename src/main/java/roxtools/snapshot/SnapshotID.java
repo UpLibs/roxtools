@@ -8,10 +8,16 @@ import roxtools.SerializationUtils;
 
 abstract public class SnapshotID {
 
+	protected String gruopId ;
 	protected long snapshotTime ;
 	
-	public SnapshotID(long snapshotTime) {
+	public SnapshotID(String gruopId, long snapshotTime) {
+		this.gruopId = gruopId ;
 		this.snapshotTime = snapshotTime ;
+	}
+	
+	public String getGruopId() {
+		return gruopId;
 	}
 	
 	public long getSnapshotTime() {
@@ -36,12 +42,13 @@ abstract public class SnapshotID {
 	}
 
 	public void writeTo(OutputStream out) throws IOException {
+		SerializationUtils.writeStringLATIN1(gruopId, out);
 		SerializationUtils.writeLong(snapshotTime, out);
 	}
 	
 	public void readFrom(InputStream in) throws IOException {
+		this.gruopId = SerializationUtils.readStringLATIN1(in) ;
 		this.snapshotTime = SerializationUtils.readLong(in) ;
 	}
 
-	
 }

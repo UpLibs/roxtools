@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import roxtools.snapshot.SnapshotCapturer;
+import roxtools.snapshot.SnapshotID;
 import roxtools.snapshot.Snapshot;
 import roxtools.snapshot.directory.DirectorySnapshotCapturer;
 
@@ -25,7 +26,7 @@ public class SnapshotTest {
 		
 		try {
 			
-			SnapshotCapturer snapshotCapturer = new DirectorySnapshotCapturer(directoryRoot, directory) ;
+			SnapshotCapturer snapshotCapturer = new DirectorySnapshotCapturer("test", directoryRoot, directory) ;
 			
 			double ver = 1.0 ;
 			
@@ -41,6 +42,10 @@ public class SnapshotTest {
 			}
 			
 			Snapshot snapshot1 = snapshotCapturer.takeSnapshot() ;
+			
+			SnapshotID snapshotID = snapshot1.getSnapshotID() ;
+			
+			Assert.assertEquals( "test", snapshotID.getGruopId() );
 			
 			ver = 2.0 ;
 			

@@ -13,12 +13,12 @@ public class SnapshotIDDirectory extends SnapshotID {
 	
 	private String directoryPath ;
 	
-	public SnapshotIDDirectory(long snapshotTime, File directoryRoot, File directory) {
-		this(snapshotTime , FileUtils.getFilePathFromRoot(directoryRoot, directory)) ;
+	public SnapshotIDDirectory(String gruopId, long snapshotTime, File directoryRoot, File directory) {
+		this(gruopId, snapshotTime , FileUtils.getFilePathFromRoot(directoryRoot, directory)) ;
 	}
 	
-	public SnapshotIDDirectory(long snapshotTime, String directoryPath) {
-		super(snapshotTime);
+	public SnapshotIDDirectory(String gruopId, long snapshotTime, String directoryPath) {
+		super(gruopId, snapshotTime);
 		this.directoryPath = directoryPath ;
 	}
 	
@@ -28,9 +28,11 @@ public class SnapshotIDDirectory extends SnapshotID {
 	
 	@Override
 	public String getUID() {
-		return getSnapshotTime() +"-"+ directoryPath.replaceAll("\\s", "-_-") ;
+		String groupIdNormalized = gruopId.replaceAll("\\s", "-_-") ;
+		String directoryPathNormalized = directoryPath.replaceAll("\\s", "-_-") ;
+		return getSnapshotTime() +"--"+ groupIdNormalized +"--"+ directoryPathNormalized ;
 	}
-
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -57,7 +59,7 @@ public class SnapshotIDDirectory extends SnapshotID {
 
 	@Override
 	public String toString() {
-		return this.getClass().getName() +"[snapshotTime: "+ snapshotTime +" ; directoryPath: "+ directoryPath +"]" ;
+		return this.getClass().getName() +"[gruopId: "+ gruopId +"snapshotTime: "+ snapshotTime +" ; directoryPath: "+ directoryPath +"]" ;
 	}
 	
 	//////////////////////////////////////////////////////////////////

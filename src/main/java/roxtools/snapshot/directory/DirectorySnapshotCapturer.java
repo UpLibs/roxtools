@@ -8,21 +8,27 @@ import roxtools.snapshot.SnapshotCapturer;
 
 public class DirectorySnapshotCapturer implements SnapshotCapturer<SnapshotIDDirectory , DirectorySnapshot> {
 
+	final private String groupId ;
 	final private File directoryRoot ;
 	final private File directory ;
 	
-	public DirectorySnapshotCapturer(File directoryRoot, String path) {
-		this(directoryRoot, new File(directoryRoot, path)) ;
+	public DirectorySnapshotCapturer(String groupId, File directoryRoot, String path) {
+		this(groupId, directoryRoot, new File(directoryRoot, path)) ;
 	}
 	
-	public DirectorySnapshotCapturer(File directoryRoot, File directory) {
+	public DirectorySnapshotCapturer(String groupId, File directoryRoot, File directory) {
+		this.groupId = groupId;
 		this.directoryRoot = directoryRoot;
 		this.directory = directory;
+	}
+	
+	public String getGroupId() {
+		return groupId;
 	}
 
 	@Override
 	public DirectorySnapshot takeSnapshot() throws IOException {
-		DirectorySnapshot directorySnapshot = new DirectorySnapshot(directoryRoot, directory) ;
+		DirectorySnapshot directorySnapshot = new DirectorySnapshot(groupId, directoryRoot, directory) ;
 		return directorySnapshot ;
 	}
 
