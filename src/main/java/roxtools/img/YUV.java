@@ -123,23 +123,23 @@ public class YUV {
 	
 
 	static public void RGB_to_arrayYUV_fast(int r, int g, int b, int[] yuv) {
-		int y = clip(( (  66 * r + 129 * g +  25 * b + 128) >> 8) +  16) ;
-		int u = clip(( ( -38 * r -  74 * g + 112 * b + 128) >> 8) + 128) ;
-		int v = clip(( ( 112 * r -  94 * g -  18 * b + 128) >> 8) + 128) ;
+		int y = ( (  66 * r + 129 * g +  25 * b + 128) >> 8) +  16 ;
+		int u = ( ( -38 * r -  74 * g + 112 * b + 128) >> 8) + 128 ;
+		int v = ( ( 112 * r -  94 * g -  18 * b + 128) >> 8) + 128 ;
 		
-		yuv[0] = y ;
-		yuv[1] = u ;
-		yuv[2] = v ;
+		yuv[0] = (y < 0 ? 0 : (y > 255 ? 255 : y)) ;
+		yuv[1] = (u < 0 ? 0 : (u > 255 ? 255 : u)) ;
+		yuv[2] = (v < 0 ? 0 : (v > 255 ? 255 : v)) ;
 	}
 	
 	static public void RGB_to_arrayYUV_fast(int r, int g, int b, byte[] yuv) {
-		int y = clip(( (  66 * r + 129 * g +  25 * b + 128) >> 8) +  16) ;
-		int u = clip(( ( -38 * r -  74 * g + 112 * b + 128) >> 8) + 128) ;
-		int v = clip(( ( 112 * r -  94 * g -  18 * b + 128) >> 8) + 128) ;
+		int y = ( (  66 * r + 129 * g +  25 * b + 128) >> 8) +  16 ;
+		int u = ( ( -38 * r -  74 * g + 112 * b + 128) >> 8) + 128 ;
+		int v = ( ( 112 * r -  94 * g -  18 * b + 128) >> 8) + 128 ;
 		
-		yuv[0] = (byte) y ;
-		yuv[1] = (byte) u ;
-		yuv[2] = (byte) v ;
+		yuv[0] = (byte) (y < 0 ? 0 : (y > 255 ? 255 : y)) ;
+		yuv[1] = (byte) (u < 0 ? 0 : (u > 255 ? 255 : u)) ;
+		yuv[2] = (byte) (v < 0 ? 0 : (v > 255 ? 255 : v)) ;
 	}
 	
 	static public int arrayYUV_to_pixelRGB(float[] yuv) {

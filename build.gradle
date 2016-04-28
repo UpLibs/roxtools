@@ -75,3 +75,5 @@ uploadArchives {
         }
     }
 }
+
+//build.finalizedBy(install)
