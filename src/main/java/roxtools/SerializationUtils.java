@@ -98,6 +98,12 @@ final public class SerializationUtils {
 		return bout.toByteArrayUsingAllocatedBuffer() ;
 	}
 	
+	static public byte[] readAll(InputStream in, int expectedSize, int readBufferSize) throws IOException {
+		MyByteArrayOutputStream bout = new MyByteArrayOutputStream(expectedSize, 1024*8) ;
+		readAll(in, bout, readBufferSize) ;
+		return bout.toByteArrayUsingAllocatedBuffer() ;
+	}
+	
 	final static private class MyByteArrayOutputStream extends ByteArrayOutputStream {
 		public MyByteArrayOutputStream(int knownBytesToAdd , int desiredAllocatedBuffer) {
 			super( knownBytesToAdd < desiredAllocatedBuffer ? desiredAllocatedBuffer : knownBytesToAdd ) ;
@@ -111,6 +117,15 @@ final public class SerializationUtils {
 	
 	static public void readAll(InputStream in, OutputStream out) throws IOException {
 		byte[] buffer = new byte[1024*8] ;
+		
+		int r ;
+		while ( ( r = in.read(buffer, 0, buffer.length) ) >= 0 ) {
+			out.write(buffer, 0, r) ;
+		}
+	}
+	
+	static public void readAll(InputStream in, OutputStream out, int readBufferSize) throws IOException {
+		byte[] buffer = new byte[readBufferSize] ;
 		
 		int r ;
 		while ( ( r = in.read(buffer, 0, buffer.length) ) >= 0 ) {
