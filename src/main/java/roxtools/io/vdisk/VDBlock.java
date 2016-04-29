@@ -317,6 +317,8 @@ final public class VDBlock implements Serializable {
 		
 		VDFile metaDataFile = getMetaDataFile() ;
 		
+		if (metaDataFile == null) throw new IOException("Can't find metadata file to read block key: sectorIdx: "+ getSectorIndex() +" ; blockIdx: "+ this.getBlockIndex()) ;
+		
 		return metaDataKey = VDMetaData.readKeyFromSerial(metaDataFile) ;
 	}
 	

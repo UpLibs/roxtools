@@ -41,6 +41,7 @@ final public class VDisk implements Serializable {
 	
 	////////////////////////////////////////////////////////
 	
+	final private boolean isMetadataDisk ;
 	final private VDisk metadataDisk ;
 	
 	///////////////////////////////////////////// size ; nextBlkIdx ; nextBlkSect ; prevBlkIdx ; prevBlkSect ; meta0 ; meta1
@@ -56,21 +57,23 @@ final public class VDisk implements Serializable {
 		this(vdiskDir, blockSize, sectorSize, totalSectors, false) ;
 	}
 	
-	private VDisk(File vdiskDir, int blockSize, int sectorSize, int totalSectors, boolean metadataDisk) throws IOException {
+	private VDisk(File vdiskDir, int blockSize, int sectorSize, int totalSectors, boolean isMetadataDisk) throws IOException {
 		if ( !vdiskDir.isDirectory() ) throw new IllegalArgumentException("Invalid vdiskDir: "+ vdiskDir) ;
 		if ( blockSize < 4 || blockSize > MAX_BLOCK_SIZE ) throw new IllegalArgumentException("Invalid blockSize: "+ blockSize) ;
 		if ( sectorSize < 4 || sectorSize > MAX_SECTOR_SIZE ) throw new IllegalArgumentException("Invalid sectorSize: "+ sectorSize) ;
 		
 		this.vdiskDir = vdiskDir;
 		
-		if (!metadataDisk) {
+		this.isMetadataDisk = isMetadataDisk ;
+		
+		if (!isMetadataDisk) {
 			lockDisk() ;
 		}
 		
 		this.blockSize = blockSize;
 		this.sectorSize = sectorSize;
 		
-		if (!metadataDisk) {
+		if (!isMetadataDisk) {
 			File metaDataDir = new File(vdiskDir, "metadata.disk") ;
 			metaDataDir.mkdirs() ;
 			
@@ -183,7 +186,7 @@ final public class VDisk implements Serializable {
 	}
 	
 	protected boolean isMetaDataDisk() {
-		return this.metadataDisk == null ;
+		return this.isMetadataDisk ;
 	}
 	
 	protected VDisk getMetadataDisk() {

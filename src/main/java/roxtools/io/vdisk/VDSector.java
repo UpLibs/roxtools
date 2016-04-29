@@ -7,6 +7,7 @@ import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -96,7 +97,7 @@ final public class VDSector implements Serializable {
 			this.blocks[i] = unused ? null : NULL_REF_BLOCK ;
 		}
 		
-		keysTable = new FileKeysTable(this) ;
+		keysTable = !this.vDisk.isMetaDataDisk() ? new FileKeysTable(this) : null ;
 	}
 	
 	private void eraseSector() throws IOException {
@@ -228,7 +229,7 @@ final public class VDSector implements Serializable {
 		
 		flushHeader();
 		
-		this.keysTable.close() ;
+		if (this.keysTable != null) this.keysTable.close() ;
 		
 		this.io.close() ;
 		
@@ -389,6 +390,7 @@ final public class VDSector implements Serializable {
 	}
 	
 	synchronized public void getMetaDataKeys( List<String> keys ) {
+		if (keysTable == null) return ;
 		
 		synchronized (keysTable) {
 			Iterator<String> iteratorKeys = keysTable.iteratorKeys() ;
@@ -402,7 +404,8 @@ final public class VDSector implements Serializable {
 	}
 	
 	synchronized public void getMetaDataKeysWithPrefix( String prefix, List<String> keys ) {
-
+		if (keysTable == null) return ;
+		
 		synchronized (keysTable) {
 			Iterator<String> iteratorKeys = keysTable.iteratorKeys() ;
 			
@@ -415,6 +418,7 @@ final public class VDSector implements Serializable {
 	}
 	
 	synchronized public void getMetaDataKeys( FilesMetaDataKeyFilter filter, List<String> keys ) {
+		if (keysTable == null) return ;
 		
 		synchronized (keysTable) {
 			Iterator<String> iteratorKeys = keysTable.iteratorKeys() ;
@@ -428,7 +432,13 @@ final public class VDSector implements Serializable {
 	}
 	
 	public Iterator<String> iterateMetaDataKeys() {
-		return keysTable.iteratorKeys() ;
+		if (keysTable != null) {
+			return keysTable.iteratorKeys() ;
+		}
+		else {
+			Iterator<String> it = Collections.emptyIterator() ;
+			return it ;
+		}
 	}
 	
 	synchronized protected VDBlock getBlock(int blockIndex) {
@@ -587,7 +597,7 @@ final public class VDSector implements Serializable {
 			
 		}
 	
-		keysTable.clearKeysTables();
+		if (keysTable != null) keysTable.clearKeysTables();
 		
 	}
 	
@@ -791,19 +801,19 @@ final public class VDSector implements Serializable {
 	}
 	
 	synchronized protected int[] getMetaDataKey(String key) {
-		return keysTable.getFileIdent(key) ;
+		return keysTable != null ? keysTable.getFileIdent(key) : null ;
 	}
 	
 	synchronized protected boolean containsMetaDataKey(String key) {
-		return keysTable.containsFileIdent(key) ;
+		return keysTable != null ? keysTable.containsFileIdent(key) : false ;
 	}
 	
 	public void notifyMetaDataKeyChange(String key, int blockIndex, int blockSector) {
-		keysTable.notifyMetaDataKeyChange(key, blockIndex, blockSector);
+		if (keysTable != null) keysTable.notifyMetaDataKeyChange(key, blockIndex, blockSector);
 	}
 
 	public void notifyMetaDataKeyRemove(String key, int blockIndex, int blockSector) {
-		keysTable.notifyMetaDataKeyRemove(key, blockIndex, blockSector);
+		if (keysTable != null) keysTable.notifyMetaDataKeyRemove(key, blockIndex, blockSector);
 	}
 	
 	////////////////////////////////////////////////////////////////////////

@@ -193,6 +193,7 @@ public class TestVDisk {
 		
 		//vDisk.clear() ;
 		
+		System.out.println("By!");
 		
 	}
 	
