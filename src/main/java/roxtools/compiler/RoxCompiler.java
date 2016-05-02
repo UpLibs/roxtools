@@ -145,6 +145,15 @@ public class RoxCompiler<T> {
 			
 			for (URL cp : classpaths) {
 				try {
+					URI uri = cp.toURI() ;
+					
+					String scheme = uri.getScheme() ;
+					
+					if ( scheme == null || !scheme.equalsIgnoreCase("file") ) {
+						System.err.println("-- "+ RoxCompiler.class.getName() +"> Can't handle URI: "+ uri);
+						continue ;
+					}
+					
 					File cpFile = new File( cp.toURI() ) ;
 
 					if (str.length() > 0) str.append(pathSep) ;
