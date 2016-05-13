@@ -833,6 +833,12 @@ final public class SerializationUtils {
 		return readFull(in, sz) ;
 	}
 	
+	static public int readBlock(InputStream in, OutputStream out) throws IOException {
+		int sz = readInt(in) ;
+		readFull(in, out, sz);
+		return sz ;
+	}
+	
 	//////////////////////////////////////////////////////////////////
 	
 	static public void writeStringUTF8( String str , OutputStream out ) throws IOException {
