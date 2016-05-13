@@ -71,18 +71,11 @@ public class JVMRunner {
 	static public File getClassClasspath(Class<?> clazz) {
 		if (clazz == null) throw new NullPointerException("Null clazz") ;
 		
-		System.out.println("-------------------------- "+ clazz.getName() );
-		
 		String name = clazz.getName() ;
 		
 		String path = "/"+name.replaceAll("\\.", "/") +".class" ;
 		
-		System.out.println(">>>>> "+ path);
-		
 		URL rsc = JVMRunner.class.getResource(path) ;
-		
-		System.out.println(">> "+ rsc);
-		System.out.println( rsc.getProtocol() );
 		
 		String protocol = rsc.getProtocol().toLowerCase() ;
 		
@@ -102,8 +95,6 @@ public class JVMRunner {
 			String fullPath = rsc.toString() ;
 			String base = fullPath.split("!",2)[0] ;
 			base = base.replaceFirst("^jar:", "") ;
-			
-			System.out.println(base);
 			
 			try {
 				File file = new File( new URL(base).toURI() ) ;
