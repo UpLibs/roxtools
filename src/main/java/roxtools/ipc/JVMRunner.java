@@ -3,9 +3,13 @@ package roxtools.ipc;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -16,7 +20,103 @@ import roxtools.ipc.ProcessRunner.OutputConsumer;
 import roxtools.ipc.ProcessRunner.OutputConsumerListener;
 
 public class JVMRunner {
-
+	
+	static public String[] filesToPath(File[] files) {
+		String[] strs = new String[files.length] ;
+		
+		for (int i = 0; i < strs.length; i++) {
+			strs[i] = files[i].getPath() ;
+		}
+		
+		return strs ;
+	}
+	
+	static public File[] getClassesClasspath(boolean ignoreStandartJavaClasses, Class<?>... classes) {
+		LinkedHashMap<File, File> cpTable = new LinkedHashMap<>() ;
+		
+		for (Class<?> clazz : classes) {
+			File[] cps = getClassHierarchyClasspath(ignoreStandartJavaClasses, clazz) ;
+			
+			for (File file : cps) {
+				cpTable.put(file, file) ;
+			}
+		}
+		
+		File[] allCps = new File[ cpTable.size() ] ;
+		int allCpsSz = 0 ;
+		
+		for (File file : cpTable.keySet()) {
+			allCps[allCpsSz++] = file ;
+		}
+		
+		return allCps ;
+	}
+	
+	static public File[] getClassHierarchyClasspath(boolean ignoreStandartJavaClasses, Class<?> clazz) {
+		ArrayList<File> files = new ArrayList<>() ;
+		
+		while ( clazz != null ) {
+			File cp = getClassClasspath(clazz) ;
+			files.add(cp) ;
+			
+			clazz = clazz.getSuperclass() ;
+			if ( clazz == null ) break ;
+			
+			if ( ignoreStandartJavaClasses && clazz.getName().startsWith("java.lang.")) break ;
+		}
+		
+		return files.toArray( new File[files.size()] ) ;
+	}
+	
+	static public File getClassClasspath(Class<?> clazz) {
+		if (clazz == null) throw new NullPointerException("Null clazz") ;
+		
+		System.out.println("-------------------------- "+ clazz.getName() );
+		
+		String name = clazz.getName() ;
+		
+		String path = "/"+name.replaceAll("\\.", "/") +".class" ;
+		
+		System.out.println(">>>>> "+ path);
+		
+		URL rsc = JVMRunner.class.getResource(path) ;
+		
+		System.out.println(">> "+ rsc);
+		System.out.println( rsc.getProtocol() );
+		
+		String protocol = rsc.getProtocol().toLowerCase() ;
+		
+		if ( protocol.equals("file") ) {
+			String fullPath = rsc.toString() ;
+			String base = fullPath.substring(0, fullPath.length()-path.length()) ;
+			
+			try {
+				File file = new File( new URL(base).toURI() ) ;
+				return file ;
+			}
+			catch (MalformedURLException | URISyntaxException e) {
+				throw new IllegalStateException(e) ;
+			}
+		}
+		else if ( protocol.equals("jar") ) {
+			String fullPath = rsc.toString() ;
+			String base = fullPath.split("!",2)[0] ;
+			base = base.replaceFirst("^jar:", "") ;
+			
+			System.out.println(base);
+			
+			try {
+				File file = new File( new URL(base).toURI() ) ;
+				return file ;
+			}
+			catch (MalformedURLException | URISyntaxException e) {
+				throw new IllegalStateException(e) ;
+			}
+		}
+		
+		return null ;
+	}
+	
 	static public String getClassPathDelimiter() {
 		return File.pathSeparator ;
 	}
@@ -31,7 +131,7 @@ public class JVMRunner {
 		return bin ;
 	}
 	
-	static public String[] getDefaultMainClass(boolean addCurrentDirectory) {
+	static public String[] getDefaultMainClasspath(boolean addCurrentDirectory) {
 		
 		ArrayList<String> classPath = new ArrayList<>() ;
 		
@@ -62,7 +162,11 @@ public class JVMRunner {
 	private String[] arguments ;
 	
 	public JVMRunner(String mainClass, String... arguments) {
-		this( getDefaultMainClass(true), mainClass, arguments) ;
+		this( getDefaultMainClasspath(true), mainClass, arguments) ;
+	}
+	
+	public JVMRunner(File[] classPath, String mainClass, String... arguments) {
+		this(filesToPath(classPath), mainClass, arguments) ;
 	}
 	
 	public JVMRunner(String[] classPath, String mainClass, String... arguments) {

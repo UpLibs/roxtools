@@ -1,9 +1,11 @@
 package roxtools;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import roxtools.ipc.JVMRunner;
@@ -89,6 +91,30 @@ public class JVMRunnerTest {
 		Assert.assertEquals( "Hello World!\n" , lines.get(0) );
 		Assert.assertTrue( lines.size() == 1 ) ;
 		
+	}
+	
+	@Test
+	public void testClassClasspath() {
+		File file = JVMRunner.getClassClasspath( JVMRunner.class );
+		
+		Assert.assertNotNull(file);
+		Assert.assertTrue( file.exists() );
+		Assert.assertTrue( file.length() > 1 );
+		
+		File[] cp1 = JVMRunner.getClassHierarchyClasspath(false, JVMRunner.class) ;
+		
+		Assert.assertNotNull(cp1);
+		Assert.assertTrue( cp1.length == 2 );
+		
+		File[] cp2 = JVMRunner.getClassHierarchyClasspath(true, JVMRunner.class) ;
+		
+		Assert.assertNotNull(cp2);
+		Assert.assertTrue( cp2.length == 1 );
+		
+		File[] cp3 = JVMRunner.getClassesClasspath(true, JVMRunner.class, Test.class, Ignore.class) ;
+		
+		Assert.assertNotNull(cp3);
+		Assert.assertTrue( cp3.length > 1 );
 	}
 	
 	public static void main(String[] args) {
