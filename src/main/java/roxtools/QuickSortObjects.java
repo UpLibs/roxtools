@@ -155,6 +155,14 @@ final public class QuickSortObjects {
 		quickSort(a, o, o2, fromIndex, toIndex);
 	}
 	
+	static public void sort(float[] a, int[] o, Object[] o2) {
+		quickSort(a, o, o2, 0, a.length-1);
+	}
+	
+	static public void sort(float[] a, int[] o, Object[] o2, int fromIndex, int toIndex) {
+		quickSort(a, o, o2, fromIndex, toIndex);
+	}
+	
 	////////////////////////////
 	
 	static private void quickSort(float[] a, int[] o, int left,int right){
@@ -210,6 +218,32 @@ final public class QuickSortObjects {
 	}
 	
 	static private void quickSort(float[] a, int[] o, float[][] o2, int left,int right){
+		if (left >= right) return;
+		
+		int partition = partition(a, o, o2, left, right);
+		
+		int subLeft , subRight , subPartition ;
+		
+		subLeft = left ;
+		subRight = partition-1 ;
+		
+		if (subLeft < subRight) {
+			subPartition = partition(a, o, o2, subLeft, subRight);
+			quickSort(a, o, o2, subLeft, subPartition-1);
+			quickSort(a, o, o2, subPartition+1, subRight);
+		}
+	
+		subLeft = partition+1 ;
+		subRight = right ;
+		
+		if (subLeft < subRight) {
+			subPartition = partition(a, o, o2, subLeft, subRight);
+			quickSort(a, o, o2, subLeft, subPartition-1);
+			quickSort(a, o, o2, subPartition+1, subRight);
+		}
+	}
+	
+	static private void quickSort(float[] a, int[] o, Object[] o2, int left,int right){
 		if (left >= right) return;
 		
 		int partition = partition(a, o, o2, left, right);
@@ -390,6 +424,24 @@ final public class QuickSortObjects {
 	}
 	
 	public static float getMedian(float[]a, int[] o, float[][] o2, int left,int right){
+		int center = (left+right)/2;
+		
+		if(a[left] > a[center])
+			swap(a,o, o2, left,center);
+		
+		if(a[left] > a[right])
+			swap(a,o, o2, left, right);
+		
+		if(a[center] > a[right])
+			swap(a,o, o2, center, right);
+		
+		// put median at pivot position:
+		swap(a,o, o2, center, right);
+		
+		return a[right];
+	}
+	
+	public static float getMedian(float[]a, int[] o, Object[] o2, int left,int right){
 		int center = (left+right)/2;
 		
 		if(a[left] > a[center])
@@ -646,6 +698,57 @@ final public class QuickSortObjects {
 		return leftCursor;
 	}
 	
+	static private int partition(float[] a, int[] o, Object[] o2, int left,int right) {
+		float pivot = getMedian(a, o, o2, left, right) ;
+		
+		int leftCursor = left-1;
+		int rightCursor = right;
+		
+		float tmp ;
+		int tmpO ;
+		Object tmp1 ;
+		
+		while(leftCursor < rightCursor){
+            while(a[++leftCursor] < pivot);
+            while(rightCursor > 0 && a[--rightCursor] > pivot);
+            
+			if (leftCursor >= rightCursor) {
+				break;
+			}
+			else {
+				//swap(a, o, leftCursor, rightCursor);
+				
+				tmp = a[leftCursor];
+				a[leftCursor] = a[rightCursor];
+				a[rightCursor] = tmp;
+				
+				tmpO = o[leftCursor];
+				o[leftCursor] = o[rightCursor];
+				o[rightCursor] = tmpO;
+				
+				tmp1 = o2[leftCursor];
+				o2[leftCursor] = o2[rightCursor];
+				o2[rightCursor] = tmp1;
+			}
+		}
+		
+		//swap(a, o, leftCursor, right);
+		
+		tmp = a[leftCursor];
+		a[leftCursor] = a[right];
+		a[right] = tmp;
+		
+		tmpO = o[leftCursor];
+		o[leftCursor] = o[right];
+		o[right] = tmpO;
+		
+		tmp1 = o2[leftCursor];
+		o2[leftCursor] = o2[right];
+		o2[right] = tmp1;
+		
+		return leftCursor;
+	}
+	
 	static private int partition(double[] a, Object[] o, int left,int right){
 		double pivot = getMedian(a, o, left, right) ;
 		
@@ -740,6 +843,20 @@ final public class QuickSortObjects {
 		o[idx2] = tmpO;
 		
 		float[] tmp1 = o2[idx1];
+		o2[idx1] = o2[idx2];
+		o2[idx2] = tmp1;
+	}
+	
+	static private void swap(float[] a, int[] o, Object[] o2, int idx1,int idx2){
+		float tmp = a[idx1];
+		a[idx1] = a[idx2];
+		a[idx2] = tmp;
+		
+		int tmpO = o[idx1];
+		o[idx1] = o[idx2];
+		o[idx2] = tmpO;
+		
+		Object tmp1 = o2[idx1];
 		o2[idx1] = o2[idx2];
 		o2[idx2] = tmp1;
 	}

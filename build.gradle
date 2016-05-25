@@ -9,7 +9,7 @@ version = "1.1"
 [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.11'
+    gradleVersion = '2.12'
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
@@ -76,4 +76,4 @@ uploadArchives {
     }
 }
 
-//build.finalizedBy(install)
+build.finalizedBy(install)
