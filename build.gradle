@@ -76,4 +76,4 @@ uploadArchives {
     }
 }
 
-build.finalizedBy(install)
+//build.finalizedBy(install)
