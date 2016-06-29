@@ -1,6 +1,7 @@
 package roxtools.collection;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -56,6 +57,26 @@ public class SimpleHashMapTest {
 		for (Integer k : map.keySet()) {
 			int i = k/kMult ;
 			Float v = (float) (i*vMult) ;
+			
+			Float v2 = map.get(k) ;
+			
+			Assert.assertEquals( v , v2 );
+			iterateCount++ ;
+		}
+		
+		Assert.assertEquals( totalValues , iterateCount );
+		
+		iterateCount = 0 ;
+		
+		for (Entry<Integer, Float> entry : map.entrySet()) {
+			Integer k = entry.getKey() ;
+			
+			int i = k/kMult ;
+			Float v = (float) (i*vMult) ;
+			
+			Float v1 = entry.getValue() ;
+			
+			Assert.assertEquals( v , v1 );
 			
 			Float v2 = map.get(k) ;
 			

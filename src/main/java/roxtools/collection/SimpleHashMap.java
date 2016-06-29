@@ -2,7 +2,6 @@ package roxtools.collection;
 
 import java.util.AbstractSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -283,7 +282,7 @@ public class SimpleHashMap<K, V> implements Map<K, V>{
 	private class MyKeyValIterator implements Iterator<java.util.Map.Entry<K, V>>{
 
 		private int cursor = 1 ;
-		private int size = SimpleHashMap.this.size() ;
+		private int size = SimpleHashMap.this.size() +1;
 		
 		@Override
 		public boolean hasNext() {
