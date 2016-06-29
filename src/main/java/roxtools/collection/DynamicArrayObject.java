@@ -164,7 +164,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 		Integer i = val ;
 		@SuppressWarnings("unchecked")
 		O o = (O) i ;
-		return (int) set(block, idx, o) ;
+		return (Integer) set(block, idx, o) ;
 	}
 	
 	@Override
@@ -172,7 +172,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 		Long i = val ;
 		@SuppressWarnings("unchecked")
 		O o = (O) i ;
-		return (long) set(block, idx, o) ;
+		return (Long) set(block, idx, o) ;
 	}
 	
 	@Override
@@ -180,7 +180,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 		Float i = val ;
 		@SuppressWarnings("unchecked")
 		O o = (O) i ;
-		return (float) set(block, idx, o) ;
+		return (Float) set(block, idx, o) ;
 	}
 	
 	@Override
@@ -188,7 +188,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 		Double i = val ;
 		@SuppressWarnings("unchecked")
 		O o = (O) i ;
-		return (double) set(block, idx, o) ;
+		return (Double) set(block, idx, o) ;
 	}
 	
 	@Override
