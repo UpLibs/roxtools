@@ -112,6 +112,13 @@ final public class DynamicArrayFloat extends DynamicArray<Float,float[]> {
 	protected void set(float[] blockSrc, int idxSrc, float[] blockDest, int idxDest) {
 		blockDest[idxDest] = blockSrc[idxSrc] ;
 	}
+	
+	@Override
+	protected void set(float[] blockSrc, int idxSrc, float[] blockDest, int idxDest, int lng) {
+		for (int i = 0; i < lng; i++) {
+			blockDest[idxDest+i] = blockSrc[idxSrc+i] ;
+		}	
+	}
 
 	@Override
 	protected void reset(float[] block, int idx) {

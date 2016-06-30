@@ -114,6 +114,13 @@ final public class DynamicArrayLong extends DynamicArray<Long,long[]> {
 	}
 
 	@Override
+	protected void set(long[] blockSrc, int idxSrc, long[] blockDest, int idxDest, int lng) {
+		for (int i = 0; i < lng; i++) {
+			blockDest[idxDest+i] = blockSrc[idxSrc+i] ;
+		}	
+	}
+	
+	@Override
 	protected void reset(long[] block, int idx) {
 		block[idx] = 0 ;
 	}

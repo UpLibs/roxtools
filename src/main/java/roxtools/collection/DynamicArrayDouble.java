@@ -112,6 +112,13 @@ final public class DynamicArrayDouble extends DynamicArray<Double,double[]> {
 	protected void set(double[] blockSrc, int idxSrc, double[] blockDest, int idxDest) {
 		blockDest[idxDest] = blockSrc[idxSrc] ;
 	}
+	
+	@Override
+	protected void set(double[] blockSrc, int idxSrc, double[] blockDest, int idxDest, int lng) {
+		for (int i = 0; i < lng; i++) {
+			blockDest[idxDest+i] = blockSrc[idxSrc+i] ;
+		}	
+	}
 
 	@Override
 	protected void reset(double[] block, int idx) {

@@ -113,7 +113,14 @@ final public class DynamicArrayInt extends DynamicArray<Integer,int[]> {
 	protected void set(int[] blockSrc, int idxSrc, int[] blockDest, int idxDest) {
 		blockDest[idxDest] = blockSrc[idxSrc] ;
 	}
-
+	
+	@Override
+	protected void set(int[] blockSrc, int idxSrc, int[] blockDest, int idxDest, int lng) {
+		for (int i = 0; i < lng; i++) {
+			blockDest[idxDest+i] = blockSrc[idxSrc+i] ;
+		}
+	}
+	
 	@Override
 	protected void reset(int[] block, int idx) {
 		block[idx] = 0 ;

@@ -204,6 +204,13 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	}
 
 	@Override
+	protected void set(O[] blockSrc, int idxSrc, O[] blockDest, int idxDest, int lng) {
+		for (int i = 0; i < lng; i++) {
+			blockDest[idxDest+i] = blockSrc[idxSrc+i] ;
+		}	
+	}
+	
+	@Override
 	final protected void reset(O[] block, int idx) {
 		block[idx] = null ;
 	}

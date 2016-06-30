@@ -23,6 +23,9 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 	}
 	
 	protected DynamicArray(int minBlockSize, int maxBlockSize, boolean initializeBlocks) {
+		if (minBlockSize < 2) throw new IllegalArgumentException("minBlockSize < 2: "+ minBlockSize) ;
+		if (maxBlockSize < minBlockSize) throw new IllegalArgumentException("maxBlockSize < minBlockSize: "+ maxBlockSize +" < "+ minBlockSize) ;
+		
 		this.minBlockSize = minBlockSize;
 		this.maxBlockSize = maxBlockSize;
 		
@@ -63,6 +66,14 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 		}
 		
 		this.blocks = blocks2 ;
+		
+		int maxBlocks = Math.max( blockSize/2 , 10 ) ;
+		
+		if ( this.blocks.length > maxBlocks ) {
+			int newBlockSize = Math.min( blockSize*2 , maxBlockSize ) ;
+			resizeBlockSize(newBlockSize);
+		}
+		
 	}
 	
 	final protected void ensureCapacityForIndex(int idx) {
@@ -81,6 +92,56 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 			
 			this.blocks = blocks2 ;
 		}
+	}
+	
+	final public void resizeBlockSize(int newBlockSize) {
+		if ( this.blockSize == newBlockSize ) return ;
+		
+		if (newBlockSize < 1) throw new IllegalArgumentException("newBlockSize < 1") ;
+		
+		System.out.println("!!!>> newBlockSize: "+ newBlockSize);
+		System.out.println( new Throwable().getStackTrace()[1] );
+		
+		int currentBlockSize = this.blockSize ;
+		
+		int neededBlocks = (this.size/newBlockSize)+1 ;
+		
+		B[] blocks = createBlockTable(neededBlocks) ;
+		
+		int currentBlockIdx = 0 ;
+		int currentBlockRead = 0 ;
+		B currentBlock = this.blocks[currentBlockIdx] ;
+		
+		int newBlocksWrites = 0 ;
+		
+		for (int i = 0; i < neededBlocks; i++) {
+			B blk = createBlock(newBlockSize) ;
+			blocks[i] = blk ;
+			
+			int remainingElems = size-newBlocksWrites ;
+			
+			int lng = Math.min( newBlockSize , remainingElems ) ;
+			
+			for (int j = 0; j < lng;) {
+				if ( currentBlockRead >= currentBlockSize ) {
+					currentBlock = this.blocks[++currentBlockIdx] ;
+					currentBlockRead = 0 ;
+				}
+				
+				int blkRemaining = lng - j ;
+				int setSz = currentBlockSize-currentBlockRead ;
+				if (setSz > blkRemaining) setSz = blkRemaining ;
+				
+				set(currentBlock, currentBlockRead, blk, j, setSz);
+				currentBlockRead += setSz ;
+				j+= setSz ;
+			}
+			
+			newBlocksWrites += lng ;
+		}
+		
+		this.blocks = blocks ;
+		this.blockSize = newBlockSize ;
 	}
 	
 	final protected int getBlockIndex(int idx) {
@@ -196,6 +257,8 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 	//////////////////////////////////////////////
 	
 	abstract protected void set(B blockSrc, int idxSrc, B blockDest, int idxDest) ;
+	abstract protected void set(B blockSrc, int idxSrc, B blockDest, int idxDest, int lng) ;
+	
 	abstract protected void reset(B block, int idx) ;
 	
 	final public void remove(int idx) {
