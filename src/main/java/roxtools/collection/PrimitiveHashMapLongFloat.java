@@ -143,7 +143,7 @@ final public class PrimitiveHashMapLongFloat implements Map<Long, Float>{
 	 * @return Value or null when not existent key.
 	 */
 	
-	public Float get(long key) {
+	public Float getPrimitive(long key) {
 		int objHash = Long.hashCode(key) ;
 		int groupIdx = groupIndex(objHash, groups.length) ;
 		
@@ -170,7 +170,7 @@ final public class PrimitiveHashMapLongFloat implements Map<Long, Float>{
 		return put(key.longValue(), value.floatValue()) ;
 	}
 	
-	public Float put(long key, float value) {
+	public Float putPrimitive(long key, float value) {
 		int objHash = Long.hashCode(key) ;
 		int groupIdx = groupIndex(objHash, groups.length) ;
 		
