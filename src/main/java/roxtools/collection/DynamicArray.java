@@ -102,6 +102,10 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 		return idx - (blkIdx*this.blockSize) ;
 	}
 	
+	final protected int getIndexInBlock(int blockIndex, int idx) {
+		return idx - (blockIndex*this.blockSize) ;
+	}
+	
 	final protected int getBlockSizeForIndex(int idx) {
 		int blkIdx = idx/this.blockSize ;
 		return getBlockElementsSize(blkIdx) ;

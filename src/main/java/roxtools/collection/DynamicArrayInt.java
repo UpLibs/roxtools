@@ -12,8 +12,9 @@ final public class DynamicArrayInt extends DynamicArray<Integer,int[]> {
 
 	@Override
 	public int getInt(int idx) {
-		int[] block = getBlockForIndex(idx) ;
-		int i = getIndexInBlock(idx) ;
+		int blkIdx = idx/this.blockSize ;
+		int[] block = this.blocks[blkIdx] ;
+		int i = idx - (blkIdx*this.blockSize) ;
 		return block[i] ;
 	}
 
