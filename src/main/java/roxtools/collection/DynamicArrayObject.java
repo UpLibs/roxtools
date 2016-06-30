@@ -33,7 +33,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
     }
 
 	@Override
-	public int getInt(int idx) {
+	final public int getInt(int idx) {
 		O o = get(idx) ;
 		
 		if (o instanceof Number) {
@@ -45,7 +45,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	}
 	
 	@Override
-	public long getLong(int idx) {
+	final public long getLong(int idx) {
 		O o = get(idx) ;
 		
 		if (o instanceof Number) {
@@ -57,7 +57,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	}
 
 	@Override
-	public float getFloat(int idx) {
+	final public float getFloat(int idx) {
 		O o = get(idx) ;
 		
 		if (o instanceof Number) {
@@ -69,7 +69,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	}
 
 	@Override
-	public double getDouble(int idx) {
+	final public double getDouble(int idx) {
 		O o = get(idx) ;
 		
 		if (o instanceof Number) {
@@ -81,14 +81,14 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	}
 	
 	@Override
-	public O get(int idx) {
+	final public O get(int idx) {
 		O[] block = getBlockForIndex(idx) ;
 		int i = getIndexInBlock(idx) ;
 		return block[i] ;
 	}
 
 	@Override
-	public void addInt(int val) {
+	final public void addInt(int val) {
 		Integer i = val ;
 		@SuppressWarnings("unchecked")
 		O o = (O) i ;
@@ -96,7 +96,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	}
 	
 	@Override
-	public void addLong(long val) {
+	final public void addLong(long val) {
 		Long i = val ;
 		@SuppressWarnings("unchecked")
 		O o = (O) i ;
@@ -104,7 +104,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	}
 	
 	@Override
-	public void addFloat(float val) {
+	final public void addFloat(float val) {
 		Float f = val ;
 		@SuppressWarnings("unchecked")
 		O o = (O) f ;
@@ -112,7 +112,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	}
 	
 	@Override
-	public void addDouble(double val) {
+	final public void addDouble(double val) {
 		Double f = val ;
 		@SuppressWarnings("unchecked")
 		O o = (O) f ;
@@ -120,7 +120,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	}
 
 	@Override
-	public void add(O val) {
+	final public void add(O val) {
 		int idx = this.size ;
 		ensureCapacityForIndex(idx);
 		
@@ -147,20 +147,20 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	protected O[] createBlock(int size) {
+	final protected O[] createBlock(int size) {
 		Class<?> objectType = objectType() ;
 		return (O[]) Array.newInstance( objectType , size ) ;
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	protected O[][] createBlockTable(int size) {
+	final protected O[][] createBlockTable(int size) {
 		Class<O[]> objectArrayType = objectArrayType() ;
 		return (O[][]) Array.newInstance( objectArrayType , size ) ;
 	}
 
 	@Override
-	protected int setInt(O[] block, int idx, int val) {
+	final protected int setInt(O[] block, int idx, int val) {
 		Integer i = val ;
 		@SuppressWarnings("unchecked")
 		O o = (O) i ;
@@ -168,7 +168,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	}
 	
 	@Override
-	protected long setLong(O[] block, int idx, long val) {
+	final protected long setLong(O[] block, int idx, long val) {
 		Long i = val ;
 		@SuppressWarnings("unchecked")
 		O o = (O) i ;
@@ -176,7 +176,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	}
 	
 	@Override
-	protected float setFloat(O[] block, int idx, float val) {
+	final protected float setFloat(O[] block, int idx, float val) {
 		Float i = val ;
 		@SuppressWarnings("unchecked")
 		O o = (O) i ;
@@ -184,7 +184,7 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	}
 	
 	@Override
-	protected double setDouble(O[] block, int idx, double val) {
+	final protected double setDouble(O[] block, int idx, double val) {
 		Double i = val ;
 		@SuppressWarnings("unchecked")
 		O o = (O) i ;
@@ -192,19 +192,19 @@ public class DynamicArrayObject<O> extends DynamicArray<O,O[]> {
 	}
 	
 	@Override
-	protected O set(O[] block, int idx, O val) {
+	final protected O set(O[] block, int idx, O val) {
 		O prev = block[idx] ;
 		block[idx] = val ;
 		return prev ;
 	}
 	
 	@Override
-	protected void set(O[] blockSrc, int idxSrc, O[] blockDest, int idxDest) {
+	final protected void set(O[] blockSrc, int idxSrc, O[] blockDest, int idxDest) {
 		blockDest[idxDest] = blockSrc[idxSrc] ;
 	}
 
 	@Override
-	protected void reset(O[] block, int idx) {
+	final protected void reset(O[] block, int idx) {
 		block[idx] = null ;
 	}
 

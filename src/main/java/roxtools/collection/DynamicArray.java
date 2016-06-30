@@ -33,11 +33,11 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 		}
 	}
 
-	public int getBlockSize() {
+	final public int getBlockSize() {
 		return blockSize;
 	}
 	
-	public int size() {
+	final public int size() {
 		return size;
 	}
 	
@@ -52,7 +52,7 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 		this.blocks[0] = createBlock(blockSize) ;
 	}
 
-	protected void ensureCapacity(int totalBlocks) {
+	final protected void ensureCapacity(int totalBlocks) {
 		if ( this.blocks.length >= totalBlocks ) return ;
 		
 		B[] blocks2 = createBlockTable(totalBlocks) ;
@@ -65,12 +65,12 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 		this.blocks = blocks2 ;
 	}
 	
-	protected void ensureCapacityForIndex(int idx) {
+	final protected void ensureCapacityForIndex(int idx) {
 		int blkIdx = idx/this.blockSize ;
 		ensureCapacity( blkIdx+1 );
 	}
 	
-	protected void checkToReduceCapacity() {
+	final protected void checkToReduceCapacity() {
 		int neededBlocksForSize = (size/blockSize)+1 ;
 		
 		int maxCapacityBlocks = neededBlocksForSize+1 ;
@@ -83,31 +83,31 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 		}
 	}
 	
-	protected int getBlockIndex(int idx) {
+	final protected int getBlockIndex(int idx) {
 		int blkIdx = idx/this.blockSize ;
 		return blkIdx ;
 	}
 	
-	protected B getBlockForIndex(int idx) {
+	final protected B getBlockForIndex(int idx) {
 		int blkIdx = idx/this.blockSize ;
 		return this.blocks[ blkIdx ] ;
 	}
 	
-	protected B getBlock(int blockIdx) {
+	final protected B getBlock(int blockIdx) {
 		return this.blocks[blockIdx] ;
 	}
 	
-	protected int getIndexInBlock(int idx) {
+	final protected int getIndexInBlock(int idx) {
 		int blkIdx = idx/this.blockSize ;
 		return idx - (blkIdx*this.blockSize) ;
 	}
 	
-	protected int getBlockSizeForIndex(int idx) {
+	final protected int getBlockSizeForIndex(int idx) {
 		int blkIdx = idx/this.blockSize ;
 		return getBlockElementsSize(blkIdx) ;
 	}
 	
-	protected int getBlockElementsSize(int blockIndex) {
+	final protected int getBlockElementsSize(int blockIndex) {
 		int blockInitIndex = blockIndex * blockSize ;
 		int blockLastIndex = (blockInitIndex + blockSize) -1 ;
 		
@@ -120,15 +120,15 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 		}
 	}
 	
-	public int getTotalCapacity() {
+	final public int getTotalCapacity() {
 		return this.blocks.length * blockSize ;
 	}
 	
-	public int getAllocatedBlocks() {
+	final public int getAllocatedBlocks() {
 		return this.blocks.length ;
 	}
 	
-	public int getLastIndex() {
+	final public int getLastIndex() {
 		return getTotalCapacity() - 1; 
 	}
 
@@ -194,7 +194,7 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 	abstract protected void set(B blockSrc, int idxSrc, B blockDest, int idxDest) ;
 	abstract protected void reset(B block, int idx) ;
 	
-	public void remove(int idx) {
+	final public void remove(int idx) {
 		if (idx >= size) throw new ArrayIndexOutOfBoundsException("idx >= size: "+ idx +" >= "+ size) ;
 		
 		int blkIdx = getBlockIndex(idx);
@@ -243,7 +243,7 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 
 	////////////////////////////////////////////////////////////////////////
 	
-	private class MyIterator implements Iterator<O> {
+	final private class MyIterator implements Iterator<O> {
 		int cursor = 0 ;
 		
 		@Override

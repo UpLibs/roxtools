@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-public class SimpleHashMap<K, V> implements Map<K, V>{
+final public class SimpleHashMap<K, V> implements Map<K, V>{
 
 	private static final int MASK_REMOVE_NEGATIVE_SIGN = 0x7FFFFFFF;
 	

@@ -38,7 +38,7 @@ abstract public class DynamicArrayObjectTyped<O> extends DynamicArrayObject<O> {
 	
 	private transient Class<O> objectType;
 
-    protected Class<O> objectType() {
+	final protected Class<O> objectType() {
         if (objectType == null) {
             Class<?> annotationLiteralSubclass = getDynamicArrayObjectSubclass(this.getClass());
             if (annotationLiteralSubclass == null) {
