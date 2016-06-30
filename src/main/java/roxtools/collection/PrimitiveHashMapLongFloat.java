@@ -167,7 +167,7 @@ final public class PrimitiveHashMapLongFloat implements Map<Long, Float>{
 
 	@Override
 	public Float put(Long key, Float value) {
-		return put(key.longValue(), value.floatValue()) ;
+		return putPrimitive(key.longValue(), value.floatValue()) ;
 	}
 	
 	public Float putPrimitive(long key, float value) {
