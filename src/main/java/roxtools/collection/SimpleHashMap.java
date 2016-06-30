@@ -171,6 +171,8 @@ final public class SimpleHashMap<K, V> implements Map<K, V>{
 		
 		this.size++ ;
 		
+		checkRehashNeeded();
+		
 		return null;
 	}
 
@@ -218,7 +220,41 @@ final public class SimpleHashMap<K, V> implements Map<K, V>{
 		
 		return null;
 	}
+	
+	private void checkRehashNeeded() {
+		if ( this.size > this.groups.length*10 ) {
+			rehash( this.groups.length*2 );
+		}
+	}
 
+	private void rehash(int totalGroups) {
+		if ( this.groups.length == totalGroups ) return ;
+		
+		int[] groups2 = new int[totalGroups] ;
+		int[] groupsSizes2 = new int[totalGroups] ;
+		
+		int sz = this.size+1 ;
+		
+		for (int i = 1; i < sz; i++) {
+			K key = chainKey.get(i) ;
+			if (key == null) continue ;
+			
+			int objHash = key.hashCode() ;
+			int groupIdx = groupIndex(objHash, totalGroups) ;
+			
+			int prevPos = groups2[groupIdx] ;
+			
+			groups2[groupIdx] = i ;
+			groupsSizes2[groupIdx]++ ;
+			
+			chainNext.set(i, prevPos) ;
+		}
+		
+		this.groups = groups2 ;
+		this.groupsSizes = groupsSizes2 ;
+		
+	}
+	
 	@Override
 	public void putAll(Map<? extends K, ? extends V> m) {
 		for (java.util.Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
