@@ -40,7 +40,11 @@ public class SimpleHashMapBench {
 		
 		SimpleHashMapBench simpleHashMapBench = new SimpleHashMapBench() ;
 		
-		simpleHashMapBench.bench(100000);
+		int samples = 20000000 ;
+		
+		for (int i = 0; i < 10; i++) {
+			simpleHashMapBench.bench(samples);	
+		}
 		
 	}
 	

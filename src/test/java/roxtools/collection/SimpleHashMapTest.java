@@ -1,12 +1,9 @@
 package roxtools.collection;
 
-import java.util.HashMap;
 import java.util.Map.Entry;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import roxtools.collection.SimpleHashMap;
 
 public class SimpleHashMapTest {
 
