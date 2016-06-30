@@ -156,8 +156,8 @@ final public class SimpleHashMap<K, V> implements Map<K, V>{
 		int newPos ;
 		
 		if (chainRemoved > 0) {
-			int nextRemoved = chainNext.getInt(chainRemoved) ;
 			newPos = chainRemoved ;
+			int nextRemoved = chainNext.getInt(newPos) ;
 			chainRemoved = nextRemoved ;
 			
 			chainNext.setInt(newPos, groupPos);
