@@ -140,10 +140,10 @@ final public class PrimitiveHashMapLongFloat implements Map<Long, Float>{
 	/**
 	 * Primitive get.
 	 * @param key The key to search.
-	 * @return Value or 0 when not existent key.
+	 * @return Value or null when not existent key.
 	 */
 	
-	public float get(long key) {
+	public Float get(long key) {
 		int objHash = Long.hashCode(key) ;
 		int groupIdx = groupIndex(objHash, groups.length) ;
 		
@@ -162,7 +162,7 @@ final public class PrimitiveHashMapLongFloat implements Map<Long, Float>{
 			pos = chainNext.getInt(pos) ;
 		}
 		
-		return 0 ;
+		return null ;
 	}
 
 	@Override
