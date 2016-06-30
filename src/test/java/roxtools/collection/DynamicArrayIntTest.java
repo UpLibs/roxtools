@@ -45,6 +45,22 @@ public class DynamicArrayIntTest {
 			
 			Assert.assertTrue( v == i*valMult );	
 		}
+		
+		a.resizeBlockSize( blockSize*2 );
+		
+		for (int i = 0; i < 100; i++) {
+			int v = a.getInt(i) ;
+			
+			Assert.assertTrue( v == i*valMult );	
+		}
+		
+		a.resizeBlockSize( blockSize );
+		
+		for (int i = 0; i < 100; i++) {
+			int v = a.getInt(i) ;
+			
+			Assert.assertTrue( v == i*valMult );	
+		}
 
 		Assert.assertEquals( totalValues , a.size() );
 		
