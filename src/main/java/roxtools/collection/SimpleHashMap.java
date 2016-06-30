@@ -247,7 +247,7 @@ final public class SimpleHashMap<K, V> implements Map<K, V>{
 			groups2[groupIdx] = i ;
 			groupsSizes2[groupIdx]++ ;
 			
-			chainNext.set(i, prevPos) ;
+			chainNext.setInt(i, prevPos) ;
 		}
 		
 		this.groups = groups2 ;

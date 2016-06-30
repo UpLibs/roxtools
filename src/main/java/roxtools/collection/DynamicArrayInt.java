@@ -43,8 +43,9 @@ final public class DynamicArrayInt extends DynamicArray<Integer,int[]> {
 		int idx = this.size ;
 		ensureCapacityForIndex(idx);
 		
-		int[] block = getBlockForIndex(idx) ;
-		int i = getIndexInBlock(idx) ;
+		int blkIdx = idx/this.blockSize ;
+		int[] block = this.blocks[blkIdx] ;
+		int i = idx - (blkIdx*this.blockSize) ;
 		block[i] = val ;
 		
 		this.size++ ;
