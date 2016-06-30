@@ -99,9 +99,6 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 		
 		if (newBlockSize < 1) throw new IllegalArgumentException("newBlockSize < 1") ;
 		
-		System.out.println("!!!>> newBlockSize: "+ newBlockSize);
-		System.out.println( new Throwable().getStackTrace()[1] );
-		
 		int currentBlockSize = this.blockSize ;
 		
 		int neededBlocks = (this.size/newBlockSize)+1 ;
