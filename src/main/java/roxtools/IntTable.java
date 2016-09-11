@@ -4,42 +4,65 @@ import java.util.Arrays;
 
 final public class IntTable {
 	
+	private int groupSize ;
+	private float loadFactor ;
+	
 	private int[][] table ;
 	private int[] tableSizes ;
+	private int tableMaxIndex ;
+	
 	private int size ;
 	
 	private int threshold ;
 	
-	static private final int MAXIMUM_CAPACITY = 1 << 30;
-	static private final int DEFAULT_TABLE_GROUP_SIZE = 30 ;
-	static private final float DEFAULT_TABLE_LOAD_FACTOR = 0.75f ;
+	static public final int MAXIMUM_CAPACITY = 1 << 30;
+	static public final int DEFAULT_TABLE_GROUP_SIZE = 30 ;
+	static public final float DEFAULT_TABLE_LOAD_FACTOR = 0.75f ;
 	
 	public IntTable() {
 		this(8) ;
 	}
 	
 	public IntTable(int initialCapacity) {
+		this(initialCapacity, DEFAULT_TABLE_GROUP_SIZE, DEFAULT_TABLE_LOAD_FACTOR) ;
+	}
+	
+	public IntTable(int groupSize, double loadFactor) {
+		this(8, groupSize, loadFactor) ;
+	}
+	
+	public IntTable(int initialCapacity, int groupSize, double loadFactor) {
+		if (groupSize < 2) groupSize = 2 ;
+		if (loadFactor < 0.01) loadFactor = 0.01 ;
 		if (initialCapacity < 4) initialCapacity = 4 ;
 		
 		int capacity = 1;
         while (capacity < initialCapacity) capacity <<= 1;
+        
+        this.groupSize = groupSize;
+        this.loadFactor = (float) loadFactor ;
 		
-		this.table = new int[capacity][DEFAULT_TABLE_GROUP_SIZE] ;
+		this.table = new int[capacity][groupSize] ;
 		this.tableSizes = new int[capacity] ;
+		this.tableMaxIndex = this.table.length-1 ;
 		
 		this.threshold = calcThreshold(capacity) ;
 		
 		//System.out.println("-- init threshold> "+ this.threshold);
 	}
 	
-	static private int calcThreshold(int capacity) {
-		return (int) Math.min(capacity * DEFAULT_TABLE_GROUP_SIZE*DEFAULT_TABLE_LOAD_FACTOR , MAXIMUM_CAPACITY + 1);
+	private int calcThreshold(int capacity) {
+		float groupThreshold = this.groupSize*this.loadFactor ;
+		if (groupThreshold < 2) groupThreshold = 2 ;
+		
+		return (int) Math.min(capacity * groupThreshold , MAXIMUM_CAPACITY + 1);
 	}
 	
 	private void reHash(int newTableSize) {
 		
-		int[][] table2 = new int[newTableSize][DEFAULT_TABLE_GROUP_SIZE] ;
+		int[][] table2 = new int[newTableSize][this.groupSize] ;
 		int[] table2Sizes = new int[newTableSize] ;
+		int newTableMaxIndex = newTableSize-1;
 		
 		//int maxLoad = 0 ;
 		//int minLoad = Integer.MAX_VALUE ;
@@ -59,13 +82,13 @@ final public class IntTable {
 				int v = group[j] ;
 				
 				int hash = hash(v) ;
-				int tableIdx = tableIndexFor(hash, newTableSize) ;
+				int tableIdx = tableIndexFor(hash, newTableMaxIndex) ;
 				
 				int[] group2 = table2[tableIdx] ;
 				int group2sz = table2Sizes[tableIdx] ;
 				
 				if (group2sz == group2.length) {
-					group2 = Arrays.copyOf(group2, group2sz+DEFAULT_TABLE_GROUP_SIZE) ;
+					group2 = Arrays.copyOf(group2, group2sz+this.groupSize) ;
 					table2[tableIdx] = group2 ;
 				}
 				
@@ -80,6 +103,7 @@ final public class IntTable {
 		
 		this.table = table2 ;
 		this.tableSizes = table2Sizes ;
+		this.tableMaxIndex = this.table.length-1 ;
 		
 		this.threshold = calcThreshold( newTableSize ) ;
 		
@@ -93,7 +117,7 @@ final public class IntTable {
 	public void put(int n) {
 		int hash = hash(n) ;
 		
-		int tableIdx = tableIndexFor(hash, table.length) ;
+		int tableIdx = tableIndexFor(hash, tableMaxIndex) ;
 		
 		int[] group = table[tableIdx] ;
 		int groupSize = tableSizes[tableIdx] ;
@@ -106,14 +130,14 @@ final public class IntTable {
 		if (size >= threshold) {
 			reHash( table.length * 2 ) ;
 			
-			tableIdx = tableIndexFor(hash, table.length) ;
+			tableIdx = tableIndexFor(hash, tableMaxIndex) ;
 			
 			group = table[tableIdx] ;
 			groupSize = tableSizes[tableIdx] ;
 		}
 		
 		if (groupSize == group.length) {
-			group = Arrays.copyOf(group, groupSize+DEFAULT_TABLE_GROUP_SIZE) ;
+			group = Arrays.copyOf(group, groupSize+this.groupSize) ;
 			table[tableIdx] = group ;
 		}
 		
@@ -128,7 +152,7 @@ final public class IntTable {
 	public boolean contains(int n) {
 		int hash = hash(n) ;
 		
-		int tableIdx = tableIndexFor(hash, table.length) ;
+		int tableIdx = tableIndexFor(hash, tableMaxIndex) ;
 		
 		int[] group = table[tableIdx] ;
 		int groupSize = tableSizes[tableIdx] ;
@@ -144,7 +168,7 @@ final public class IntTable {
 	public boolean remove(int n) {
 		int hash = hash(n) ;
 		
-		int tableIdx = tableIndexFor(hash, table.length) ;
+		int tableIdx = tableIndexFor(hash, tableMaxIndex) ;
 		
 		int[] group = table[tableIdx] ;
 		int groupSize = tableSizes[tableIdx] ;
@@ -163,8 +187,8 @@ final public class IntTable {
 		return false ;
 	}
 	
-	static int tableIndexFor(int h, int length) {
-        return h & (length-1);
+	static int tableIndexFor(int h, int maxIndex) {
+        return h & maxIndex;
     }
 	
 	final int hash(int h) {
@@ -182,8 +206,9 @@ final public class IntTable {
 		int capacity = 1;
         while (capacity < initialCapacity) capacity <<= 1;
 		
-		this.table = new int[capacity][DEFAULT_TABLE_GROUP_SIZE] ;
+		this.table = new int[capacity][this.groupSize] ;
 		this.tableSizes = new int[capacity] ;
+		this.tableMaxIndex = this.table.length-1 ;
 		
 		this.threshold = calcThreshold(capacity) ;
 		
