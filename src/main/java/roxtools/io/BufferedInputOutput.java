@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.lang.ref.SoftReference;
 import java.util.Comparator;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import roxtools.RoxDeque;
 
@@ -48,7 +50,10 @@ final public class BufferedInputOutput implements SeekableInput , SeekableOutput
 		if ( in.length() != out.length() ) throw new IOException("Input length() different of Output! "+ in.length() +" != "+ out.length()) ;
 	}
 	
-
+	public Object getMutex() {
+		return mutex;
+	}
+	
 	public int read(long pos) throws IOException {
 		
 		synchronized (mutex) {
@@ -384,10 +389,18 @@ final public class BufferedInputOutput implements SeekableInput , SeekableOutput
 	private byte[] instantiateBlockData(int blockIdx) throws IOException {
 		long initPos = blockIdx*blockSizeL ;
 		
+		long endPos = initPos+blockSize ;
+		
+		if (endPos > size) endPos = size ;
+		
 		byte[] blk = new byte[blockSize] ;
 		
-		in.seek(initPos);
-		in.read(blk) ;
+		int lng = (int) (endPos - initPos) ;
+		
+		if (lng > 0) {
+			in.seek(initPos);
+			in.read(blk) ;
+		}
 		
 		return blk ;
 	}
@@ -424,6 +437,14 @@ final public class BufferedInputOutput implements SeekableInput , SeekableOutput
 			out.setLength(length);
 			
 			if (pos > size) pos = size ;
+		}
+		
+	}
+	
+	synchronized public boolean hasUnflushedData() {
+		
+		synchronized (mutex) {
+			return !blocksToWrite.isEmpty() ;
 		}
 		
 	}
@@ -493,18 +514,20 @@ final public class BufferedInputOutput implements SeekableInput , SeekableOutput
 	////////////////////////////////////////////////////////////////////////////////////////////
 
 	public void reset() throws IOException {
-		seek(0);
-		setLength(0);
-		
-		for (int i = 0; i < blocks.length; i++) {
-			Block block = blocks[i];
-			if (block == null) continue ;
+		synchronized (mutex) {
+			seek(0);
+			setLength(0);
 			
-			block.dispose();
-			blocks[i] = null ;
+			for (int i = 0; i < blocks.length; i++) {
+				Block block = blocks[i];
+				if (block == null) continue ;
+				
+				block.dispose();
+				blocks[i] = null ;
+			}
+			
+			blocksToWrite.clear();
 		}
-		
-		blocksToWrite.clear();
 	}
 	
 	private long pos = 0 ;
@@ -523,7 +546,9 @@ final public class BufferedInputOutput implements SeekableInput , SeekableOutput
 	
 	@Override
 	public void seek(long pos) throws IOException {
-		this.pos = pos ;
+		synchronized (mutex) {
+			this.pos = pos ;	
+		}
 	}
 
 	@Override
@@ -538,41 +563,53 @@ final public class BufferedInputOutput implements SeekableInput , SeekableOutput
 
 	@Override
 	public void write(int b) throws IOException {
-		write(pos, b) ;
-		pos++ ;
+		synchronized (mutex) {
+			write(pos, b) ;
+			pos++ ;
+		}
 	}
 
 	@Override
 	public void write(byte[] b, int off, int len) throws IOException {
-		int w = write(pos, b, off, len);
-		pos += w ;
+		synchronized (mutex) {
+			int w = write(pos, b, off, len);
+			pos += w ;
+		}
 	}
 
 	@Override
 	public void write(byte[] b) throws IOException {
-		int w = write(pos, b, 0, b.length);
-		pos += w ;
+		synchronized (mutex) {
+			int w = write(pos, b, 0, b.length);
+			pos += w ;
+		}
 	}
 
 	@Override
 	public int read() throws IOException {
-		int b = read(pos) ;
-		pos++ ;
-		return b ;
+		synchronized (mutex) {
+			int b = read(pos) ;
+			pos++ ;
+			return b ;
+		}
 	}
 
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException {
-		int read = read(pos, b, off, len) ;
-		if (read > 0) pos += read ;
-		return read ;
+		synchronized (mutex) {
+			int read = read(pos, b, off, len) ;
+			if (read > 0) pos += read ;
+			return read ;
+		}
 	}
 
 	@Override
 	public int read(byte[] b) throws IOException {
-		int read = read(pos, b, 0, b.length) ;
-		if (read > 0) pos += read ;
-		return read ;
+		synchronized (mutex) {
+			int read = read(pos, b, 0, b.length) ;
+			if (read > 0) pos += read ;
+			return read ;
+		}
 	}
 	
 	public long writeTo(OutputStream out) throws IOException {
@@ -609,6 +646,48 @@ final public class BufferedInputOutput implements SeekableInput , SeekableOutput
 		assert(r == length) ;
 		
 		return buffer ;
+	}
+	
+	static final private Timer flushTimer = new Timer("BufferedInputOutput::flushTimer",true) ;
+	
+	public void scheduleFlush(int delay) {
+		scheduleFlush(delay, false);
+	}
+	
+	public void scheduleFlush(int delay, boolean repeatedly) {
+		
+		synchronized (mutex) {
+			if ( !hasUnflushedData() ) return ;
+			
+			if (delay <= 0) {
+				try {
+					flush();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				return ;
+			}
+
+			TimerTask task = new TimerTask() {
+				
+				@Override
+				public void run() {
+					try {
+						flush();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			};
+			
+			if (repeatedly) {
+				flushTimer.schedule(task, delay,delay);
+			}
+			else {
+				flushTimer.schedule(task, delay);	
+			}	
+		}
+		
 	}
 	
 }
