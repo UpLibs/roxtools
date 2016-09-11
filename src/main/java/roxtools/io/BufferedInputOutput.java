@@ -220,14 +220,6 @@ final public class BufferedInputOutput implements SeekableInput , SeekableOutput
 			return "[#"+index + (isHoldingWrite() ? "!" : "") +"]" ;
 		}
 		
-		public long getInitPos() {
-			return index * blockSize ;
-		}
-		
-		public long getEndPos() {
-			return getInitPos() + blockSize ;
-		}
-
 		public int getIndex() {
 			return index ;
 		}
@@ -286,10 +278,6 @@ final public class BufferedInputOutput implements SeekableInput , SeekableOutput
 			byte[] data = get() ;
 			holdWrite(blocksToWrite);
 			return data ;
-		}
-
-		public boolean isPosInBlockRange(long pos) {
-			return ( pos >= getInitPos() && pos < getEndPos() ) ;
 		}
 
 		public void dispose() {
