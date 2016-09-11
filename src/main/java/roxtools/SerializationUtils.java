@@ -14,9 +14,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.nio.charset.Charset;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -376,21 +373,18 @@ final public class SerializationUtils {
 	}
 	
 	static public int[] readInts(byte[] buff, int off, int lng) {
-		ByteBuffer byteBuffer = ByteBuffer.wrap(buff, off, lng) ;
-
-		IntBuffer intBuffer = byteBuffer.asIntBuffer() ;
+		int nsSz = lng/4 ;
 		
-		int sz = intBuffer.remaining() ;
+		int[] ns = new int[nsSz] ;
 		
-		int[] ns = new int[sz] ;
-		
-		for (int i = 0; i < sz; i++) {
-			ns[i] = intBuffer.get() ;
+		for (int i = 0; i < nsSz; i++) {
+			ns[i] = (( (buff[off] & 0xFF) << 24) + ( (buff[off+1] & 0xFF) << 16) + ( (buff[off+2] & 0xFF) << 8) + ( (buff[off+3] & 0xFF) ));
+			off+=4 ;
 		}
 		
 		return ns ;
 	}
-	
+		
 	static public int[][] readIntsMatrix(byte[] buff, int off, int lng) {
 		int lines = readInt(buff, off) ;
 		off += 4 ;
@@ -439,27 +433,31 @@ final public class SerializationUtils {
 
 	static public void writeFloats(float[] ns, byte[] buffer, int off) {
 		
-		ByteBuffer byteBuffer = ByteBuffer.wrap(buffer, off, ns.length*4) ;
-		
-		FloatBuffer floatBuffer = byteBuffer.asFloatBuffer() ;
-		
 		for (int i = 0; i < ns.length; i++) {
-			floatBuffer.put( ns[i] ) ;
+			int v = Float.floatToRawIntBits( ns[i] ) ;
+			
+			buffer[off++] = (byte) (v >>> 24);
+			buffer[off++] = (byte) (v >>> 16);
+			buffer[off++] = (byte) (v >>> 8);
+			buffer[off++] = (byte) v ;
 		}
+		
 	}
 	
 	static public int writeFloats(float[] ns, int offset, int length, byte[] buffer, int buffOffset) {
-		int bytesToWrite = length * 4 ;
-		ByteBuffer byteBuffer = ByteBuffer.wrap(buffer, buffOffset, bytesToWrite) ;
-		
-		FloatBuffer floatBuffer = byteBuffer.asFloatBuffer() ;
+		int buffOffsetInit = buffOffset ;
 		
 		int limit = offset+length ;
-		for (int i = offset; i < limit; i++) {
-			floatBuffer.put( ns[i] ) ;
+		for (; offset < limit; offset++) {
+			int v = Float.floatToRawIntBits( ns[offset] ) ;
+			
+			buffer[buffOffset++] = (byte) (v >>> 24);
+			buffer[buffOffset++] = (byte) (v >>> 16);
+			buffer[buffOffset++] = (byte) (v >>> 8);
+			buffer[buffOffset++] = (byte) v ;
 		}
 		
-		return bytesToWrite ;
+		return buffOffset - buffOffsetInit ;
 	}
 	
 	static public void writeFloats(float[] ns, OutputStream out) throws IOException {
@@ -479,7 +477,9 @@ final public class SerializationUtils {
 			int lng = nsSz - i ;
 			if (lng > nPerBuff) lng = nPerBuff ;
 			
-			int w = writeFloats(ns, i, lng, buff, 0) ; 
+			int w = writeFloats(ns, i, lng, buff, 0) ;
+			assert(w == lng*4) ;
+			
 			out.write(buff, 0, w);
 		}
 		
@@ -491,19 +491,17 @@ final public class SerializationUtils {
 	}
 	
 	static public float[] readFloats(byte[] buff, int off, int lng) {
-		ByteBuffer byteBuffer = ByteBuffer.wrap(buff, off, lng) ;
-
-		FloatBuffer floatBuffer = byteBuffer.asFloatBuffer() ;
+		int nsSz = lng/4 ;
 		
-		int sz = floatBuffer.remaining() ;
+		float[] fs = new float[nsSz] ;
 		
-		float[] ns = new float[sz] ;
-		
-		for (int i = 0; i < sz; i++) {
-			ns[i] = floatBuffer.get() ;
+		for (int i = 0; i < nsSz; i++) {
+			int n = (( (buff[off] & 0xFF) << 24) + ( (buff[off+1] & 0xFF) << 16) + ( (buff[off+2] & 0xFF) << 8) + ( (buff[off+3] & 0xFF) ));
+			fs[i] = Float.intBitsToFloat(n) ;
+			off+=4 ;
 		}
 		
-		return ns ;
+		return fs ;
 	}
 	
 	static public void readFloats(byte[] buff, int off, float[][] dest) {
@@ -513,9 +511,7 @@ final public class SerializationUtils {
 	
 	static public void readFloats(byte[] buff, int off, int lng, float[][] dest) {
 		
-		ByteBuffer byteBuffer = ByteBuffer.wrap(buff, off, lng) ;
-
-		FloatBuffer floatBuffer = byteBuffer.asFloatBuffer() ;
+		int limit = off+lng ;
 		
 		int destSz = dest.length ;
 		
@@ -525,10 +521,15 @@ final public class SerializationUtils {
 			int destFsSz = destFs.length ;
 			
 			for (int j = 0; j < destFsSz; j++) {
-				destFs[j] = floatBuffer.get() ;
+				int n = (( (buff[off] & 0xFF) << 24) + ( (buff[off+1] & 0xFF) << 16) + ( (buff[off+2] & 0xFF) << 8) + ( (buff[off+3] & 0xFF) ));
+				destFs[j] = Float.intBitsToFloat(n) ;
+				off+=4 ;
 			}
 			
 		}
+		
+		if (off != limit) throw new IllegalStateException("Read bytes not matching total floats in arrays!") ;
+		
 	}
 	
 	static public void readFloats(byte[] buff, int off, float[][][] dest) {
@@ -538,9 +539,7 @@ final public class SerializationUtils {
 	
 	static public void readFloats(byte[] buff, int off, int lng, float[][][] dest) {
 		
-		ByteBuffer byteBuffer = ByteBuffer.wrap(buff, off, lng) ;
-
-		FloatBuffer floatBuffer = byteBuffer.asFloatBuffer() ;
+		int limit = off+lng ;
 		
 		int destSz = dest.length ;
 		
@@ -553,10 +552,14 @@ final public class SerializationUtils {
 				int fsSz = fs.length ;
 				
 				for (int k = 0; k < fsSz; k++) {
-					fs[k] = floatBuffer.get() ;	
+					int n = (( (buff[off] & 0xFF) << 24) + ( (buff[off+1] & 0xFF) << 16) + ( (buff[off+2] & 0xFF) << 8) + ( (buff[off+3] & 0xFF) ));
+					fs[k] = Float.intBitsToFloat(n) ;
+					off+=4 ;
 				}
 			}
 		}
+		
+		if (off != limit) throw new IllegalStateException("Read bytes not matching total floats in arrays!") ;
 		
 	}
 	
@@ -581,7 +584,7 @@ final public class SerializationUtils {
 		writeFloats(fs, buffer, off) ;
 		off += fsBytesSize ;
 		
-		return off ;
+		return 4+fsBytesSize ;
 	}
 	
 	static public void writeFloatsArraysBlock(float[][] fs, OutputStream out) throws IOException {
