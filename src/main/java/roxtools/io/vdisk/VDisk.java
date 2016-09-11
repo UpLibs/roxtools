@@ -185,7 +185,7 @@ final public class VDisk implements Serializable {
 		
 	}
 	
-	protected boolean isMetaDataDisk() {
+	protected boolean isMetadataDisk() {
 		return this.isMetadataDisk ;
 	}
 	
@@ -501,12 +501,8 @@ final public class VDisk implements Serializable {
 	}
 	
 	public VDFile getOrCreateFileWithMetaData(String metaDataKey, byte[] data) throws IOException {
-		VDFile file = this.getFirstFileByMetaDataKey(metaDataKey) ;
-		
-		if (file != null) return file ;
-		
 		synchronized (this.sectorMUTEX) {
-			file = this.getFirstFileByMetaDataKey(metaDataKey) ;
+			VDFile file = this.getFirstFileByMetaDataKey(metaDataKey) ;
 			
 			if (file == null) {
 				file = this.createFile() ;
@@ -518,12 +514,8 @@ final public class VDisk implements Serializable {
 	}
 
 	public VDFile getOrCreateFileWithMetaData(VDMetaData metaData) throws IOException {
-		VDFile file = this.getFirstFileByMetaDataKey( metaData.getKey() ) ;
-		
-		if (file != null) return file ;
-		
 		synchronized (this.sectorMUTEX) {
-			file = this.getFirstFileByMetaDataKey( metaData.getKey() ) ;
+			VDFile file = this.getFirstFileByMetaDataKey( metaData.getKey() ) ;
 			
 			if (file == null) {
 				file = this.createFile() ;
@@ -853,7 +845,7 @@ final public class VDisk implements Serializable {
 
 		this.sectorsVolatile = this.sectors ;
 		
-		if ( !isMetaDataDisk() ) {
+		if ( !isMetadataDisk() ) {
 			lockDisk() ;
 		}
 	}
