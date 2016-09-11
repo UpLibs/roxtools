@@ -1056,7 +1056,7 @@ final public class RoxDeque<E> extends AbstractCollection<E> implements Deque<E>
 			return mid; // key found
 		}
 		
-		return -1 ;
+		return -(low + 1);  // key not found.
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////
