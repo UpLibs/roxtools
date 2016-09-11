@@ -11,7 +11,7 @@ import java.util.TimerTask;
 
 import roxtools.RoxDeque;
 
-final public class BufferedInputOutput implements SeekableInput , SeekableOutput {
+final public class BufferedInputOutput implements SeekableInputOutput {
 	
 	final private Object mutex ;
 	final private int blockSize ;
