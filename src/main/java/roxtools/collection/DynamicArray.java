@@ -67,6 +67,8 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 		
 		this.blocks = blocks2 ;
 		
+		assert(checkBlocks()) ;
+		
 		int maxBlocks = Math.max( blockSize/2 , 10 ) ;
 		
 		if ( this.blocks.length > maxBlocks ) {
@@ -90,8 +92,20 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 			B[] blocks2 = createBlockTable(maxCapacityBlocks) ;
 			System.arraycopy(this.blocks, 0, blocks2, 0, maxCapacityBlocks);	
 			
+			assert(checkBlocks()) ;
+			
 			this.blocks = blocks2 ;
 		}
+	}
+	
+	private boolean checkBlocks() {
+		
+		for (int i = 0; i < blocks.length; i++) {
+			B blk = blocks[i] ;
+			if (blk == null) throw new NullPointerException("Null block at index: "+ i) ;
+		}
+		
+		return true ;
 	}
 	
 	final public void resizeBlockSize(int newBlockSize) {
@@ -139,6 +153,8 @@ abstract public class DynamicArray<O,B> implements Iterable<O> {
 		
 		this.blocks = blocks ;
 		this.blockSize = newBlockSize ;
+		
+		assert(checkBlocks()) ;
 	}
 	
 	final protected int getBlockIndex(int idx) {
