@@ -9,6 +9,10 @@ public class ByteArrayInputOutput implements SeekableInput , SeekableOutput {
 	private byte[] data ;
 	private int size ;
 	
+	public ByteArrayInputOutput() {
+		this(128) ;
+	}
+	
 	public ByteArrayInputOutput(int capacity) {
 		this.data = new byte[capacity];
 		this.size = 0 ;
@@ -43,20 +47,22 @@ public class ByteArrayInputOutput implements SeekableInput , SeekableOutput {
 			int desiredCapacity = ((size/1024)+1)*1024 ;
 			
 			byte[] data2 = new byte[desiredCapacity] ;
-			System.arraycopy(data, 0, data2, 0, data.length);
+			
+			int lng = Math.min( desiredCapacity ,data.length) ;
+			System.arraycopy(data, 0, data2, 0, lng);
 			
 			this.data = data2 ;
 		}
 	}
 	
-	public int size() {
+	public long length() {
 		return size;
 	}
 
 	private int pos = 0 ;
 	
 	@Override
-	public long position() throws IOException {
+	public long position() {
 		return pos ;
 	}
 
@@ -154,7 +160,7 @@ public class ByteArrayInputOutput implements SeekableInput , SeekableOutput {
 	
 	@Override
 	public String toString() {
-		return getClass().getName()+"["+pos+"/"+size()+"/"+capacity()+"]";
+		return getClass().getName()+"["+position()+"/"+length()+"/"+capacity()+"]";
 	}
 	
 }
