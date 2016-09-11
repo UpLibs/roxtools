@@ -141,6 +141,10 @@ final public class BufferedInputOutput implements SeekableInput , SeekableOutput
 		
 	}
 	
+	public int write(long pos, byte[] buffer) throws IOException {
+		return write(pos, buffer, 0, buffer.length) ;
+	}
+	
 	public int write(long pos, byte[] buffer, int offset, int length) throws IOException {
 		
 		synchronized (mutex) {
@@ -452,6 +456,8 @@ final public class BufferedInputOutput implements SeekableInput , SeekableOutput
 	public void flush() throws IOException {
 		
 		synchronized (mutex) {
+			if ( !hasUnflushedData() ) return ;
+			
 			for (Block block : blocksToWrite) {
 				assert( block.isHoldingWrite() ) ;
 				flushBlock( block ) ;
@@ -686,6 +692,24 @@ final public class BufferedInputOutput implements SeekableInput , SeekableOutput
 			else {
 				flushTimer.schedule(task, delay);	
 			}	
+		}
+		
+	}
+
+	public void dispose() {
+
+		synchronized (mutex) {
+			blocksToWrite.clear();
+			
+			for (int i = 0; i < blocks.length; i++) {
+				Block block = blocks[i];
+				if (block == null) continue ;
+				
+				block.dispose();
+				
+				blocks[i] = null ;
+			}
+			
 		}
 		
 	}
