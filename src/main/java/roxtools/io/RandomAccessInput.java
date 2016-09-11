@@ -21,6 +21,11 @@ final class RandomAccessInput extends InputStream implements SeekableInput {
 	}
 	
 	@Override
+	public long length() throws IOException {
+		return inOut.length();
+	}
+	
+	@Override
 	public int read() throws IOException {
 		return inOut.read() ;
 	}
