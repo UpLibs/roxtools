@@ -162,6 +162,10 @@ public class ByteArrayInputOutput implements SeekableInput , SeekableOutput {
 	}
 	
 	@Override
+	public void flush() throws IOException {
+	}
+	
+	@Override
 	public String toString() {
 		return getClass().getName()+"["+position()+"/"+length()+"/"+capacity()+"]";
 	}
