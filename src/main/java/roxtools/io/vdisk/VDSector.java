@@ -42,6 +42,7 @@ final public class VDSector implements Serializable {
 	
 
 	final private VDisk vDisk ;
+	final protected boolean isMetadataDisk ;
 	
 	final protected int blockSize ;
 	final protected int blockUsageSize ;
@@ -63,6 +64,7 @@ final public class VDSector implements Serializable {
 	protected VDSector(VDisk vDisk, int sectorIndex) throws IOException {
 		super();
 		this.vDisk = vDisk;
+		this.isMetadataDisk = vDisk.isMetadataDisk() ;
 		
 		this.blockSize = vDisk.blockSize ;
 		this.blockUsageSize = vDisk.blockUsageSize ;
@@ -72,6 +74,10 @@ final public class VDSector implements Serializable {
 		this.sectorFile = createSectorFile(vDisk, sectorIndex) ; 
 	
 		openIO();
+	}
+	
+	public boolean isMetadataDisk() {
+		return isMetadataDisk;
 	}
 	
 	private volatile boolean closed = false ;
@@ -97,7 +103,7 @@ final public class VDSector implements Serializable {
 			this.blocks[i] = unused ? null : NULL_REF_BLOCK ;
 		}
 		
-		keysTable = !this.vDisk.isMetaDataDisk() ? new FileKeysTable(this) : null ;
+		keysTable = !this.isMetadataDisk() ? new FileKeysTable(this) : null ;
 	}
 	
 	private void eraseSector() throws IOException {
