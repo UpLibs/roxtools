@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import roxtools.ArrayUtils;
 import roxtools.BigLinkedIntListPool;
 import roxtools.BigLinkedIntListPool.BigLinkedIntList;
 import roxtools.IntTable;
@@ -39,61 +40,22 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	public VDSector getSector() {
 		return sector;
 	}
+
+	private static final int MASK_REMOVE_NEGATIVE_SIGN = 0x7FFFFFFF;
 	
-	static final class KeyGroup {
-		
-		static final private HashMap<KeyGroup, KeyGroup> singletonInstances = new HashMap<KeyGroup, KeyGroup>() ;
-		
-		static public KeyGroup getSingletonInstance(String key) {
-			return toSingletonInstance( new KeyGroup(key) ) ;
-		}
-		
-		static public KeyGroup toSingletonInstance(KeyGroup keyGroup) {
-			synchronized (singletonInstances) {
-				KeyGroup prev = singletonInstances.get(keyGroup) ;
-				if (prev != null) return prev ;
-				
-				singletonInstances.put(keyGroup, keyGroup) ;
-				
-				return keyGroup ;
-			}
-		}
-		
-		private final int group ;
-		
-		public KeyGroup(String key) {
-			this.group = calcKeyGroup(key) ;
-		}
-		
-		static private int calcKeyGroup(String key) {
-			return key.hashCode() % 100 ;
-		}
-
-		@Override
-		public int hashCode() {
-			return group ;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) return true;
-			if (obj == null) return false;
-			
-			if (getClass() != obj.getClass()) return false;
-			
-			KeyGroup other = (KeyGroup) obj;
-			
-			if (group != other.group) return false;
-			return true;
-		}
-		
-		public boolean isKeyFromSameGroup(String key) {
-			return this.group == calcKeyGroup(key) ;
-		}
+	static final private int TOTAL_KEYS_GROUPS = 100 ;
+	
+	static private int calcKeyGroup(int keyHashcpde) {
+		return (keyHashcpde & MASK_REMOVE_NEGATIVE_SIGN) % TOTAL_KEYS_GROUPS ;
 	}
 	
-	final private HashMap<KeyGroup, SoftReference<KeysTable>> keysTables = new HashMap<KeyGroup, SoftReference<KeysTable>>() ;
-	final private HashMap<KeyGroup, IntTable> keysTablesHascodes = new HashMap<KeyGroup, IntTable>() ;
+	static private boolean isKeyFromSameGroup(int keyGroup, int keyHashcode) {
+		return keyGroup == calcKeyGroup(keyHashcode) ;
+	}
+	
+	@SuppressWarnings("unchecked")
+	final private SoftReference<KeysTable>[] keysTables = new SoftReference[TOTAL_KEYS_GROUPS] ;
+	final private IntTable[] keysTablesHascodes = new IntTable[TOTAL_KEYS_GROUPS] ;
 	
 	public void clearKeysTables() {
 		
@@ -101,9 +63,9 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 			
 			int countLostInstances = 0 ;
 			
-			for (Entry<KeyGroup, SoftReference<KeysTable>> entry : keysTables.entrySet()) {
-				SoftReference<KeysTable> tableRef = entry.getValue();
-				
+			for (SoftReference<KeysTable> tableRef : keysTables) {
+				if (tableRef == null) continue ;
+			
 				KeysTable table = tableRef.get() ;
 				
 				if (table != null) {
@@ -118,16 +80,15 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 				instantiateListPool();
 			}
 			
-			keysTables.clear();
-			keysTablesHascodes.clear();
-			
+			ArrayUtils.clear(keysTables);
+			ArrayUtils.clear(keysTablesHascodes);
 		}
 		
 	}
 	
-	public KeysTable getKeysTable(KeyGroup keyGroup) {
+	public KeysTable getKeysTable(int keyGroup) {
 		synchronized (keysTables) {
-			SoftReference<KeysTable> tableRef = keysTables.get(keyGroup) ;
+			SoftReference<KeysTable> tableRef = keysTables[keyGroup] ;
 			
 			KeysTable table ;
 			
@@ -142,15 +103,15 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 			
 			table = new KeysTable() ;
 			
-			keysTables.put(keyGroup, new SoftReference<KeysTable>(table)) ;
+			keysTables[keyGroup] = new SoftReference<KeysTable>(table) ;
 			
 			return table ;
 		}
 	}
 	
-	public KeysTable getKeysTableCleared(KeyGroup keyGroup) {
+	public KeysTable getKeysTableCleared(int keyGroup) {
 		synchronized (keysTables) {
-			SoftReference<KeysTable> tableRef = keysTables.get(keyGroup) ;
+			SoftReference<KeysTable> tableRef = keysTables[keyGroup] ;
 			
 			KeysTable table ;
 			
@@ -164,15 +125,15 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 			
 			table = new KeysTable() ;
 			
-			keysTables.put(keyGroup, new SoftReference<KeysTable>(table)) ;
+			keysTables[keyGroup] = new SoftReference<KeysTable>(table) ;
 			
 			return table ;
 		}
 	}
 	
-	public KeysTable getKeysTableIfExists(KeyGroup keyGroup) {
+	public KeysTable getKeysTableIfExists(int keyGroup) {
 		synchronized (keysTables) {
-			SoftReference<KeysTable> tableRef = keysTables.get(keyGroup) ;
+			SoftReference<KeysTable> tableRef = keysTables[keyGroup] ;
 			
 			KeysTable table ;
 			
@@ -189,42 +150,43 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 		}
 	}
 
-	public IntTable getKeysTableHashcode(KeyGroup keyGroup) {
+	public IntTable getKeysTableHashcode(int keyGroup) {
 		synchronized (keysTables) {
-			IntTable intTable = keysTablesHascodes.get(keyGroup) ;
+			IntTable intTable = keysTablesHascodes[keyGroup] ;
 			if (intTable != null) return intTable ;
 			
-			intTable = new IntTable() ;
+			intTable = new IntTable(10, 0.75) ;
 			
-			keysTablesHascodes.put(keyGroup, intTable) ;
+			keysTablesHascodes[keyGroup] = intTable ;
 			
 			return intTable ;
 		}
 	}
 	
-	public IntTable getKeysTableHashcodeIfExists(KeyGroup keyGroup) {
+	public IntTable getKeysTableHashcodeIfExists(int keyGroup) {
 		synchronized (keysTables) {
-			IntTable intTable = keysTablesHascodes.get(keyGroup) ;
+			IntTable intTable = keysTablesHascodes[keyGroup] ;
 			return intTable ;
 		}
 	}
 	
 	/////////////////////////////////////
 	
-	private boolean containsKeysHashcodeInMemory(KeyGroup keyGroup, String key) {
+	private boolean containsKeysHashcodeInMemory(int keyGroup, int keyHashcode) {
 		IntTable keysTableHashcode = getKeysTableHashcodeIfExists(keyGroup) ;
 		
 		if (keysTableHashcode != null) {
-			if ( !keysTableHashcode.contains(key.hashCode()) ) return false ;
+			if ( !keysTableHashcode.contains(keyHashcode) ) return false ;
 		}
 		
 		return true ;
 	}
 	
 	public int[] getFileIdent(String key) {
-		KeyGroup keyGroup = new KeyGroup(key) ;
+		int keyHashcode = key.hashCode() ;
+		int keyGroup = calcKeyGroup(keyHashcode) ;
 		
-		if ( !containsKeysHashcodeInMemory(keyGroup, key) ) return null ;
+		if ( !containsKeysHashcodeInMemory(keyGroup, keyHashcode) ) return null ;
 		
 		KeysTable table = getKeysTableIfExists(keyGroup) ;
 		if (table == null) return null ;
@@ -233,9 +195,10 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	}
 	
 	public boolean containsFileIdent(String key) {
-		KeyGroup keyGroup = new KeyGroup(key) ;
+		int keyHashcode = key.hashCode() ;
+		int keyGroup = calcKeyGroup(keyHashcode) ;
 		
-		if ( !containsKeysHashcodeInMemory(keyGroup, key) ) return false ;
+		if ( !containsKeysHashcodeInMemory(keyGroup, keyHashcode) ) return false ;
 		
 		KeysTable table = getKeysTableIfExists(keyGroup) ;
 		if (table == null) return false ;
@@ -244,20 +207,22 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	}
 	
 	public int[] setFileIdent(String key, int[] ident) {
-		KeyGroup keyGroup = KeyGroup.getSingletonInstance(key) ;
+		int keyHashcode = key.hashCode();
+		int keyGroup = calcKeyGroup(keyHashcode) ;
 		
 		KeysTable table = getKeysTable(keyGroup) ;
 		
 		int[] prev = table.put(key, ident) ;
 		
 		IntTable keysTableHashcode = getKeysTableHashcode(keyGroup) ;
-		keysTableHashcode.put(key.hashCode());
+		keysTableHashcode.put(keyHashcode);
 		
 		return prev ;
 	}
 	
 	public int[] removeFileIdent(String key) {
-		KeyGroup keyGroup = new KeyGroup(key) ;
+		int keyHashcode = key.hashCode();
+		int keyGroup = calcKeyGroup(keyHashcode) ;
 		
 		KeysTable table = getKeysTableIfExists(keyGroup) ;
 		if (table == null) return null ;
@@ -265,7 +230,7 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 		int[] prevIdent = table.remove(key) ;
 		
 		IntTable keysTableHashcode = getKeysTableHashcodeIfExists(keyGroup) ;
-		if ( keysTableHashcode != null ) keysTableHashcode.remove( key.hashCode() ) ;
+		if ( keysTableHashcode != null ) keysTableHashcode.remove( keyHashcode ) ;
 		
 		return prevIdent ;
 	}
@@ -274,22 +239,22 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	
 	private class MyIterator {
 		
-		final private Iterator<Entry<KeyGroup, SoftReference<KeysTable>>> tablesIterator = keysTables.entrySet().iterator() ;
+		private int keyGroupCursor = -1 ;
 		private Iterator<Entry<String, BigLinkedIntList>> currentTableIterator ;
 		
 		private boolean prepareNext() {
 			while (true) {
 				if (currentTableIterator == null) {
+					keyGroupCursor++ ;
 					
-					if ( tablesIterator.hasNext() ) {
-						Entry<KeyGroup, SoftReference<KeysTable>> currentEntry = tablesIterator.next() ;
+					if ( keyGroupCursor < TOTAL_KEYS_GROUPS ) {
+						SoftReference<KeysTable> tableRef = keysTables[keyGroupCursor] ;
+						if (tableRef == null) continue ;
 						
-						SoftReference<KeysTable> tableRef = currentEntry.getValue() ;
 						KeysTable table = tableRef.get() ;
 						
 						if (table == null) {
-							KeyGroup keyGroup = currentEntry.getKey() ;
-							table = instantiateTable(keyGroup) ;
+							table = instantiateTable(keyGroupCursor) ;
 							if (table == null) continue ;
 						}
 						
@@ -382,7 +347,7 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 		}
 	}
 	
-	private KeysTable instantiateTable(KeyGroup keyGroup) {
+	private KeysTable instantiateTable(int keyGroup) {
 		Object[] ret = loadAllKeyGroupMetaDataKeys(keyGroup);
 		return (KeysTable) ret[0] ;
 	}
@@ -390,12 +355,13 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	public int getAllKeysSize() {
 		int total = 0 ;
 		
-		for (Entry<KeyGroup, SoftReference<KeysTable>> entry : keysTables.entrySet()) {
-			SoftReference<KeysTable> tableRef = entry.getValue() ;
+		for (int keyGroup = 0; keyGroup < TOTAL_KEYS_GROUPS; keyGroup++) {
+			SoftReference<KeysTable> tableRef = keysTables[keyGroup];
+			if (tableRef == null) continue ;
+			
 			KeysTable table = tableRef.get() ;
 			
 			if (table == null) {
-				KeyGroup keyGroup = entry.getKey() ;
 				table = instantiateTable(keyGroup) ;
 				if (table == null) continue ;
 			}
@@ -409,12 +375,13 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	public List<String> getAllKeys() {
 		ArrayList<String> keys = new ArrayList<String>() ;
 		
-		for (Entry<KeyGroup, SoftReference<KeysTable>> entry : keysTables.entrySet()) {
-			SoftReference<KeysTable> tableRef = entry.getValue() ;
+		for (int keyGroup = 0; keyGroup < TOTAL_KEYS_GROUPS; keyGroup++) {
+			SoftReference<KeysTable> tableRef = keysTables[keyGroup];
+			if (tableRef == null) continue ;
+			
 			KeysTable table = tableRef.get() ;
 			
 			if (table == null) {
-				KeyGroup keyGroup = entry.getKey() ;
 				table = instantiateTable(keyGroup) ;
 				if (table == null) continue ;
 			}
@@ -424,7 +391,6 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 			for (String k : table.keySet()) {
 				keys.add(k) ;
 			}
-			
 		}
 		
 		return keys ;
@@ -531,7 +497,8 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 				try {
 					String key = block.getMetaDataKey() ;
 					
-					KeyGroup keyGroup = KeyGroup.getSingletonInstance(key) ;
+					int keyHashcode = key.hashCode() ;
+					int keyGroup = calcKeyGroup(keyHashcode) ;
 					
 					KeysTable keysTable = getKeysTable(keyGroup) ;
 					
@@ -543,7 +510,7 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 						
 						IntTable keysTableHashcode = getKeysTableHashcode(keyGroup) ;
 						
-						keysTableHashcode.put(key.hashCode()) ;
+						keysTableHashcode.put(keyHashcode) ;
 					}
 					else {
 						int[] idents2 = VDSector.joinIdents(prevIdents, block.getBlockIndex(), block.getSectorIndex()) ;
@@ -561,7 +528,7 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 		
 	}
 	
-	private Object[] loadAllKeyGroupMetaDataKeys(KeyGroup keyGroup) {
+	private Object[] loadAllKeyGroupMetaDataKeys(int keyGroup) {
 		
 		VDSector sector = this.sector ;
 		
@@ -578,15 +545,16 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 			if ( block != null && block.hasMetaData() ) {
 				try {
 					String key = block.getMetaDataKey() ;
+					int keyHashcode = key.hashCode() ;
 					
-					if ( !keyGroup.isKeyFromSameGroup(key) ) continue ; 
+					if ( !isKeyFromSameGroup(keyGroup, keyHashcode) ) continue ; 
 					
 					int[] prevIdents = keysTable.get(key) ;
 					
 					if (prevIdents == null) {
 						int[] ident = block.getIdent() ;
 						keysTable.put(key, ident) ;	
-						keysTableHashcode.put(key.hashCode()) ;
+						keysTableHashcode.put(keyHashcode) ;
 					}
 					else {
 						int[] idents2 = VDSector.joinIdents(prevIdents, block.getBlockIndex(), block.getSectorIndex()) ;
@@ -609,7 +577,8 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	
 
 	synchronized protected void notifyMetaDataKeyChange(String key, int blockIndex, int blockSector) {
-		KeyGroup keyGroup = KeyGroup.getSingletonInstance(key) ;
+		int keyHashcode = key.hashCode() ;
+		int keyGroup = calcKeyGroup(keyHashcode) ;
 		
 		KeysTable keysTable = getKeysTable(keyGroup) ;
 		IntTable keysTableHashcode = getKeysTableHashcode(keyGroup) ;
@@ -618,7 +587,7 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 		
 		if (prevIdents == null) {
 			keysTable.put(key, new int[] {blockIndex , blockSector}) ;
-			keysTableHashcode.put( key.hashCode() ) ;
+			keysTableHashcode.put( keyHashcode ) ;
 		}
 		else {
 			int[] idents2 = VDSector.joinIdents(prevIdents, blockIndex , blockSector) ;
@@ -627,20 +596,21 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	}
 	
 	synchronized protected void notifyMetaDataKeyRemove(String key, int blockIndex, int blockSector) {
-		KeyGroup keyGroup = KeyGroup.getSingletonInstance(key) ;
+		int keyHashcode = key.hashCode();
+		int keyGroup = calcKeyGroup(keyHashcode) ;
 		
 		KeysTable keysTable = getKeysTableIfExists(keyGroup) ;
 		IntTable keysTableHashcode = getKeysTableHashcodeIfExists(keyGroup) ;
 		
 		if (keysTable == null) {
-			if (keysTableHashcode != null) keysTableHashcode.remove( key.hashCode() ) ;
+			if (keysTableHashcode != null) keysTableHashcode.remove( keyHashcode ) ;
 			return ;
 		}
 		
 		int[] prevIdents = keysTable.get(key) ;
 		
 		if (prevIdents != null) {
-			if (keysTableHashcode != null) keysTableHashcode.remove( key.hashCode() ) ;
+			if (keysTableHashcode != null) keysTableHashcode.remove( keyHashcode ) ;
 			
 			prevIdents = VDSector.removeIdent(prevIdents, blockIndex, blockSector) ;
 			
