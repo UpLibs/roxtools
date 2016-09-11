@@ -36,7 +36,9 @@ public class ByteArrayInputOutput implements SeekableInput , SeekableOutput {
 		return data.length ;
 	}
 	
-	public void setLength(int size) {
+	@Override
+	public void setLength(long length) {
+		int size = (int) length ;
 		if (size < 0) throw new IllegalArgumentException("Negative size: "+ size) ;
 		
 		this.size = size ;
@@ -55,10 +57,11 @@ public class ByteArrayInputOutput implements SeekableInput , SeekableOutput {
 		}
 	}
 	
+	@Override
 	public long length() {
 		return size;
 	}
-
+	
 	private int pos = 0 ;
 	
 	@Override

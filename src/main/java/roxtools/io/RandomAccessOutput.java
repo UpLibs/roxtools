@@ -26,6 +26,11 @@ final class RandomAccessOutput extends OutputStream implements SeekableOutput {
 	}
 	
 	@Override
+	public void setLength(long length) throws IOException {
+		inOut.setLength(length);
+	}
+	
+	@Override
 	public void write(int b) throws IOException {
 		inOut.write(b);
 	}
