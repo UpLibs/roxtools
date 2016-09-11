@@ -8,7 +8,7 @@ import java.util.HashMap;
 final public class BufferedInputOutput {
 	
 	final private Object mutex ;
-	final public int blockSize ;
+	final private int blockSize ;
 	final private SeekableInput in;
 	final private SeekableOutput out;
 
