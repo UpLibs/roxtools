@@ -622,4 +622,16 @@ public class ArrayUtils {
 		return true ;
 	}
 	
+	static public void clear(Object[] a) {
+		for (int i = a.length-1; i >= 0; i--) {
+			a[i] = null ;
+		}
+	}
+	
+	static public void clear(Object[] a, int offset, int length) {
+		for (int i = length-1; i >= 0; i--) {
+			a[offset+i] = null ;
+		}
+	}
+	
 }
