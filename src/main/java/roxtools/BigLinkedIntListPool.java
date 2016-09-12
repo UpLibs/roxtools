@@ -74,7 +74,7 @@ final public class BigLinkedIntListPool {
 			poolCapacity += blockSize ;
 		}
 		
-		LOG.debug("ADDED BLOCK> size/capacity: {} / {} ; memory: {}KB", this.poolSize , this.poolCapacity , (getUsedMemory()/1024) );
+		LOG.trace("ADDED BLOCK> size/capacity: {} / {} ; memory: {}KB", this.poolSize , this.poolCapacity , (getUsedMemory()/1024) );
 		
 	}
 	
@@ -220,7 +220,7 @@ final public class BigLinkedIntListPool {
 			synchronized (this) {
 				if (groupsSize == table.length) return ;
 				
-				LOG.debug("Rebuilding ReferenceTable. From size {} to {}.", groupsSize , table.length);
+				LOG.trace("Rebuilding ReferenceTable. From size {} to {}.", groupsSize , table.length);
 				
 				ArrayList<BigLinkedIntListReference>[] referencesTable2 = createTable(groupsSize) ;
 			
