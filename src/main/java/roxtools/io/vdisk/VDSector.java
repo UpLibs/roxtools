@@ -200,7 +200,7 @@ final public class VDSector implements Serializable {
 	}
 	
 	private int headerUnflushed_init = Integer.MAX_VALUE ;
-	private int headerUnflushed_end = Integer.MIN_VALUE ;
+	private int headerUnflushed_end = -1 ;
 	
 	synchronized protected void writeHeaderBlockUsage(int blockIndex, int[] usage) {
 		
