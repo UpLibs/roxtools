@@ -803,6 +803,8 @@ final public class VDisk implements Serializable {
 	public void flush(boolean force) {
 	
 		synchronized (sectorMUTEX) {
+			if (isClosed()) return ;
+			
 			int sz = this.sectors.length ;
 			
 			for (int i = 0; i < sz; i++) {
