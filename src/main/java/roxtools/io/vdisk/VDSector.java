@@ -233,11 +233,11 @@ final public class VDSector implements Serializable {
 		return headerUnflushed_end > headerUnflushed_init ;
 	}
 	
-	protected void flushHeader() throws IOException {
+	protected void flushHeader(boolean force) throws IOException {
 		
 		synchronized (this) {
-			if ( hasUnflushedHeader() ) {
-				writeHeaderImplem() ;
+			if ( force || hasUnflushedHeader() ) {
+				writeHeaderImplem(force) ;
 			}
 		}
 		
@@ -249,7 +249,7 @@ final public class VDSector implements Serializable {
 	
 	synchronized protected void close() throws IOException {
 		
-		flushHeader();
+		flushHeader(true);
 		
 		this.keysTable.close() ;
 		
@@ -277,7 +277,7 @@ final public class VDSector implements Serializable {
 			scheduleAsyncWriteHeaders() ;
 		}
 		else {
-			writeHeaderImplem() ; 
+			writeHeaderImplem(false) ; 
 		}
 		
 	}
@@ -313,13 +313,13 @@ final public class VDSector implements Serializable {
 			if ( isClose() ) return ;
 			
 			if ( hasUnflushedHeader() ) {
-				writeHeaderImplem() ;
+				writeHeaderImplem(false) ;
 			}
 		}
 		
 	}
 	
-	synchronized private void writeHeaderImplem() throws IOException {
+	synchronized private void writeHeaderImplem(boolean force) throws IOException {
 		
 		int unflushedLng = headerUnflushed_end - headerUnflushed_init ;
 		
@@ -338,7 +338,19 @@ final public class VDSector implements Serializable {
 		headerUnflushed_init = Integer.MAX_VALUE ;
 		headerUnflushed_end = Integer.MIN_VALUE ;
 		
-		bufferedIO.flush();
+		if (force) {
+			if ( bufferedIO instanceof BufferedInputOutput ) {
+				BufferedInputOutput bufferedInputOutput = (BufferedInputOutput) bufferedIO ;
+				bufferedInputOutput.flush(force);
+			}
+			else {
+				bufferedIO.flush();	
+			}
+		}
+		else {
+			bufferedIO.flush();	
+		}
+		
 		
 	}
 	
@@ -908,7 +920,7 @@ final public class VDSector implements Serializable {
 	//////////////////////////////////////////
 
 	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-		this.flushHeader();
+		this.flushHeader(true);
 		out.defaultWriteObject();
 	}
 	

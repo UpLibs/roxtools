@@ -797,13 +797,17 @@ final public class VDisk implements Serializable {
 	}
 
 	public void flush() {
+		flush(false);
+	}
+	
+	public void flush(boolean force) {
 	
 		synchronized (sectorMUTEX) {
 			int sz = this.sectors.length ;
 			
 			for (int i = 0; i < sz; i++) {
 				try {
-					this.sectors[i].flushHeader() ;
+					this.sectors[i].flushHeader(force) ;
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -811,7 +815,7 @@ final public class VDisk implements Serializable {
 		}
 		
 		if (this.metadataDisk != null) {
-			this.metadataDisk.flush();
+			this.metadataDisk.flush(force);
 		}
 		
 	}
@@ -831,7 +835,7 @@ final public class VDisk implements Serializable {
 	private void closeImplem() {
 		if ( isClosed() ) return ;
 		
-		flush() ;
+		flush(true) ;
 	
 		synchronized (sectorMUTEX) {
 			int sz = this.sectors.length ;
