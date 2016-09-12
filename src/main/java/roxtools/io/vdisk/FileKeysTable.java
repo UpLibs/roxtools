@@ -3,6 +3,7 @@ package roxtools.io.vdisk;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -15,14 +16,79 @@ import roxtools.BigLinkedIntListPool;
 import roxtools.BigLinkedIntListPool.BigLinkedIntList;
 import roxtools.IntTable;
 
-final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
+abstract public class FileKeysTable implements Iterable<Entry<String,int[]>>{
+	
+	static final public Dummy DUMMY = new Dummy() ;
+	
+	final static public class Dummy extends FileKeysTable {
+
+		private Dummy() {
+			super();
+		}
+
+		@Override
+		public Iterator<String> iteratorKeys() {
+			return Collections.emptyIterator() ;
+		}
+		
+		@Override
+		public Iterator<Entry<String, int[]>> iterator() {
+			return Collections.emptyIterator() ;
+		}
+		
+		@Override
+		public int[] getFileIdent(String key) {
+			return null ;
+		}
+		
+		@Override
+		public boolean containsFileIdent(String key) {
+			return false ;
+		}
+		
+		@Override
+		public void clearKeysTables() {}
+
+		@Override
+		public void close() {}
+		
+		@Override
+		protected synchronized void notifyMetaDataKeyChange(String key, int blockIndex, int blockSector) {}
+		
+		@Override
+		protected synchronized void notifyMetaDataKeyRemove(String key, int blockIndex, int blockSector) {}
+		
+	}
+	
+	final static public class Implementation extends FileKeysTable {
+
+		public Implementation(VDSector sector) {
+			super(sector);
+		}
+		
+	}
+	
+	/////////////////////////////////
+	
 	
 	final private VDSector sector ;
+	final private SoftReference<KeysTable>[] keysTables ;
+	final private IntTable[] keysTablesHascodes ;
 	
 	private BigLinkedIntListPool listPool ;
 	
-	public FileKeysTable(VDSector sector) {
+	private FileKeysTable() {
+		this.sector = null ;
+		this.keysTables = null ;
+		this.keysTablesHascodes = null ;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private FileKeysTable(VDSector sector) {
 		this.sector = sector;
+		
+		this.keysTables = new SoftReference[TOTAL_KEYS_GROUPS] ;
+		this.keysTablesHascodes = new IntTable[TOTAL_KEYS_GROUPS] ;
 		
 		instantiateListPool();
 		
@@ -52,10 +118,6 @@ final public class FileKeysTable implements Iterable<Entry<String,int[]>>{
 	static private boolean isKeyFromSameGroup(int keyGroup, int keyHashcode) {
 		return keyGroup == calcKeyGroup(keyHashcode) ;
 	}
-	
-	@SuppressWarnings("unchecked")
-	final private SoftReference<KeysTable>[] keysTables = new SoftReference[TOTAL_KEYS_GROUPS] ;
-	final private IntTable[] keysTablesHascodes = new IntTable[TOTAL_KEYS_GROUPS] ;
 	
 	public void clearKeysTables() {
 		

@@ -7,7 +7,6 @@ import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -15,6 +14,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import roxtools.SerializationUtils;
+import roxtools.io.BufferedInputOutput;
+import roxtools.io.DirectReadWriteIO;
+import roxtools.io.RandomAccessInputOutput;
 import roxtools.io.vdisk.VDisk.FilesMetaDataKeyFilter;
 
 final public class VDSector implements Serializable {
@@ -56,6 +58,7 @@ final public class VDSector implements Serializable {
 	transient private SoftReference<VDBlock>[] blocks ;
 	
 	transient private RandomAccessFile io ;
+	transient private DirectReadWriteIO bufferedIO ;
 
 	transient private byte[] header ;
 	
@@ -94,6 +97,17 @@ final public class VDSector implements Serializable {
 			eraseSector() ;
 		}
 		
+		if ( this.vDisk.isIsbufferedIO() ) {
+			BufferedInputOutput bufferedInputOutput = new BufferedInputOutput(this.vDisk.sectorIOBufferSize, this.io) ;
+			bufferedInputOutput.setFlushAccumulatorDelay( 1000*10 );
+			bufferedInputOutput.setFlushAccumulatorSize( Math.max( blockSize*100 , (isMetadataDisk() ? 1024*128 : 1024*512) ) );
+			
+			this.bufferedIO = bufferedInputOutput ;
+		}
+		else {
+			this.bufferedIO = new RandomAccessInputOutput(this.io) ;
+		}
+		
 		this.header = new byte[ vDisk.sectorHeaderSize ] ;
 		
 		read(0, header, 0, header.length) ;
@@ -103,10 +117,14 @@ final public class VDSector implements Serializable {
 			this.blocks[i] = unused ? null : NULL_REF_BLOCK ;
 		}
 		
-		keysTable = !this.isMetadataDisk() ? new FileKeysTable(this) : null ;
+		keysTable = !this.isMetadataDisk() ? new FileKeysTable.Implementation(this) : FileKeysTable.DUMMY ;
 	}
 	
 	private void eraseSector() throws IOException {
+		
+		if (bufferedIO != null) {
+			bufferedIO.dispose();
+		}
 		
 		int sz = vDisk.totalSectorSize ;
 		
@@ -115,6 +133,8 @@ final public class VDSector implements Serializable {
 		byte[] buff = new byte[ Math.min(sz, 1024*1024)] ;
 		
 		int wrote = 0 ;
+		
+		this.io.seek(0);
 		
 		while ( wrote < sz ) {
 			int lng = Math.min( buff.length , sz-wrote ) ;
@@ -141,10 +161,8 @@ final public class VDSector implements Serializable {
 	
 	synchronized protected void read(int pos, byte[] buff, int off, int lng) throws IOException {
 		
-		io.seek(pos) ;
-		
 		int r ;
-		while ( lng > 0 && (r = io.read(buff, off, lng)) >= 0 ) {
+		while ( lng > 0 && (r = bufferedIO.read(pos, buff, off, lng)) >= 0 ) {
 			off += r ;
 			lng -= r ;
 		}
@@ -168,9 +186,7 @@ final public class VDSector implements Serializable {
 		
 		int pos = blockInitPos + posInsideBlock ;
 		
-		io.seek(pos) ;
-		
-		io.write(buff, off, lng) ;
+		bufferedIO.write(pos, buff, off, lng) ;
 		
 	}
 	
@@ -235,11 +251,23 @@ final public class VDSector implements Serializable {
 		
 		flushHeader();
 		
-		if (this.keysTable != null) this.keysTable.close() ;
+		this.keysTable.close() ;
+		
+		if ( this.bufferedIO instanceof BufferedInputOutput ) {
+			BufferedInputOutput bufferedInputOutput = (BufferedInputOutput) this.bufferedIO ;
+			bufferedInputOutput.flush(true);
+		}
+		else {
+			this.bufferedIO.flush();	
+		}
 		
 		this.io.close() ;
 		
 		this.closed = true;
+		
+		this.bufferedIO.dispose() ;
+		
+		this.bufferedIO = null ;
 		
 	}
 	
@@ -271,7 +299,7 @@ final public class VDSector implements Serializable {
 	
 	final static private Timer ASYNC_HEADER_WRITER_TIMER = new Timer("VDisk:header_writer", true) ;
 	
-	static final public int ASYNC_WRITE_HEADERS_DELAY = 1000 ;
+	static final public int ASYNC_WRITE_HEADERS_DELAY = 2000 ;
 	
 	private void scheduleAsyncWriteHeaders() {
 		if ( !hasUnflushedHeader() ) return ;
@@ -299,18 +327,18 @@ final public class VDSector implements Serializable {
 			//System.out.println(sectorIndex+"> HEADER WRITE> full");
 			//new Throwable().printStackTrace() ;
 			
-			io.seek(0) ;
-			io.write(header) ;	
+			bufferedIO.write(0, header) ;	
 		}
 		else {
 			//System.out.println(sectorIndex+"> HEADER WRITE> "+ headerUnflushed_init +" .. "+ headerUnflushed_end);
 			
-			io.seek(headerUnflushed_init) ;
-			io.write(header, headerUnflushed_init , unflushedLng) ;
+			bufferedIO.write(headerUnflushed_init, header, headerUnflushed_init , unflushedLng) ;
 		}
 		
 		headerUnflushed_init = Integer.MAX_VALUE ;
 		headerUnflushed_end = Integer.MIN_VALUE ;
+		
+		bufferedIO.flush();
 		
 	}
 	
@@ -396,7 +424,6 @@ final public class VDSector implements Serializable {
 	}
 	
 	synchronized public void getMetaDataKeys( List<String> keys ) {
-		if (keysTable == null) return ;
 		
 		synchronized (keysTable) {
 			Iterator<String> iteratorKeys = keysTable.iteratorKeys() ;
@@ -410,7 +437,6 @@ final public class VDSector implements Serializable {
 	}
 	
 	synchronized public void getMetaDataKeysWithPrefix( String prefix, List<String> keys ) {
-		if (keysTable == null) return ;
 		
 		synchronized (keysTable) {
 			Iterator<String> iteratorKeys = keysTable.iteratorKeys() ;
@@ -424,7 +450,6 @@ final public class VDSector implements Serializable {
 	}
 	
 	synchronized public void getMetaDataKeys( FilesMetaDataKeyFilter filter, List<String> keys ) {
-		if (keysTable == null) return ;
 		
 		synchronized (keysTable) {
 			Iterator<String> iteratorKeys = keysTable.iteratorKeys() ;
@@ -438,13 +463,7 @@ final public class VDSector implements Serializable {
 	}
 	
 	public Iterator<String> iterateMetaDataKeys() {
-		if (keysTable != null) {
-			return keysTable.iteratorKeys() ;
-		}
-		else {
-			Iterator<String> it = Collections.emptyIterator() ;
-			return it ;
-		}
+		return keysTable.iteratorKeys() ;
 	}
 	
 	synchronized protected VDBlock getBlock(int blockIndex) {
@@ -603,7 +622,7 @@ final public class VDSector implements Serializable {
 			
 		}
 	
-		if (keysTable != null) keysTable.clearKeysTables();
+		keysTable.clearKeysTables();
 		
 	}
 	
@@ -807,19 +826,19 @@ final public class VDSector implements Serializable {
 	}
 	
 	synchronized protected int[] getMetaDataKey(String key) {
-		return keysTable != null ? keysTable.getFileIdent(key) : null ;
+		return keysTable.getFileIdent(key) ;
 	}
 	
 	synchronized protected boolean containsMetaDataKey(String key) {
-		return keysTable != null ? keysTable.containsFileIdent(key) : false ;
+		return keysTable.containsFileIdent(key) ;
 	}
 	
 	public void notifyMetaDataKeyChange(String key, int blockIndex, int blockSector) {
-		if (keysTable != null) keysTable.notifyMetaDataKeyChange(key, blockIndex, blockSector);
+		keysTable.notifyMetaDataKeyChange(key, blockIndex, blockSector);
 	}
 
 	public void notifyMetaDataKeyRemove(String key, int blockIndex, int blockSector) {
-		if (keysTable != null) keysTable.notifyMetaDataKeyRemove(key, blockIndex, blockSector);
+		keysTable.notifyMetaDataKeyRemove(key, blockIndex, blockSector);
 	}
 	
 	////////////////////////////////////////////////////////////////////////

@@ -20,6 +20,8 @@ import roxtools.Mutex;
 final public class VDisk implements Serializable {
 	private static final long serialVersionUID = 5767308745082861624L;
 
+	static final public boolean DISABLE_VDISK_BUFFERED_IO = System.getProperty("DISABLE_VDISK_BUFFERED_IO") != null ;
+	
 	static final private ArrayList<WeakReference<VDisk>> vDiskInstances = new ArrayList<WeakReference<VDisk>>() ;
 	
 	private final File vdiskDir ;
@@ -33,6 +35,8 @@ final public class VDisk implements Serializable {
 	
 	final protected int sectorHeaderSize ;
 	final protected int totalSectorSize ;
+	final protected int sectorIOBufferSize ;
+
 	
 	final private Mutex sectorMUTEX = new Mutex() ;
 	private VDSector[] sectors ;
@@ -40,7 +44,8 @@ final public class VDisk implements Serializable {
 	private boolean staticSectorSize ;
 	
 	////////////////////////////////////////////////////////
-	
+
+	final private boolean isbufferedIO ;
 	final private boolean isMetadataDisk ;
 	final private VDisk metadataDisk ;
 	
@@ -54,16 +59,26 @@ final public class VDisk implements Serializable {
 	////////////////////////////////////////////////////////	
 	
 	public VDisk(File vdiskDir, int blockSize, int sectorSize, int totalSectors) throws IOException {
-		this(vdiskDir, blockSize, sectorSize, totalSectors, false) ;
+		this(vdiskDir, blockSize, sectorSize, totalSectors, true) ;
 	}
 	
-	private VDisk(File vdiskDir, int blockSize, int sectorSize, int totalSectors, boolean isMetadataDisk) throws IOException {
+	public VDisk(File vdiskDir, int blockSize, int sectorSize, int totalSectors, boolean bufferedIO) throws IOException {
+		this(vdiskDir, blockSize, sectorSize, totalSectors, bufferedIO, false) ;
+	}
+	
+	private VDisk(File vdiskDir, int blockSize, int sectorSize, int totalSectors, boolean bufferedIO, boolean isMetadataDisk) throws IOException {
 		if ( !vdiskDir.isDirectory() ) throw new IllegalArgumentException("Invalid vdiskDir: "+ vdiskDir) ;
 		if ( blockSize < 4 || blockSize > MAX_BLOCK_SIZE ) throw new IllegalArgumentException("Invalid blockSize: "+ blockSize) ;
 		if ( sectorSize < 4 || sectorSize > MAX_SECTOR_SIZE ) throw new IllegalArgumentException("Invalid sectorSize: "+ sectorSize) ;
 		
 		this.vdiskDir = vdiskDir;
 		
+		if (DISABLE_VDISK_BUFFERED_IO && bufferedIO) {
+			System.out.println("VDisk> ** DISABLE_VDISK_BUFFERED_IO: "+ vdiskDir);
+			bufferedIO = false ;
+		}
+		
+		this.isbufferedIO = bufferedIO ;
 		this.isMetadataDisk = isMetadataDisk ;
 		
 		if (!isMetadataDisk) {
@@ -77,7 +92,7 @@ final public class VDisk implements Serializable {
 			File metaDataDir = new File(vdiskDir, "metadata.disk") ;
 			metaDataDir.mkdirs() ;
 			
-			this.metadataDisk = new VDisk(metaDataDir, 32, sectorSize, 0, true) ;
+			this.metadataDisk = new VDisk(metaDataDir, 32, sectorSize, 0, bufferedIO, true) ;
 			
 			this.blockUsageSize = BLOCK_USAGE_SIZE ;
 			this.blockUsageSizeBytes = BLOCK_USAGE_SIZE*4 ;
@@ -95,6 +110,8 @@ final public class VDisk implements Serializable {
 		
 		if (totalSectorSize < 0) throw new IllegalArgumentException("Invalid blockSize * sectorSize: "+ blockSize +" * "+ blockSize +" = "+ totalSectorSize) ;
 				
+		this.sectorIOBufferSize = calculateSectorIOBufferSize() ;
+		
 		if (totalSectors >= 1) {
 			int[] indexes = listSectorsFilesIndexesChecked() ;
 			
@@ -123,6 +140,21 @@ final public class VDisk implements Serializable {
 		
 		addToVDiskInstances();
 	}
+	
+	private int calculateSectorIOBufferSize() {
+		int bufferSz = 1024*512 ;
+		
+		if ( bufferSz > this.totalSectorSize/5 ) {
+			bufferSz = this.totalSectorSize/5 ;
+		}
+		
+		if ( bufferSz < 1024*8 ) {
+			bufferSz = this.totalSectorSize ;
+		}
+			
+		return bufferSz ;
+	}
+	
 
 	private void addToVDiskInstances() {
 		synchronized (vDiskInstances) {
@@ -183,6 +215,10 @@ final public class VDisk implements Serializable {
 		
 		this.lockIO = null ;
 		
+	}
+	
+	public boolean isIsbufferedIO() {
+		return isbufferedIO;
 	}
 	
 	protected boolean isMetadataDisk() {
@@ -787,14 +823,14 @@ final public class VDisk implements Serializable {
 	}
 	
 	public void close() {
-		flush();
-		
 		closeImplem() ;
 		
 		removeFromVDiskInstances() ;
 	}
 	
 	private void closeImplem() {
+		if ( isClosed() ) return ;
+		
 		flush() ;
 	
 		synchronized (sectorMUTEX) {
@@ -816,11 +852,13 @@ final public class VDisk implements Serializable {
 		synchronized (this) {
 			try {
 				unlockDisk() ;
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				e.printStackTrace();
 			}
-			
-			closed = true ;	
+			finally {
+				closed = true ;	
+			}
 		}
 		
 	}
