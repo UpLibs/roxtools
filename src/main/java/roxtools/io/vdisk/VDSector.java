@@ -336,7 +336,7 @@ final public class VDSector implements Serializable {
 		}
 		
 		headerUnflushed_init = Integer.MAX_VALUE ;
-		headerUnflushed_end = Integer.MIN_VALUE ;
+		headerUnflushed_end = -1 ;
 		
 		if (force) {
 			if ( bufferedIO instanceof BufferedInputOutput ) {
