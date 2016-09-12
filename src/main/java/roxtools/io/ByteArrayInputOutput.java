@@ -4,7 +4,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class ByteArrayInputOutput implements SeekableInputOutput {
+final public class ByteArrayInputOutput implements SeekableInputOutput {
 
 	private byte[] data ;
 	private int size ;

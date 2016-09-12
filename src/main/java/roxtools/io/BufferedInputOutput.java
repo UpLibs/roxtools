@@ -11,11 +11,13 @@ import java.util.TimerTask;
 
 import roxtools.RoxDeque;
 
-final public class BufferedInputOutput implements SeekableInputOutput {
+final public class BufferedInputOutput implements DirectReadWriteIO {
 	
 	final private Object mutex ;
 	final private int blockSize ;
 	final private long blockSizeL ;
+	
+	private long flushAccumulatorSize ;
 	
 	final private SeekableInput in;
 	final private SeekableOutput out;
@@ -41,6 +43,8 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 		
 		this.blockSize = blockSize;
 		this.blockSizeL = blockSize ;
+		
+		this.flushAccumulatorSize = blockSize*2 ;
 		
 		this.in = in ;
 		this.out = out ;
@@ -92,12 +96,16 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 			
 			blockData[blkPos] = (byte) b ;
 			
-			block.markWriteRegion(blkPos, 1);
+			unflushedDataSize += block.markWriteRegion(blkPos, 1);
 			
 			long newPos = pos+1 ;
 			if (newPos > size) size = newPos ;
 		}
 		
+	}
+	
+	public int read(long pos, byte[] buffer) throws IOException {
+		return read(pos, buffer, 0, buffer.length) ;
 	}
 	
 	public int read(long pos, byte[] buffer, int offset, int length) throws IOException {
@@ -157,6 +165,7 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 				Block block = getBlockForWrite(blockIdx) ;
 				
 				int rest = blockSize-blkPos ;
+				assert(rest > 0) ;
 				
 				int lng = length > rest ? rest : length ;
 				
@@ -165,7 +174,7 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 				
 				System.arraycopy(buffer, offset, blockData, blkPos, lng) ;
 				
-				block.markWriteRegion(blkPos, lng);
+				unflushedDataSize += block.markWriteRegion(blkPos, lng);
 				
 				offset += lng ;
 				length -= lng ;
@@ -257,9 +266,6 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 						idx = (-idx)-1 ;
 						blocksToWrite.add(idx , this) ;
 					}
-					else {
-						System.out.println("!!!");
-					}
 				}
 			}
 		}
@@ -298,7 +304,7 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 			writeEnd = 0 ;
 		}
 		
-		public void markWriteRegion(int init, int lng) {
+		public int markWriteRegion(int init, int lng) {
 			assert(init >= 0) ;
 			assert(lng > 0) ;
 			
@@ -306,17 +312,27 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 			
 			if ( writeInit < 0 ) {
 				this.writeInit = init ;
-				this.writeEnd = end ;	
+				this.writeEnd = end ;
+				
+				return lng ;
 			}
 			else {
 				
+				int increaseMark = 0 ;
+				
 				if (init < writeInit) {
+					increaseMark = writeInit-init ;
+					
 					writeInit = init ;
 				}
 				
 				if (end > writeEnd) {
+					increaseMark += end-writeEnd ;
+					
 					writeEnd = end ;
 				}
+				
+				return increaseMark ;
 			}
 			
 		}
@@ -330,6 +346,7 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 	
 	private Block[] blocks = new Block[1024] ; 
 	private final RoxDeque<Block> blocksToWrite = new RoxDeque<>() ;
+	private long unflushedDataSize = 0 ;
 	
 	private Block getBlock(int blockIdx) throws IOException {
 		if ( blockIdx >= this.blocks.length ) {
@@ -441,10 +458,48 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 		
 	}
 	
+	private long flushDelayedTime = 0 ;
+	
 	public void flush() throws IOException {
+		flush(false, false,false);
+	}
+	
+	public void flush(boolean force) throws IOException {
+		flush(force, false,false);
+	}
+	
+	private void flush(boolean force, boolean scheduledFlush, boolean fromInternalAccumulator) throws IOException {
 		
 		synchronized (mutex) {
 			if ( !hasUnflushedData() ) return ;
+			
+			assert(unflushedDataSize > 0) ;
+			
+			if ( unflushedDataSize < flushAccumulatorSize && !force ) {
+				if (flushDelayedTime == 0) {
+					//System.out.println("BufferedInputOutput>> -- delay flush: "+ unflushedDataSize+" / "+ flushAccumulatorSize);
+					
+					flushDelayedTime = System.currentTimeMillis() ;
+					scheduleFlush(flushAccumulatorDelay, false, true);
+					return ;
+				}
+				else {
+					long timeSinceDelay = System.currentTimeMillis() - flushDelayedTime ;
+					long timeRemainingToScheduledFlush = flushAccumulatorDelay - timeSinceDelay ;
+					
+					if (timeRemainingToScheduledFlush > 20) {
+						//System.out.println("BufferedInputOutput>> -- re-delay flush: "+ unflushedDataSize+" / "+ flushAccumulatorSize +" > timeRemainingToScheduledFlush: "+ timeRemainingToScheduledFlush);
+						
+						if (scheduledFlush && fromInternalAccumulator) {
+							scheduleFlush((int)timeRemainingToScheduledFlush, false, true);
+						}
+						
+						return ;
+					}
+				}
+			}
+			
+			//System.out.println("BufferedInputOutput>> -- unflushedDataSize: "+ unflushedDataSize);
 			
 			for (Block block : blocksToWrite) {
 				assert( block.isHoldingWrite() ) ;
@@ -452,6 +507,8 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 			}
 			
 			blocksToWrite.clear();
+			unflushedDataSize = 0 ;
+			flushDelayedTime = 0 ;
 			
 			long outLng = out.length() ;
 			
@@ -642,6 +699,37 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 		return buffer ;
 	}
 	
+	static final public int MIN_FLUSH_ACCUMULATOR_DELAY = 500 ;
+	static final public int MAX_FLUSH_ACCUMULATOR_DELAY = 1000*60*5 ;
+	
+	private int flushAccumulatorDelay = 1000 ;
+	
+	public void setFlushAccumulatorDelay(int flushAccumulatorDelay) {
+		synchronized (mutex) {
+			if (flushAccumulatorDelay < MIN_FLUSH_ACCUMULATOR_DELAY) flushAccumulatorDelay = MIN_FLUSH_ACCUMULATOR_DELAY ;
+			else if (flushAccumulatorDelay > MAX_FLUSH_ACCUMULATOR_DELAY) flushAccumulatorDelay = MAX_FLUSH_ACCUMULATOR_DELAY ;
+			
+			this.flushAccumulatorDelay = flushAccumulatorDelay;
+			
+			if (this.flushDelayedTime > 0) {
+				this.flushDelayedTime = 1 ;
+			}
+		}
+	}
+	
+	public int getFlushAccumulatorDelay() {
+		synchronized (mutex) {
+			return flushAccumulatorDelay;
+		}
+	}
+	
+	public void setFlushAccumulatorSize(long flushAccumulatorSize) {
+		synchronized (mutex) {
+			if (flushAccumulatorSize < 0) flushAccumulatorSize = 0 ;
+			this.flushAccumulatorSize = flushAccumulatorSize;
+		}
+	}
+	
 	static final private Timer flushTimer = new Timer("BufferedInputOutput::flushTimer",true) ;
 	
 	public void scheduleFlush(int delay) {
@@ -649,13 +737,17 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 	}
 	
 	public void scheduleFlush(int delay, boolean repeatedly) {
+		scheduleFlush(delay, repeatedly, false);
+	}
+	
+	private void scheduleFlush(int delay, boolean repeatedly, final boolean fromInternalAccumulator) {
 		
 		synchronized (mutex) {
 			if ( !hasUnflushedData() ) return ;
 			
 			if (delay <= 0) {
 				try {
-					flush();
+					flush(false, true, fromInternalAccumulator);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -667,7 +759,7 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 				@Override
 				public void run() {
 					try {
-						flush();
+						flush(false, true, fromInternalAccumulator);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -697,6 +789,8 @@ final public class BufferedInputOutput implements SeekableInputOutput {
 				
 				blocks[i] = null ;
 			}
+			
+			unflushedDataSize = 0 ;
 			
 		}
 		
