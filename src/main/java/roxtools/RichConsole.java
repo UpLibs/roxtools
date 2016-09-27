@@ -39,6 +39,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
@@ -1064,6 +1065,12 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 		public void focus() {}
 
 		@Override
+		public void scrollToTop(boolean refreshSize) {}
+		
+		@Override
+		public void scrollToBottom(boolean refreshSize) {}
+		
+		@Override
 		public void clearConsole() {}
 
 		@Override
@@ -1661,6 +1668,26 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 	
 	private JScrollPane scrollpane;
 	
+	public void scrollToTop(boolean refreshSize) {
+		if (refreshSize) {
+			this.panel.refreshSize();
+		}
+		
+		JScrollBar verticalScrollBar = scrollpane.getVerticalScrollBar() ;
+		verticalScrollBar.setValue(0);
+	}
+	
+	public void scrollToBottom(boolean refreshSize) {
+		if (refreshSize) {
+			this.panel.refreshSize();
+		}
+		
+		this.panel.revalidate();
+		
+		JScrollBar verticalScrollBar = scrollpane.getVerticalScrollBar() ;
+		verticalScrollBar.setValue( verticalScrollBar.getMaximum() );
+	}
+	
 	@Override
 	public void printObj(Object obj) {
 		synchronized (output) {
@@ -1776,14 +1803,14 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 		@Override
 		public void paint(Graphics g) {
 			super.paint(g);
-			
-			this.g2D = (Graphics2D) g ;	
 
 			int maxX = 0 ;
 			int maxY = 0 ;
-					
+								
 			synchronized (output) {
-				
+
+				this.g2D = (Graphics2D) g ;	
+	
 				int x = 0 ;
 				int y = 0 ;
 				
@@ -1827,11 +1854,11 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 			
 				maxX += lastW ;
 				maxY += lastH ;
+				
+				this.g2D = null ;
 			}
 			
 			checkSize(maxX+10, maxY+10) ;
-			
-			this.g2D = null ;
 		
 		}
 		
@@ -1884,6 +1911,43 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 			return new Dimension(myWidth, myHeight) ;
 		}
 		
+		public void refreshSize() {
+
+			if ( SwingUtilities.isEventDispatchThread() ) {
+				refreshSizeImplem() ;
+			}
+			
+			try {
+				
+				SwingUtilities.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						refreshSizeImplem();
+					}
+				}) ;
+				
+			}
+			catch (Exception e) {
+				throw new java.lang.IllegalStateException(e) ;
+			}
+		}
+		
+		private void refreshSizeImplem() {
+			Dimension dim = getPreferredSize() ;
+			
+			BufferedImage buffImg = new BufferedImage(10 , 10, BufferedImage.TYPE_INT_RGB) ;
+			
+			Graphics2D g = buffImg.createGraphics() ;
+			
+			g.setColor(bgColor) ;
+			
+			g.fillRect(0, 0, dim.width , dim.height) ;
+			
+			paint(g) ;
+			
+			g.dispose() ;
+		}
+		
 		private void checkSize(int w, int h) {
 			if (myWidth != w || myHeight != h) {
 				this.myWidth = w ;
@@ -1896,7 +1960,10 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 		}
 		
 		private void resetG2D() {
-
+			Graphics2D g2D = this.g2D ;
+			
+			if (g2D == null) return ;
+			
 			g2D.setBackground(bgColor) ;
 			g2D.setColor(defaultColor) ;
 			g2D.setFont(font) ;
