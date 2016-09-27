@@ -14,10 +14,12 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import roxtools.ArrayUtils;
+import roxtools.CountTable;
 import roxtools.DigestMD5;
 import roxtools.ImageUtils;
 import roxtools.SerializationUtils;
@@ -858,6 +860,15 @@ public class ImagePixels implements Cloneable , Serializable {
 				createChannel(width*height , (byte)color.getGreen() ) ,
 				createChannel(width*height , (byte)color.getBlue() ) ,
 				width , height, false
+		) ;
+	}
+	
+	public ImagePixels(int width, int height, int color, boolean yuvFormat) {
+		this(
+				createChannel(width*height , (byte)((color >> 16) & 0xFF) ) ,
+				createChannel(width*height , (byte)((color >> 8) & 0xFF) ) ,
+				createChannel(width*height , (byte)(color & 0xFF) ) ,
+				width , height, yuvFormat
 		) ;
 	}
 	
@@ -2213,6 +2224,111 @@ public class ImagePixels implements Cloneable , Serializable {
 		
 		return new ImagePixels(c1, c2, c3, getWidth(), getHeight(), true) ;
 	}
+	
+	public ImagePixels shiftImage(int shiftX, int shiftY) {
+		int commonPixel = this.getMostCommonPixel() ;
+		return shiftImage(shiftX, shiftY, commonPixel) ;
+	}
+
+	public ImagePixels shiftImage(int shiftX, int shiftY, int commonPixel) {
+		
+		int w = this.getWidth() ;
+		int h = this.getHeight() ;
+		
+		byte[] c1 = this.getPixelsC1() ;
+		byte[] c2 = this.getPixelsC2() ;
+		byte[] c3 = this.getPixelsC3() ;
+		
+		byte cmY = (byte) ((commonPixel >> 16) & 0xff) ;
+		byte cmU = (byte) ((commonPixel >> 8) & 0xff) ;
+		byte cmV = (byte) (commonPixel & 0xff) ;
+		
+		ImagePixels imgShift = new ImagePixels(w,h , commonPixel, this.yuvFormat) ;
+		
+		byte[] c1Shift = imgShift.getPixelsC1() ;
+		byte[] c2Shift = imgShift.getPixelsC2() ;
+		byte[] c3Shift = imgShift.getPixelsC3() ;
+		
+		for (int y = 0; y < h; y++) {
+			int yIdx = y*w ;
+			for (int x = 0; x < w; x++) {
+				int idx = yIdx+x ;
+
+				byte Y = c1[idx] ;
+				byte U = c2[idx] ;
+				byte V = c3[idx] ;
+				
+				if (cmY != Y || cmU != U || cmV != V) {
+					int x2 = x+shiftX ;
+					int y2 = y+shiftY ;
+					
+					if (x2 >= 0 && x2 < w && y2 >= 0 && y2 < h ) {
+						int idx2 = y2*w + x2 ;
+						
+						c1Shift[idx2] = Y ;
+						c2Shift[idx2] = U ;
+						c3Shift[idx2] = V ;
+					}
+				}
+			}
+		}
+	
+		return imgShift ;
+	}
+	
+	
+	public int getMostCommonPixel(int[] rgb) {
+		int p = getMostCommonPixel() ;
+		
+		rgb[0] = (p >> 16) & 0xff ;
+		rgb[1] = (p >> 8) & 0xff ;
+		rgb[2] = p & 0xff ;
+		
+		return p ;
+	}
+	
+	public int getMostCommonPixel(byte[] rgb) {
+		int p = getMostCommonPixel() ;
+		
+		rgb[0] = (byte) ((p >> 16) & 0xff) ;
+		rgb[1] = (byte) ((p >> 8) & 0xff) ;
+		rgb[2] = (byte) (p & 0xff) ;
+		
+		return p ;
+	}
+
+	public int getMostCommonPixel() {
+		int w = this.getWidth() ;
+		int h = this.getHeight() ;
+		
+		byte[] c1 = this.getPixelsC1() ;
+		byte[] c2 = this.getPixelsC2() ;
+		byte[] c3 = this.getPixelsC3() ;
+		
+		CountTable<Integer> histogram = new CountTable<>() ;
+		
+		for (int y = 0; y < h; y++) {
+			int yIdx = y*2 ;
+			for (int x = 0; x < w; x++) {
+				int idx = yIdx+x ;
+
+				int p1 = c1[idx] & 0xFF ;
+				int p2 = c2[idx] & 0xFF ;
+				int p3 = c3[idx] & 0xFF ;
+				
+				int yuv = (p1 << 16) | p2 << 8 | p3 ;
+				
+				histogram.increment(yuv) ;
+			}
+		}
+		
+		List<Integer> keys = histogram.getKeysOrdered() ;
+		
+		Integer commonPixel = keys.get( keys.size()-1 ) ;
+		
+		return commonPixel ;
+	}
+	
 
 	@Override
 	public String toString() {
