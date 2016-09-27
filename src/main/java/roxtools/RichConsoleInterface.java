@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 
+import javax.swing.JScrollBar;
+
 import roxtools.RichConsole.ConsoleImage;
 import roxtools.RichConsole.RichConsoleMenuItem;
 import roxtools.img.ImagePixels;
@@ -37,6 +39,10 @@ public interface RichConsoleInterface {
 
 	public abstract void focus();
 
+	public abstract void scrollToTop(boolean refreshSize) ;
+	
+	public abstract void scrollToBottom(boolean refreshSize) ;
+	
 	public abstract void clearConsole();
 
 	public abstract void printObj(Object obj);
