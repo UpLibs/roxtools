@@ -511,5 +511,29 @@ final public class CountTable<K> {
 		return keys ;
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder str = new StringBuilder() ;
+		
+		str.append("#");
+		str.append(size);
+		str.append("[");
+		
+		List<K> keys = getKeysOrdered() ;
+		
+		int i = 0 ;
+		for (K k : keys) {
+			if (i > 0) str.append(", ");
+			int c = get(k) ;
+			str.append(k);
+			str.append("=");
+			str.append(c);
+			i++ ;
+		}
+		
+		str.append("]");
+		
+		return str.toString();
+	}
 	
 }
