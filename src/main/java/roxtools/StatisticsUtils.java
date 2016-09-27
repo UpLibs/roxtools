@@ -223,6 +223,26 @@ final public class StatisticsUtils {
 		return count ;
 	}
 	
+	static public int countValuesHigher(float[] values, float center) {
+		int count = 0 ;
+		
+		for (int i = values.length-1 ; i >= 0; i--) {
+			if ( values[i] >= center ) count++ ;
+		}
+		
+		return count ;
+	}
+	
+	static public int countValuesLower(float[] values, float center) {
+		int count = 0 ;
+		
+		for (int i = values.length-1 ; i >= 0; i--) {
+			if ( values[i] <= center ) count++ ;
+		}
+		
+		return count ;
+	}
+	
 	static public float[] calcHistogramRatio(int[] values) {
 		int[] minMax = calcMinMax(values) ;
 		return calcHistogramRatio(values, minMax[0], minMax[1]) ;
