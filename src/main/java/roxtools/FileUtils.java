@@ -41,6 +41,18 @@ final public class FileUtils {
 		return key.toString() ;
 	}
 	
+	static public File[] toFileArray(FileInTree[] tree) {
+		if (tree == null) return null ;
+		
+		File[] files = new File[tree.length] ;
+		
+		for (int i = files.length-1; i >= 0; i--) {
+			files[i] = tree[i].getFile() ;
+		}
+		
+		return files ;
+	}
+	
 	static public class FileInTree {
 		private final File root ;
 		private final File file ;
