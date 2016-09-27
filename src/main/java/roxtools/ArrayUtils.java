@@ -148,6 +148,16 @@ public class ArrayUtils {
 		return res ;
 	}
 	
+	static public double[] toDoubles(float[] vals) {
+		double[] res = new double[vals.length] ;
+		
+		for (int i = res.length-1; i >= 0; i--) {
+			res[i] = vals[i] ;
+		}
+		
+		return res ;
+	}
+	
 	static public boolean[] toBooleans(int[] vals, int threshold) {
 		boolean[] res = new boolean[vals.length] ;
 		
@@ -374,6 +384,39 @@ public class ArrayUtils {
 			else {
 				all[allSz++] = String.valueOf(obj) ;
 			}
+		}
+
+		return all ;
+	}
+	
+	@SafeVarargs
+	static public <T> T[] join(T[]... objs) {
+		int total = 0 ;
+		
+		Class<?> type = null ;
+		
+		for (int i = objs.length-1; i >= 0; i--) {
+			T[] o = objs[i] ;
+			int lng = o.length ;
+			total += lng ;
+			
+			if (type == null && lng > 0) {
+				type = o[0].getClass() ;
+			}
+		}
+		
+		if (type == null) {
+			type = objs.getClass().getComponentType().getComponentType() ;
+		}
+		
+		@SuppressWarnings("unchecked")
+		T[] all = (T[]) Array.newInstance(type , total) ; 
+		int allSz = 0 ;
+
+		for (int i = 0; i < objs.length; i++) {
+			T[] a = objs[i];
+			System.arraycopy(a, 0, all, allSz, a.length);
+			allSz += a.length ;
 		}
 
 		return all ;
