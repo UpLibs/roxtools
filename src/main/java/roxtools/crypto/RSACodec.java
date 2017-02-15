@@ -1,6 +1,5 @@
 package roxtools.crypto;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -33,61 +32,25 @@ public class RSACodec extends CryptoCodec {
 	}
 
 	public byte[] encrypt(byte[] data) throws IOException {
-		Cipher cipher;
 		try {
-			cipher = createCipher();
+			Cipher cipher = createCipher();
 			cipher.init(Cipher.ENCRYPT_MODE, getKey() );
+			return cipher.doFinal(data);
 		}
 		catch (Exception e) {
-			throw new IllegalStateException(e) ;
+			throw new IOException(e);
 		}
-		
-		ByteArrayOutputStream buffer = new ByteArrayOutputStream( data.length*2 );
-
-		for (int i = 0; i < data.length; i += 117) {
-			int lenght = data.length - i ;
-			if (lenght > 117) lenght = 117;
-			
-			try {
-				byte[] enc = cipher.doFinal(data, i, lenght);
-				buffer.write(enc);
-			}
-			catch (Exception e) {
-				throw new IOException(e) ;
-			}
-		}
-
-		return buffer.toByteArray();
-
 	}
 
 	public byte[] decrypt(byte[] data) throws IOException {
-		Cipher cipher;
 		try {
-			cipher = createCipher();
+			Cipher cipher = createCipher();
 			cipher.init(Cipher.DECRYPT_MODE, getKey() );
+			return cipher.doFinal(data);
 		}
 		catch (Exception e) {
-			throw new IllegalStateException(e) ;
+			throw new IOException(e);
 		}
-		
-		ByteArrayOutputStream buffer = new ByteArrayOutputStream() ;
-		
-		for (int i = 0; i < data.length; i+=128) {
-			int lenght = data.length - i ;
-			if (lenght > 128) lenght = 128 ;
-			
-			byte[] dec;
-			try {
-				dec = cipher.doFinal(data , i , lenght);
-				buffer.write(dec) ;
-			}
-			catch (Exception e) {
-				throw new IOException(e) ;
-			}
-		}
-
-		return buffer.toByteArray() ;
 	}
 
 	
