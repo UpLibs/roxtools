@@ -53,6 +53,12 @@ public class JobPool {
 
 		@Override
 		public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable {
+			
+			// Allow recursion and call from other public methods:
+			if ( JobCall.IsExecutingJobCall() ) {
+				return proceed.invoke(self, args) ;
+			}
+			
 			JobCall call = new JobCall(codeClass, self, thisMethod, proceed, args) ;
 			
 			synchronized (callsQueue) {

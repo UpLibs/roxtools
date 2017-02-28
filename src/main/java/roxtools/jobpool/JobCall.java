@@ -60,9 +60,25 @@ final public class JobCall implements Serializable , Runnable {
 	public void setError(Throwable error) {
 		result.setError(error);
 	}
+	
+	static private ThreadLocal<Boolean> invokingLocal = new ThreadLocal<>() ;
 
+	static protected boolean IsExecutingJobCall() {
+		Boolean invoking = invokingLocal.get() ;
+		return invoking != null && invoking.booleanValue() ;
+	}
+	
 	public Object invokeLocal() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		return methodToInvoke.invoke(obj, args) ;
+		
+		try {
+			invokingLocal.set(Boolean.TRUE);
+			
+			return methodToInvoke.invoke(obj, args) ;
+		}
+		finally {
+			invokingLocal.set(null);
+		}
+		
 	}
 	
 	@Override

@@ -262,6 +262,22 @@ final public class JobResult<T> implements Serializable {
 		waitResult(timeout) ;
 	}
 	
-	
+
+	@Override
+	public String toString() {
+		
+		if ( isFinished() ) {
+			if ( getError() != null ) {
+				return "ERROR:"+error.getClass()+"["+ error.getMessage() +"]<"+ this.result +">" ;
+			}
+			else {
+				return "<"+ this.result +">";	
+			}
+		}
+		else {
+			return "..." ;
+		}
+		
+	}
 	
 }
