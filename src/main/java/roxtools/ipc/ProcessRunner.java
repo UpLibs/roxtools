@@ -1,6 +1,7 @@
 package roxtools.ipc;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -72,6 +73,16 @@ public class ProcessRunner {
 		return outputConsumerListener;
 	}
 	
+	private File workingDirectory ;
+	
+	public void setWorkingDirectory(File workingDirectory) {
+		this.workingDirectory = workingDirectory;
+	}
+	
+	public File getWorkingDirectory() {
+		return workingDirectory;
+	}
+	
 	synchronized public void execute() throws IOException {
 		execute(false);
 	}
@@ -82,6 +93,10 @@ public class ProcessRunner {
 		String[] cmdFull = ArrayUtils.join(new String[] {command} , arguments) ;
 		
 		ProcessBuilder processBuilder = new ProcessBuilder(cmdFull) ;
+		
+		if (workingDirectory != null) {
+			processBuilder.directory(workingDirectory) ;
+		}
 		
 		if (redirectErrorToNormalOutput) { 
 			processBuilder.redirectErrorStream(true) ;
