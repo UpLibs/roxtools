@@ -250,4 +250,44 @@ public class DynamicMutexTest {
 		Assert.assertEquals( strCheck2.toString() , str2.toString() );;
 	}
 	
+	@Test
+	public void testUniqueIDs() {
+		
+		Assert.assertArrayEquals( new String[] {"1","2","3","4"} , DynamicMutexHandler.uniqueIDs( new String[] {"1","2","3","4"} ) );
+		
+		Assert.assertArrayEquals( new String[] {"1","2","3","4","5"} , DynamicMutexHandler.uniqueIDs( new String[] {"1","2","3","4","2","2","2","5"} ) );
+		
+		Assert.assertArrayEquals( new String[] {"1","2","3","4","5"} , DynamicMutexHandler.uniqueIDs( new String[] {"1","2","3","4","1","2","2","5"} ) );
+		
+		Assert.assertArrayEquals( new String[] {"1","2","3","4","5"} , DynamicMutexHandler.uniqueIDs( new String[] {"1","2","3","4","1","2","2","5","5"} ) );
+		
+		Assert.assertArrayEquals( new String[] {"1","2","3","4"} , DynamicMutexHandler.uniqueIDs( new String[] {"1","2","3","4","4"} ) );
+		
+	}
+	
+	@Test
+	public void testMutexUniqueIDs() {
+		
+		DynamicMutexHandler dynamicMutexHandler = new DynamicMutexHandler();
+		
+		DynamicMutex mm1 = dynamicMutexHandler.getMultiMutex("1","2","3") ;
+		DynamicMutex mm1_2 = dynamicMutexHandler.getMultiMutex("1","2","3","1") ;
+		Assert.assertTrue( mm1 == mm1_2 );
+		
+		DynamicMutex m1 = dynamicMutexHandler.getMultiMutex("1") ;
+		DynamicMutex m1_2 = dynamicMutexHandler.getMutex("1") ;
+		Assert.assertTrue( m1 == m1_2 );
+		
+		DynamicMutex m2 = dynamicMutexHandler.getMultiMutex( (String[])null ) ;
+		DynamicMutex m2_1 = dynamicMutexHandler.getMultiMutex( (String)null ) ;
+		DynamicMutex m2_2 = dynamicMutexHandler.getMutex(null) ;
+		DynamicMutex m2_3 = dynamicMutexHandler.getMultiMutex("") ;
+		DynamicMutex m2_4 = dynamicMutexHandler.getMutex("") ;
+		Assert.assertTrue( m2 == m2_1 );
+		Assert.assertTrue( m2 == m2_2 );
+		Assert.assertTrue( m2 == m2_3 );
+		Assert.assertTrue( m2 == m2_4 );
+		
+	}
+	
 }

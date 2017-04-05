@@ -322,6 +322,8 @@ public class DynamicMutexHandler {
 	final private HashMap<String, SoftReference<SimpleMutex>> mutexes = new HashMap<>() ;
 	
 	private SimpleMutex getMutexImplem(String id) {
+		if (id == null) id = "" ;
+		
 		synchronized (mutexes) {
 			SoftReference<SimpleMutex> ref = mutexes.get(id) ;
 			if (ref != null) {
@@ -342,13 +344,54 @@ public class DynamicMutexHandler {
 	public DynamicMutex getMultiMutex(String... ids) {
 		return getMultiMutexImplem(ids) ;
 	}
+	
+	static public String[] uniqueIDs(String[] ids) {
+		Arrays.sort(ids);
+		
+		int sz = ids.length ;
+		
+		for (int i = 1; i < sz; i++) {
+			String idPrev = ids[i-1] ;
+			String id = ids[i] ;
+			
+			if ( id.equals(idPrev) ) {
+				String[] unique = new String[sz-1] ;
+				int uniqueSz = 0 ;
+				
+				for (int j = 0; j < i; j++) {
+					id = ids[j] ;
+					unique[uniqueSz++] = id ;	
+				}
+				
+				for (int j = i+1; j < sz; j++) {
+					idPrev = ids[j-1] ;
+					id = ids[j] ;
+					
+					if (!id.equals(idPrev)) {
+						unique[uniqueSz++] = id ;	
+					}
+				}
+				
+				if ( uniqueSz < unique.length ) {
+					String[] unique2 = new String[uniqueSz];
+					System.arraycopy(unique, 0, unique2, 0, uniqueSz);
+					return unique2 ;
+				}
+				else {
+					return unique ;
+				}
+				
+			}
+		}
+		
+		return ids ;
+	}
 
 	static private class MultiIDs {
 		final private String[] ids ;
 
 		protected MultiIDs(String[] ids) {
-			this.ids = ids;
-			Arrays.sort(ids);
+			this.ids = ids ;
 		}
 
 		private int hashcode ;
@@ -377,9 +420,13 @@ public class DynamicMutexHandler {
 	final private HashMap<MultiIDs, SoftReference<MultiMutex>> multiMutexes = new HashMap<>() ;
 
 	private DynamicMutex getMultiMutexImplem(String... ids) {
-		if (ids == null || ids.length == 0) throw new IllegalArgumentException("Empty IDs parameter") ;
+		if (ids == null || ids.length == 0) return getMutexImplem("") ;
 		
-		if (ids.length == 1) return getMutex( ids[0] ) ;
+		ids = uniqueIDs(ids) ;
+		
+		int idsSz = ids.length ;
+		
+		if (idsSz == 1) return getMutex( ids[0] ) ;
 		
 		MultiIDs key = new MultiIDs(ids) ;
 		
@@ -390,9 +437,9 @@ public class DynamicMutexHandler {
 				if (multiMutex != null) return multiMutex ;
 			}
 			
-			SimpleMutex[] mutexes = new SimpleMutex[ids.length] ;
+			SimpleMutex[] mutexes = new SimpleMutex[idsSz] ;
 			
-			for (int i = 0; i < mutexes.length; i++) {
+			for (int i = 0; i < idsSz; i++) {
 				mutexes[i] = getMutexImplem( ids[i] ) ;
 			}
 			
