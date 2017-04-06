@@ -1,5 +1,6 @@
 package roxtools;
 
+import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ public class DynamicMutexHandler {
 	static private class SimpleMutex implements DynamicMutex {
 		final private String id ;
 
-		protected SimpleMutex(String id) {
+		private SimpleMutex(String id) {
 			this.id = id;
 		}
 		
@@ -177,10 +178,9 @@ public class DynamicMutexHandler {
 
 		private final SimpleMutex[] mutexes ;
 		
-		protected MultiMutex(SimpleMutex[] mutexes) {
+		private MultiMutex(SimpleMutex[] mutexes) {
 			assert(mutexes.length > 1) ;
 			this.mutexes = mutexes;
-			Arrays.sort(mutexes);
 		}
 		
 		@Override
@@ -319,21 +319,27 @@ public class DynamicMutexHandler {
 		return getMutexImplem(id) ;
 	}
 	
-	final private HashMap<String, SoftReference<SimpleMutex>> mutexes = new HashMap<>() ;
+	final private ReferenceQueue<SimpleMutex> referenceQueueMutex = new ReferenceQueue<>() ;
+	final private HashMap<String, MyReference<String,SimpleMutex>> mutexes = new HashMap<>() ;
 	
 	private SimpleMutex getMutexImplem(String id) {
 		if (id == null) id = "" ;
 		
 		synchronized (mutexes) {
-			SoftReference<SimpleMutex> ref = mutexes.get(id) ;
+			MyReference<String, SimpleMutex> ref = mutexes.get(id) ;
 			if (ref != null) {
 				SimpleMutex mutex = ref.get() ;
-				if (mutex != null) return mutex ;
+				if (mutex != null) {
+					return mutex ;
+				}
+				else {
+					cleanReferences(mutexes, referenceQueueMutex);
+				}
 			}
 			
 			SimpleMutex mutex = new SimpleMutex(id) ;
 			
-			mutexes.put(id, new SoftReference<SimpleMutex>(mutex)) ;
+			mutexes.put(id, new MyReference<String, SimpleMutex>(id, mutex, referenceQueueMutex)) ;
 			
 			return mutex ;
 		}
@@ -417,8 +423,9 @@ public class DynamicMutexHandler {
 		
 	}
 
-	final private HashMap<MultiIDs, SoftReference<MultiMutex>> multiMutexes = new HashMap<>() ;
-
+	final private ReferenceQueue<MultiMutex> referenceQueueMultiMutex = new ReferenceQueue<>() ;
+	final private HashMap<MultiIDs, MyReference<MultiIDs, MultiMutex>> multiMutexes = new HashMap<>() ;
+	
 	private DynamicMutex getMultiMutexImplem(String... ids) {
 		if (ids == null || ids.length == 0) return getMutexImplem("") ;
 		
@@ -431,10 +438,15 @@ public class DynamicMutexHandler {
 		MultiIDs key = new MultiIDs(ids) ;
 		
 		synchronized (multiMutexes) {
-			SoftReference<MultiMutex> ref = multiMutexes.get(key) ;
+			MyReference<MultiIDs, MultiMutex> ref = multiMutexes.get(key) ;
 			if (ref != null) {
 				MultiMutex multiMutex = ref.get();
-				if (multiMutex != null) return multiMutex ;
+				if (multiMutex != null) {
+					return multiMutex ;
+				}
+				else {
+					cleanReferences(multiMutexes, referenceQueueMultiMutex);
+				}
 			}
 			
 			SimpleMutex[] mutexes = new SimpleMutex[idsSz] ;
@@ -445,10 +457,44 @@ public class DynamicMutexHandler {
 			
 			MultiMutex multiMutex = new MultiMutex(mutexes) ;
 			
-			multiMutexes.put(key, new SoftReference<>(multiMutex)) ;
+			multiMutexes.put(key, new MyReference<MultiIDs, MultiMutex>(key, multiMutex, referenceQueueMultiMutex)) ;
 			
 			return multiMutex ;
 		}
+	}
+	
+	static private class MyReference<I, M extends DynamicMutex> extends SoftReference<M> {
+
+		final private I id ;
+		
+		public MyReference(I id, M referent, ReferenceQueue<M> q) {
+			super(referent, q);
+			this.id = id ;
+		}
+		
+		public I getID() {
+			return id ;
+		}
+		
+	}
+	
+	private <I,M extends DynamicMutex, R extends MyReference<I, M>> void cleanReferences( HashMap<I, R> mutexes , ReferenceQueue<M> referenceQueue ) {
+		
+		synchronized (mutexes) {
+			
+			while (true) {
+				@SuppressWarnings("unchecked")
+				R ref = (R) referenceQueue.poll() ;
+				
+				if (ref == null) return ;
+				
+				I id = ref.getID() ;
+			
+				mutexes.remove(id) ;
+			}
+			
+		}
+		
 	}
 	
 }

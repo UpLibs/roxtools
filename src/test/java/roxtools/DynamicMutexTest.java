@@ -101,7 +101,7 @@ public class DynamicMutexTest {
 		final Counter counter = new Counter() ;
 		
 		final int totalThreads = 10 ;
-		final int incrementsPerThread = 200000 ;
+		final int incrementsPerThread = 300000 ;
 		
 		ArrayList<Thread> threads = new ArrayList<>() ;
 		
