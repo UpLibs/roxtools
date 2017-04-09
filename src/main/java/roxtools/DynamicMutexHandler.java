@@ -10,6 +10,10 @@ public class DynamicMutexHandler {
 	static public interface DynamicMutex extends Comparable<DynamicMutex> {
 		public String getID() ;
 		
+		public int tryLock();
+		
+		public int getLockID();
+		
 		public boolean isCurrentThreadLocking() ;
 		public boolean isSomeThreadLocking() ;
 		
@@ -22,10 +26,29 @@ public class DynamicMutexHandler {
 		public boolean waitPhase(int desiredPhase, long timeout) ;
 	}
 	
+	static public interface DynamicMutexCachedResult extends DynamicMutex {
+
+		public <O> O lockWithResult();
+		public <O> O lockWithResult(long timeout);
+		
+
+		public <O> O getResult();
+		public <O> O getResult(long timeout);
+		public void setResult(Object result);
+		
+		public boolean isResultValid(long timeout);
+		
+		public void clearResult();
+		public void clearResult(int lockID);
+		
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	static private class SimpleMutex implements DynamicMutex {
 		final private String id ;
 
-		private SimpleMutex(String id) {
+		protected SimpleMutex(String id) {
 			this.id = id;
 		}
 		
@@ -35,6 +58,7 @@ public class DynamicMutexHandler {
 		}
 		
 		private volatile Thread lockingThread ;
+		private volatile int lockID ;
 		private volatile int lockCount ;
 		
 
@@ -68,6 +92,13 @@ public class DynamicMutexHandler {
 		}
 		
 		@Override
+		public int getLockID() {
+			synchronized (this) {
+				return lockID;
+			}
+		}
+		
+		@Override
 		public boolean lock() {
 			Thread currentThread = Thread.currentThread() ;
 			
@@ -84,10 +115,41 @@ public class DynamicMutexHandler {
 				}
 				
 				lockingThread = currentThread ;
+				incrementLockID();
 				lockCount = 1 ;
 				
 				this.notifyAll();
 				return true ;
+			}
+		}
+		
+		private void incrementLockID() {
+			lockID++ ;
+			while (lockID == 0) {
+				lockID++ ;
+			}
+		}
+		
+		@Override
+		public int tryLock() {
+			Thread currentThread = Thread.currentThread() ;
+			
+			synchronized (this) {
+				if ( lockingThread == currentThread ) {
+					lockCount++ ;
+					return lockID ;
+				}
+				
+				if ( lockingThread != null ) {
+					return 0 ;
+				}
+				
+				lockingThread = currentThread ;
+				incrementLockID();
+				lockCount = 1 ;
+				
+				this.notifyAll();
+				return lockID ;
 			}
 		}
 		
@@ -174,6 +236,8 @@ public class DynamicMutexHandler {
 		}
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	static private class MultiMutex implements DynamicMutex {
 
 		private final SimpleMutex[] mutexes ;
@@ -218,6 +282,18 @@ public class DynamicMutexHandler {
 			
 			return allOk;
 		}
+		
+		@Override
+		public int getLockID() {
+			int maxID = 0 ;
+			
+			for (SimpleMutex simpleMutex : mutexes) {
+				int id = simpleMutex.getLockID();
+				if (maxID == 0 || id > maxID) maxID = id ;
+			}
+			
+			return maxID ;
+		}
 
 		@Override
 		public boolean lock() {
@@ -230,6 +306,22 @@ public class DynamicMutexHandler {
 			}
 			
 			return allOk;
+		}
+		
+		@Override
+		public int tryLock() {
+			boolean allOk = true ;
+			int maxID = 0 ;
+			
+			for (SimpleMutex simpleMutex : mutexes) {
+				int id = simpleMutex.tryLock() ;
+				if (maxID == 0 || id > maxID) maxID = id ;
+				
+				boolean ok = id != 0 ;
+				allOk = allOk && ok ;
+			}
+			
+			return allOk ? maxID : 0 ;
 		}
 
 		@Override
@@ -311,6 +403,120 @@ public class DynamicMutexHandler {
 			}
 		}
 
+	}
+	
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	static private class CachedResultMutex extends SimpleMutex implements DynamicMutexCachedResult {
+
+		protected CachedResultMutex(String id) {
+			super(id);
+		}
+		
+		@Override
+		public <O> O lockWithResult() {
+			int lockID = tryLock() ;
+			
+			if (lockID == 0) {
+				lock() ;
+				return getResult() ;
+			}
+			else {
+				clearResult();
+				return null ;
+			}
+		}
+		
+		@Override
+		public <O> O lockWithResult(long timeout) {
+			synchronized (this) {
+				int lockID = tryLock() ;
+				
+				if (lockID == 0) {
+					lock() ;
+					return getResult(timeout) ;
+				}
+				else {
+					if ( !isResultValid(timeout) ) {
+						clearResult();	
+						return null ;
+					}
+					else {
+						return getResult(timeout) ;
+					}
+				}	
+			}
+			
+		}
+		
+		private volatile int resultLockID ;
+		private volatile long resultTime ;
+		private volatile SoftReference<Object> resultRef ;
+		
+		@Override
+		public void setResult(Object result) {
+			synchronized (this) {
+				this.resultRef = new SoftReference<Object>(result) ;
+				this.resultLockID = getLockID() ;
+				this.resultTime = System.currentTimeMillis() ;
+			}
+			
+		}
+		
+		@Override
+		public void clearResult() {
+			synchronized (this) {
+				this.resultRef = null ;
+				this.resultLockID = 0 ;
+				this.resultTime = 0;
+			}
+		}
+		
+		@Override
+		public void clearResult(int lockID) {
+			synchronized (this) {
+				if (this.resultLockID == lockID) {
+					clearResult();
+				}
+			}
+		}
+		
+		@Override
+		public <O> O getResult() {
+			synchronized (this) {
+				SoftReference<Object> ref = this.resultRef ;
+				if (ref != null) {
+					@SuppressWarnings("unchecked")
+					O result = (O) ref.get() ;
+					return result ;
+				}
+				return null;
+			}
+		}
+		
+		@Override
+		public <O> O getResult(long timeout) {
+			synchronized (this) {
+				O result = getResult() ;
+				if (result == null) return null ;
+				
+				long timeElapsed = System.currentTimeMillis() - resultTime ;
+				
+				return timeElapsed < timeout ? result : null ;
+			}
+		}
+		
+		@Override
+		public boolean isResultValid(long timeout) {
+			synchronized (this) {
+				Object result = getResult() ;
+				if (result == null) return false ;
+				long timeElapsed = System.currentTimeMillis() - resultTime ;
+				return timeElapsed < timeout ;
+			}
+		}
+		
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -477,6 +683,40 @@ public class DynamicMutexHandler {
 		}
 		
 	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	public DynamicMutexCachedResult getCachedResultMutex(String id) {
+		return getCachedResultMutexImplem(id) ;
+	}
+	
+	final private ReferenceQueue<CachedResultMutex> referenceQueueCachedResultMutex = new ReferenceQueue<>() ;
+	final private HashMap<String, MyReference<String,CachedResultMutex>> cachedResultMutexes = new HashMap<>() ;
+	
+	private CachedResultMutex getCachedResultMutexImplem(String id) {
+		if (id == null) id = "" ;
+		
+		synchronized (cachedResultMutexes) {
+			MyReference<String, CachedResultMutex> ref = cachedResultMutexes.get(id) ;
+			if (ref != null) {
+				CachedResultMutex mutex = ref.get() ;
+				if (mutex != null) {
+					return mutex ;
+				}
+				else {
+					cleanReferences(cachedResultMutexes, referenceQueueCachedResultMutex);
+				}
+			}
+			
+			CachedResultMutex mutex = new CachedResultMutex(id) ;
+			
+			cachedResultMutexes.put(id, new MyReference<String, CachedResultMutex>(id, mutex, referenceQueueCachedResultMutex)) ;
+			
+			return mutex ;
+		}
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	private <I,M extends DynamicMutex, R extends MyReference<I, M>> void cleanReferences( HashMap<I, R> mutexes , ReferenceQueue<M> referenceQueue ) {
 		

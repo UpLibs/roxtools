@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import roxtools.DynamicMutexHandler.DynamicMutex;
+import roxtools.DynamicMutexHandler.DynamicMutexCachedResult;
 
 public class DynamicMutexTest {
 
@@ -288,6 +289,88 @@ public class DynamicMutexTest {
 		Assert.assertTrue( m2 == m2_3 );
 		Assert.assertTrue( m2 == m2_4 );
 		
+	}
+
+	static private class ThreadRun_testCacheResultMutex implements Runnable {
+
+		final private DynamicMutexCachedResult mutex ;
+		final private long timeout ;
+		
+		public ThreadRun_testCacheResultMutex(DynamicMutexCachedResult mutex, long timeout) {
+			this.mutex = mutex;
+			this.timeout = timeout;
+		}
+
+		volatile private Object result = null ; 
+
+		public Object getResult() {
+			return result;
+		}
+		
+		public void setResult(Object result) {
+			this.result = result;
+		}
+		
+		@Override
+		public void run() {
+			Object res = timeout > 0 ? mutex.lockWithResult(timeout) : mutex.lockWithResult() ;
+			
+			if (res == null) {
+				res = Thread.currentThread().getId() ;
+				mutex.setResult(res);
+				
+
+				if (timeout == 0) {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {}	
+				}
+			}
+			
+			setResult(res);
+			
+			mutex.unlock();
+		}
+		
+	}
+	
+	@Test
+	public void testCacheResultMutex() {
+		testCacheResultMutexImplem(0);
+	}
+	
+	@Test
+	public void testCacheResultMutexResultTimeout() {
+		testCacheResultMutexImplem(1000);
+	}
+	
+	private void testCacheResultMutexImplem(long resultTimeout) {
+		
+		DynamicMutexHandler dynamicMutexHandler = new DynamicMutexHandler();
+		
+		final DynamicMutexCachedResult m1 = dynamicMutexHandler.getCachedResultMutex("1") ;
+		
+		ThreadRun_testCacheResultMutex threadrun1 = new ThreadRun_testCacheResultMutex(m1,resultTimeout) ;
+		ThreadRun_testCacheResultMutex threadrun2 = new ThreadRun_testCacheResultMutex(m1,resultTimeout) ;
+		
+		Thread th1 = new Thread(threadrun1) ;
+		Thread th2 = new Thread(threadrun2) ;
+		
+		th1.start();
+		th2.start();
+		
+		try {
+			th1.join();
+			th2.join();
+		}
+		catch (InterruptedException e) {
+		
+		}
+	
+		Assert.assertNotNull( threadrun1.getResult() );
+		Assert.assertNotNull( threadrun2.getResult() );
+		
+		Assert.assertEquals( threadrun1.getResult() , threadrun2.getResult() );
 	}
 	
 }
