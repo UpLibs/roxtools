@@ -24,6 +24,61 @@ final public class SerializationUtils {
 	static final public Charset CHARSET_LATIN1 = Charset.forName("ISO-8859-1") ;
 	static final public Charset CHARSET_UTF8 = Charset.forName("UTF-8") ;
 	
+	static final public int DEFAULT_GZIP_COMPRESSION_LEVEL = 4 ;
+	
+	final static public class OutputStreamWriteCounter extends OutputStream {
+
+		final private OutputStream out ;
+		
+		public OutputStreamWriteCounter(OutputStream out) {
+			this.out = out;
+		}
+		
+		private int writeCount = 0 ;
+		
+		public int getWriteCount() {
+			return writeCount;
+		}
+		
+		public void resetWriteCount() {
+			writeCount = 0 ;
+		}
+
+		@Override
+		public void write(int b) throws IOException {
+			out.write(b);
+			writeCount++ ;
+		}
+		
+		@Override
+		public void write(byte[] b, int off, int len) throws IOException {
+			out.write(b, off, len);
+			writeCount += len ;
+		}
+		
+		
+	}
+	
+	final static public class GZIPOutputStreamWithLevel extends GZIPOutputStream {
+
+		public GZIPOutputStreamWithLevel(OutputStream out, int level, int bufferSize) throws IOException {
+			super(out, bufferSize) ;
+			setLevel(level);
+		}
+		
+		public GZIPOutputStreamWithLevel(OutputStream out, int level) throws IOException {
+			super(out);
+			setLevel(level);
+		}
+		
+		private void setLevel(int level) {
+			if (level < 0) level = 4 ;
+			def.setLevel(level);
+		}
+		
+	}
+	
+	
 	static public byte[] string2bytes_latin1(String str) {
 		return str.getBytes(CHARSET_LATIN1) ;
 	}
@@ -430,6 +485,65 @@ final public class SerializationUtils {
 		
 		return ns ;
 	}	
+	
+	static public void writeLongs(long[] ns, byte[] buffer, int off) {
+		for (int i = 0; i < ns.length; i++) {
+			long v = ns[i] ;
+			
+			buffer[off++] = (byte) (v >>> 56);
+			buffer[off++] = (byte) (v >>> 48);
+			buffer[off++] = (byte) (v >>> 40);
+			buffer[off++] = (byte) (v >>> 32);
+			buffer[off++] = (byte) (v >>> 24);
+			buffer[off++] = (byte) (v >>> 16);
+			buffer[off++] = (byte) (v >>> 8);
+			buffer[off++] = (byte) (v);
+		}
+	}
+	
+	static public void writeLongs(long[] ns, OutputStream out) throws IOException {
+		byte[] buff = new byte[ns.length * 8] ;
+		
+		writeLongs(ns, buff, 0) ; 
+		
+		out.write(buff);
+	}
+	
+	static public void writeLongsBlock(long[] ns, OutputStream out) throws IOException {
+		byte[] buff = new byte[4 + ns.length * 8] ;
+		
+		writeInt(ns.length, buff, 0) ;
+		
+		writeLongs(ns, buff, 4) ; 
+		
+		out.write(buff);
+	}
+	
+	static public long[] readLongs(int totalLongs, InputStream in) throws IOException {
+		byte[] buff = readFull(in, totalLongs * 8) ;
+		return readLongs(buff, 0, buff.length) ;
+	}
+	
+	static public long[] readLongsBlock(InputStream in) throws IOException {
+		int totalLongs = readInt(in) ;
+		return readLongs(totalLongs, in) ;
+	}
+	
+	static public long[] readLongs(byte[] buff, int off, int lng) {
+		int nsSz = lng/8 ;
+		
+		long[] ns = new long[nsSz] ;
+		
+		for (int i = 0; i < nsSz; i++) {
+			ns[i] = (((long) buff[off] << 56) + ((long) (buff[off+1] & 255) << 48) + ((long) (buff[off+2] & 255) << 40) + ((long) (buff[off+3] & 255) << 32) +
+					((long) (buff[off+4] & 255) << 24) + ((buff[off+5] & 255) << 16) + ((buff[off+6] & 255) << 8) + ((buff[off+7] & 255) ));
+			
+			off+=8 ;
+		}
+		
+		return ns ;
+	}
+
 
 	static public void writeFloats(float[] ns, byte[] buffer, int off) {
 		
@@ -752,7 +866,11 @@ final public class SerializationUtils {
 	}
 	
 	static public void writeObjectCompressed( OutputStream out , Serializable obj ) throws IOException {
-		GZIPOutputStream gzOut = new GZIPOutputStream(out, 1024*8) ;
+		writeObjectCompressed(out, obj, DEFAULT_GZIP_COMPRESSION_LEVEL);
+	}
+	
+	static public void writeObjectCompressed( OutputStream out , Serializable obj , int compressionLevel ) throws IOException {
+		GZIPOutputStreamWithLevel gzOut = new GZIPOutputStreamWithLevel(out, compressionLevel, 1024*8) ;
 		writeObject(gzOut, obj) ;
 		gzOut.flush() ;
 		gzOut.finish() ;
@@ -870,6 +988,51 @@ final public class SerializationUtils {
 		int sz = readInt(in) ;
 		byte[] bs = readFull(in, sz) ;
 		return new String(bs, charset) ;
+	}
+	
+	static public int writeTo(InputStream in, OutputStream out) throws IOException {
+		byte[] buffer = new byte[1024*4] ;
+		int r ;
+		
+		int total = 0 ;
+		while ( (r = in.read(buffer)) >= 0 ) {
+			out.write(buffer, 0, r);
+			total += r ;
+		}
+		
+		return total ;
+	}
+	
+	static public int writeTo(InputStream in, OutputStream out, int length) throws IOException {
+		int bufferSize = 1024*4 ;
+		byte[] buffer = new byte[bufferSize] ;
+		int r ;
+		
+		int total = 0 ;
+		
+		while (total < length) {
+			int lng = length-total ;
+			if (lng > bufferSize) lng = bufferSize ;
+			r = in.read(buffer,0,lng) ;
+			
+			out.write(buffer, 0, r);
+		}
+		
+		return total ;
+	}
+	
+	static public int writeToCompressed(InputStream in, OutputStream out) throws IOException {
+		return writeToCompressed(in, out, DEFAULT_GZIP_COMPRESSION_LEVEL) ;
+	}
+	
+	static public int writeToCompressed(InputStream in, OutputStream out, int compressionLevel) throws IOException {
+		GZIPOutputStream gzOut = new GZIPOutputStreamWithLevel(out, compressionLevel) ;
+		
+		int total = SerializationUtils.writeTo(in, gzOut);
+		
+		gzOut.finish();
+		
+		return total ;
 	}
 	
 }
