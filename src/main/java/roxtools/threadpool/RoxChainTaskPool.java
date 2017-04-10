@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutorService;
 
 import roxtools.RoxDeque;
 
-public class RoxChainTaskPool<Iinit,Ofinal> {
+final public class RoxChainTaskPool<Iinit,Ofinal> {
 	
 	private final ExecutorService threadPool ;
 	
@@ -19,35 +19,57 @@ public class RoxChainTaskPool<Iinit,Ofinal> {
 		this.threadPool = threadPool;
 	}
 
-	private RoxDeque<RoxChainTask<?,?>> chain = new RoxDeque<>() ;
+	static public class Chain<I,O> {
+		private final RoxChainTaskPool<?,?> chainTaskPool ;
+
+		private Chain(RoxChainTaskPool<?,?> chainTaskPool) {
+			this.chainTaskPool = chainTaskPool;
+		}
+		
+		public <O2> Chain<O, O2> add(RoxChainTask<I,O> chainTask) {
+			return chainTaskPool.add(chainTask);
+		}
+		
+		@SuppressWarnings("unchecked")
+		public <I2,O2> Chain<I2, O2> returnsMultipleElements(Class<I2> outputType) {
+			chainTaskPool.getFinalTask().setReturnsMultipleElements(true) ;
+			return (Chain<I2, O2>) this ;
+		}
+	}
 	
-	public <I,O> void add( RoxChainTask<I,O> chainTask ) {
-		synchronized (chain) {
+	private RoxDeque<RoxChainTask<?,?>> tasksChain = new RoxDeque<>() ;
+	
+	private Chain<?,?> chain = new Chain<>(this) ;
+	
+	@SuppressWarnings("unchecked")
+	public <I,O,O2> Chain<O,O2> add( RoxChainTask<I,O> chainTask ) {
+		synchronized (tasksChain) {
 			if (started) throw new IllegalStateException("Already started") ;
 			
-			if (!chain.contains(chainTask)) {
-				@SuppressWarnings("unchecked")
-				RoxChainTask<?,I> prev = (RoxChainTask<?, I>) chain.peekLast() ;
+			if (!tasksChain.contains(chainTask)) {
+				RoxChainTask<?,I> prev = (RoxChainTask<?, I>) tasksChain.peekLast() ;
 				
 				if (prev != null) prev.setNext(chainTask);
 				chainTask.setPrevious(prev);
 				
-				chain.addLast(chainTask) ;
+				tasksChain.addLast(chainTask) ;
 			}
 		}
+		
+		return (Chain<O, O2>) chain ;
 	}
 	
 	@SuppressWarnings("unchecked")
 	public <O> RoxChainTask<Iinit,O> getInitialTask() {
-		synchronized (chain) {
-			return (RoxChainTask<Iinit, O>) chain.peekFirst() ;
+		synchronized (tasksChain) {
+			return (RoxChainTask<Iinit, O>) tasksChain.peekFirst() ;
 		}
 	}
 	
 	@SuppressWarnings("unchecked")
 	public <I> RoxChainTask<I,Ofinal> getFinalTask() {
-		synchronized (chain) {
-			return (RoxChainTask<I, Ofinal>) chain.peekLast() ;
+		synchronized (tasksChain) {
+			return (RoxChainTask<I, Ofinal>) tasksChain.peekLast() ;
 		}
 	}
 	
@@ -86,17 +108,17 @@ public class RoxChainTaskPool<Iinit,Ofinal> {
 	private boolean started = false ;
 	
 	public boolean isStarted() {
-		synchronized (chain) {
+		synchronized (tasksChain) {
 			return started;
 		}
 	}
 	
 	public void start() {
-		synchronized (chain) {
+		synchronized (tasksChain) {
 			if (started) return ;
 			started = true ;
 			
-			for (RoxChainTask<?, ?> roxChainTask : chain) {
+			for (RoxChainTask<?, ?> roxChainTask : tasksChain) {
 				threadPool.execute(roxChainTask);
 			}
 		}

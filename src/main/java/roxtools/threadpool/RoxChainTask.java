@@ -1,5 +1,8 @@
 package roxtools.threadpool;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import roxtools.Mutex;
@@ -7,45 +10,6 @@ import roxtools.RoxDeque;
 
 abstract public class RoxChainTask<I,O> implements Runnable {
 	
-	static private boolean isQueueEmpty(RoxDeque<?> queue) {
-		synchronized (queue) {
-			return queue.isEmpty() ;
-		}
-	}
-	
-	static private <T> T consumeFromQueue(RoxDeque<T> queue) {
-		synchronized (queue) {
-			while ( queue.isEmpty() ) {
-				try {
-					queue.wait();
-				} catch (InterruptedException e) {}
-			}
-			
-			T ret = queue.removeFirst() ;
-			
-			queue.notifyAll();
-			
-			return ret ;
-		}
-	}
-	
-	static private <T> void addToQueue(RoxDeque<T> queue, int limit, T element) {
-		synchronized (queue) {
-			queue.add(element) ;
-			
-			if (queue.size() > limit) {
-				while (queue.size() > limit/2) {
-					try {
-						queue.wait();
-					} catch (InterruptedException e) {}
-				}	
-			}
-			
-			queue.notifyAll(); 
-		}
-	}
-	
-
 	final private int outputQueueLimit ;
 	
 	public RoxChainTask() {
@@ -56,74 +20,207 @@ abstract public class RoxChainTask<I,O> implements Runnable {
 		this.outputQueueLimit = outputQueueLimit > 1 ? outputQueueLimit : 1 ;
 	}
 	
-	public int getOutputQueueLimit() {
+	final public int getOutputQueueLimit() {
 		return outputQueueLimit;
 	}
 	
 	private RoxChainTask<?,I> previous ;
 	
-	protected void setPrevious(RoxChainTask<?,I> previous) {
+	final protected void setPrevious(RoxChainTask<?,I> previous) {
 		this.previous = previous;
 	}
 
 	private RoxChainTask<O,?> next ;
 	
-	protected void setNext(RoxChainTask<O,?> next) {
+	final protected void setNext(RoxChainTask<O,?> next) {
 		this.next = next;
 	}
 	
 
 	private RoxDeque<I> inputQueue = new RoxDeque<>() ;
+	private volatile int inputQueueAddedElements = 0 ;
+	private volatile int inputsConsumed = 0 ;
 	
-	protected void addToInputQueue(I element) {
+	final public int getInputQueueAddedElements() {
 		synchronized (inputQueue) {
+			return inputQueueAddedElements;
+		}
+	}
+	
+	final public int getInputsConsumed() {
+		synchronized (inputQueue) {
+			return inputsConsumed;
+		}
+	}
+
+	final public boolean isInputQueueEmpty() {
+		synchronized (inputQueue) {
+			return inputQueue.isEmpty() ;
+		}
+	}
+	
+	final public int getInputQueueSize() {
+		synchronized (inputQueue) {
+			return inputQueue.size() ;
+		}
+	}
+	
+	final protected void addToInputQueue(I element) {
+		synchronized (inputQueue) {
+			inputQueueAddedElements++ ;
 			inputQueue.add(element) ;
 			inputQueue.notifyAll(); 
 		}
 	}
 	
-	protected void addToInputQueue(List<I> elements) {
+	final protected void addToInputQueue(I element, int limit) {
 		synchronized (inputQueue) {
+			inputQueueAddedElements++ ;
+			
+			inputQueue.add(element) ;
+			
+			if (inputQueue.size() >= limit) {
+				int minQueue = limit/2 ;
+				while (inputQueue.size() > minQueue) {
+					try {
+						inputQueue.wait();
+					} catch (InterruptedException e) {}
+				}	
+			}
+			
+			inputQueue.notifyAll();
+		}
+	}
+	
+	final protected void addToInputQueue(List<I> elements) {
+		synchronized (inputQueue) {
+			inputQueueAddedElements += elements.size() ;
 			inputQueue.addAll(elements) ;
 			inputQueue.notifyAll(); 
 		}
 	}
 	
+
+	private I consumeInputQueue() {
+		synchronized (inputQueue) {
+			while ( inputQueue.isEmpty() ) {
+				try {
+					inputQueue.wait();
+				} catch (InterruptedException e) {}
+			}
+			
+			I element = inputQueue.removeFirst() ;
+			
+			inputsConsumed++ ;
+			inputQueue.notifyAll();
+			
+			return element ;
+		}
+	}
+	
+	
 	private RoxDeque<O> finalResults ;
 	
-	public RoxDeque<O> getFinalResults() {
+	final public RoxDeque<O> getFinalResults() {
 		return finalResults;
 	}
 	
+	private boolean returnsMultipleElements = false ; 
+	
+	final public RoxChainTask<I, O> setReturnsMultipleElements(boolean returnsMultipleElements) {
+		this.returnsMultipleElements = returnsMultipleElements;
+		
+		return this ;
+	}
+	
+	final public boolean getReturnsMultipleElements() {
+		return returnsMultipleElements;
+	}
+	
 	@Override
-	public void run() {
+	final public void run() {
 		
-		RoxChainTask<O,?> next = this.next ;
-		
-		RoxDeque<O> outputQueue = null ;
-		
-		if (next != null) {
-			outputQueue = next.inputQueue ;	
-		}
-		else {
+		if (next == null) {
 			this.finalResults = new RoxDeque<>() ;
 		}
 		
-		while ( !isPrevTaskFinished() || !isQueueEmpty(inputQueue) ) {
+		while ( !isPrevTaskFinished() || !isInputQueueEmpty() ) {
 			
-			I input = consumeFromQueue(inputQueue) ;
+			I input = consumeInputQueue() ;
 			
 			O output = task(input) ;
-		
-			if ( outputQueue != null ) {
-				addToQueue(outputQueue, outputQueueLimit, output);	
-			}
-			else {
-				this.finalResults.add(output) ;
-			}
+			
+			dispatchOutput(output);
+			
 		}
 		
+		O lastOutput = onFinishTask() ;
+		
+		dispatchOutput(lastOutput);
+		
 		notifyFinished();
+	}
+	
+
+	private void dispatchOutput(O output) {
+		if (output == null) return ;
+	
+		if ( next != null ) {
+			
+			if ( returnsMultipleElements ) {
+				List<?> list = asList(output) ;
+				
+				@SuppressWarnings("unchecked")
+				RoxChainTask<Object, ?> next2 = (RoxChainTask<Object, ?>) next ;
+				
+				for (Object out : list) {
+					next2.addToInputQueue(out, outputQueueLimit);		
+				}
+			}
+			else {
+				next.addToInputQueue(output, outputQueueLimit);	
+			}
+				
+		}
+		else {
+			
+			if ( returnsMultipleElements ) {
+				List<O> list = asList(output) ;
+				
+				for (O out : list) {
+					this.finalResults.add(out) ;
+				}
+			}
+			else {
+				this.finalResults.add(output) ;	
+			}
+			
+		}	
+	
+	}
+	
+	@SuppressWarnings("unchecked")
+	private <T> List<T> asList(T obj) {
+		if ( obj instanceof List ) {
+			return (List<T>) obj ;
+		}
+		else if ( obj.getClass().isArray() ) {
+			
+			int length = Array.getLength(obj) ;
+			
+			ArrayList<T> list = new ArrayList<>() ;
+			
+			for (int i = 0; i < length; i++) {
+				T elem = (T) Array.get(obj, i) ;
+				list.add(elem) ;
+			}
+		
+			return list ;
+		}
+		else {
+			return Arrays.asList(obj) ;	
+		}
+		
 	}
 	
 	private final Mutex finishMUTEX = new Mutex() ;
@@ -136,15 +233,13 @@ abstract public class RoxChainTask<I,O> implements Runnable {
 		}
 	}
 	
-	
-	
-	public boolean isFinished() {
+	final public boolean isFinished() {
 		synchronized (finishMUTEX) {
 			return this.finished;	
 		}
 	}
 	
-	public void waitFinished() {
+	final public void waitFinished() {
 		synchronized (finishMUTEX) {
 			while (!finished) {
 				try {
@@ -160,5 +255,9 @@ abstract public class RoxChainTask<I,O> implements Runnable {
 	}
 
 	abstract public O task(I input) ;
+	
+	public O onFinishTask() {
+		return null ;
+	}
 	
 }
