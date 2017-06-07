@@ -77,6 +77,10 @@ public class ImageViewer extends JFrame {
 	public void setImages(Image... images) {
 		this.images = images ;
 		this.stepImageCount++ ;
+		forceRepaint();
+	}
+
+	private void forceRepaint() {
 		this.panel.repaint() ;
 	}
 	
@@ -86,37 +90,56 @@ public class ImageViewer extends JFrame {
 	
 	public void stepImages() {
 		this.stepImageCount++ ;
-		this.panel.repaint() ;
+		forceRepaint();
 	}
 	
-	private boolean[][] masks ;
+	private boolean[][][] masks ;
 	
-	public void setMasks(List<boolean[]> masks) {
-		setMasks( masks.toArray( new boolean[ masks.size() ][] ) ) ;
+	public int getMasksLayers() {
+		return masks == null ? 0 : masks.length ;
 	}
 	
-	public void setMasks(boolean[]... masks) {
-		this.masks = masks;
-		this.panel.repaint() ;
+	private void ensureMaskLayersCapacity(int layer) {
+		if (masks == null) {
+			this.masks = new boolean[layer+1][][] ;
+		}
+		else if ( layer >= this.masks.length ) {
+			boolean[][][] masks2 = new boolean[layer+1][][] ;
+			System.arraycopy(this.masks, 0, masks2, 0, this.masks.length);
+			this.masks = masks2 ;
+		}
 	}
 	
-	public boolean[][] getMasks() {
-		return masks;
+	public void clearMasks() {
+		masks = null ;
 	}
 	
-	private Color[] masksColors ;
-	
-	public void setMasksColors(List<Color> masksColors) {
-		setMasksColors( masksColors.toArray( new Color[masksColors.size()] ) );
+	public void setMasks(int layer, List<boolean[]> masks) {
+		setMasks( layer , masks.toArray( new boolean[ masks.size() ][] ) ) ;
 	}
 	
-	public void setMasksColors(Color[] masksColors) {
-		this.masksColors = masksColors;
-		this.panel.repaint() ;
+	public void setMasks(int layer, boolean[]... masks) {
+		ensureMaskLayersCapacity(layer);
+		this.masks[layer] = masks;
 	}
 	
-	public Color[] getMasksColors() {
-		return masksColors;
+	public boolean[][] getMasks(int layer) {
+		if (masks == null || layer >= masks.length) return null ;
+		return masks[layer] ;
+	}
+	
+	private Color[] masksLayersColors ;
+	
+	public void setMasksLayersColors(List<Color> layersColors) {
+		setMasksLayersColors( layersColors.toArray( new Color[layersColors.size()] ) );
+	}
+	
+	public void setMasksLayersColors(Color... layersColors) {
+		this.masksLayersColors = layersColors;
+	}
+	
+	public Color[] getMasksLayersColors() {
+		return masksLayersColors;
 	}
 	
 	public void setImagesAndMasks(List<Image> images, List<boolean[]> masks) {
@@ -126,11 +149,12 @@ public class ImageViewer extends JFrame {
 	public void setImagesAndMasks(Image[] images, boolean[][] masks) {
 		this.images = images ;
 		this.stepImageCount++ ;
-		this.masks = masks ;
-		this.panel.repaint() ;
+		clearMasks();
+		setMasks(0, masks);
+		forceRepaint();
 	}
 	
-	private Color defaultMaskColor = new Color(0,255,0,128) ;
+	private Color defaultMaskColor = new Color(0,255,0,50) ;
 	
 	public Color getDefaultMaskColor() {
 		return defaultMaskColor;
@@ -158,7 +182,7 @@ public class ImageViewer extends JFrame {
 			super.paint(g) ;
 			
 			Image[] images = ImageViewer.this.images ;
-			boolean[][] masks = ImageViewer.this.masks ;
+			boolean[][][] masks = ImageViewer.this.masks ;
 			
 			if (images == null || images.length == 0) return ;
 			
@@ -173,17 +197,12 @@ public class ImageViewer extends JFrame {
 			
 			Area drawArea = new Area() ;
 			
-			for (int i = 0; i < images.length; i++) {
-				Image img = images[i];
+			for (int imgI = 0; imgI < images.length; imgI++) {
+				Image img = images[imgI];
 				
 				if (img == null) continue ;
 				
-				boolean[] mask = masks != null && masks.length > i ? masks[i] : null ;
-				
-				Color maskColor = masksColors != null && masksColors.length > i ? masksColors[i] : null ;
-				if (maskColor == null) maskColor = defaultMaskColor ;
-				
-				double ratio = ratios != null && ratios.length > 1 ? ratios[i] : 1 ;
+				double ratio = ratios != null && ratios.length > 1 ? ratios[imgI] : 1 ;
 				
 				int w = img.getWidth(this) ;
 				int h = img.getHeight(this) ;
@@ -198,8 +217,21 @@ public class ImageViewer extends JFrame {
 				}
 				
 				g2.drawImage(img, x,y, w2,h2 , this) ;
+
+				if (masks != null) {
+					for (int layer = 0; layer < masks.length; layer++) {
+						boolean[][] layerMasks = masks[layer];
 				
-				if (mask != null) paintMask(g2, mask, maskColor, x, y, w, h, ratio) ;
+						boolean[] mask = layerMasks != null && layerMasks.length > imgI ? layerMasks[imgI] : null ;
+						
+						if (mask != null) {
+							Color maskColor = masksLayersColors != null && masksLayersColors.length > layer ? masksLayersColors[layer] : null ;
+							if (maskColor == null) maskColor = defaultMaskColor ;
+							
+							paintMask(g2, mask, maskColor, x, y, w, h, ratio) ;
+						}
+					}
+				}
 				
 				
 				drawArea.add( new Area( new Rectangle(x,y, w2,h2) ) )  ;
@@ -224,6 +256,8 @@ public class ImageViewer extends JFrame {
 		
 		int mSize = (int) ratio ;
 		if (mSize < 1) mSize = 1 ;
+		
+		while (ratio > mSize) mSize++ ;
 		
 		for (int j = 0; j < h; j++) {
 			int mY = (int) (y + ( j * ratio )) ;
