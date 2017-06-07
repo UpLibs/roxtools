@@ -10,9 +10,7 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.geom.Area;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -82,6 +80,10 @@ public class ImageViewer extends JFrame {
 		this.panel.repaint() ;
 	}
 	
+	public Image[] getImages() {
+		return images;
+	}
+	
 	public void stepImages() {
 		this.stepImageCount++ ;
 		this.panel.repaint() ;
@@ -98,6 +100,25 @@ public class ImageViewer extends JFrame {
 		this.panel.repaint() ;
 	}
 	
+	public boolean[][] getMasks() {
+		return masks;
+	}
+	
+	private Color[] masksColors ;
+	
+	public void setMasksColors(List<Color> masksColors) {
+		setMasksColors( masksColors.toArray( new Color[masksColors.size()] ) );
+	}
+	
+	public void setMasksColors(Color[] masksColors) {
+		this.masksColors = masksColors;
+		this.panel.repaint() ;
+	}
+	
+	public Color[] getMasksColors() {
+		return masksColors;
+	}
+	
 	public void setImagesAndMasks(List<Image> images, List<boolean[]> masks) {
 		setImagesAndMasks( images.toArray(new Image[images.size()])  , masks.toArray( new boolean[ masks.size() ][] ) ) ;
 	}
@@ -107,6 +128,16 @@ public class ImageViewer extends JFrame {
 		this.stepImageCount++ ;
 		this.masks = masks ;
 		this.panel.repaint() ;
+	}
+	
+	private Color defaultMaskColor = new Color(0,255,0,128) ;
+	
+	public Color getDefaultMaskColor() {
+		return defaultMaskColor;
+	}
+	
+	public void setDefaultMaskColor(Color defaultMaskColor) {
+		this.defaultMaskColor = defaultMaskColor;
 	}
 	
 	private Rectangle panelDimension ;
@@ -149,7 +180,10 @@ public class ImageViewer extends JFrame {
 				
 				boolean[] mask = masks != null && masks.length > i ? masks[i] : null ;
 				
-				double ratio = ratios[i] ;
+				Color maskColor = masksColors != null && masksColors.length > i ? masksColors[i] : null ;
+				if (maskColor == null) maskColor = defaultMaskColor ;
+				
+				double ratio = ratios != null && ratios.length > 1 ? ratios[i] : 1 ;
 				
 				int w = img.getWidth(this) ;
 				int h = img.getHeight(this) ;
@@ -165,7 +199,7 @@ public class ImageViewer extends JFrame {
 				
 				g2.drawImage(img, x,y, w2,h2 , this) ;
 				
-				if (mask != null) paintMask(g2, mask, x, y, w, h, ratio) ;
+				if (mask != null) paintMask(g2, mask, maskColor, x, y, w, h, ratio) ;
 				
 				
 				drawArea.add( new Area( new Rectangle(x,y, w2,h2) ) )  ;
@@ -180,13 +214,11 @@ public class ImageViewer extends JFrame {
 		}
 	}
 	
-	private void paintMask(Graphics2D g2, boolean[] mask, int x, int y, int w, int h, double ratio) {
+	private void paintMask(Graphics2D g2, boolean[] mask, Color maskColor, int x, int y, int w, int h, double ratio) {
 		
 		Color prevColor = g2.getColor() ;
 		
-		Color color = new Color(0,255,0,128) ;
-		
-		g2.setColor(color) ;
+		g2.setColor(maskColor) ;
 		
 		int maskI = 0 ;
 		
@@ -207,33 +239,6 @@ public class ImageViewer extends JFrame {
 		}
 		
 		g2.setColor(prevColor) ;
-	}
-	
-	public static void main(String[] args) throws Exception {
-		
-		File imagesDir = new File("/Volumes/SAFEZONE/uppoints/test-snap9/") ;
-		
-		File[] listFiles = imagesDir.listFiles( new FileFilter() {
-			@Override
-			public boolean accept(File pathname) {
-				String name = pathname.getName() ;
-				return !name.startsWith(".") && pathname.length() > 1024*3 ;
-			}
-		}) ;
-		
-		ImageViewer imageViewer = new ImageViewer(0.2) ;
-		
-		for (int i = 0; i < listFiles.length; i+= 4) {
-			File[] imgs = new File[4] ;
-			System.arraycopy(listFiles, i, imgs, 0, 4) ;
-			
-			System.out.println(">> "+ Arrays.toString(imgs));
-			
-			imageViewer.setImageFiles(imgs) ;
-			
-			Thread.sleep(200) ;
-		}
-		
 	}
 	
 }
