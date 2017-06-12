@@ -3,6 +3,7 @@ package roxtools.img;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -84,9 +85,10 @@ public class ImageProviderFile extends ImageProvider {
 			if ( cacheFileYUV.length() > 1 && cacheFileYUV.lastModified() >= file.lastModified() ) {
 				FileInputStream fin = new FileInputStream(cacheFileYUV) ;
 				
-				ImagePixels imagePixelsYUV = new ImagePixels(fin, true) ;
+				BufferedInputStream bufIn = new BufferedInputStream(fin) ;
+				ImagePixels imagePixelsYUV = new ImagePixels(bufIn, true) ;
 				
-				fin.close() ;
+				bufIn.close() ;
 				
 				setDimensions(imagePixelsYUV.getWidth(), imagePixelsYUV.getHeight()) ;
 				
