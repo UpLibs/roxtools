@@ -11,6 +11,9 @@ import java.awt.Rectangle;
 import java.awt.geom.Area;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -117,12 +120,66 @@ public class ImageViewer extends JFrame {
 	public void setMasks(int layer, List<boolean[]> masks) {
 		setMasks( layer , masks.toArray( new boolean[ masks.size() ][] ) ) ;
 	}
+
+	private int maskMaxHistory = 10 ;
+	
+	public void setMaskMaxHistory(int maskMaxHistory) {
+		this.maskMaxHistory = maskMaxHistory;
+	}
+	
+	public int getMaskMaxHistory() {
+		return maskMaxHistory;
+	}
+	
+	private HashMap<Integer, Boolean> masksHistoryEnabled = new HashMap<>() ;
+	private HashMap<Integer, RoxDeque<boolean[][]>> masksHistory = new HashMap<>() ; 
+	
+	public void setMaskLayerHistoryEnabled(int layer, boolean enabled) {
+		masksHistoryEnabled.put(layer, enabled) ;
+	}
+	
+	public boolean getMaskLayerHistoryEnabled(int layer) {
+		Boolean b = masksHistoryEnabled.get(layer) ;
+		return b != null ? b : false ;
+	}
 	
 	public void setMasks(int layer, boolean[]... masks) {
 		ensureMaskLayersCapacity(layer);
+		
+		masks = deepClone(masks) ;
+		
+		boolean[][] prevMasks = this.masks[layer] ;
+		
 		this.masks[layer] = masks;
+		
+		if (prevMasks != null && getMaskLayerHistoryEnabled(layer)) {
+			RoxDeque<boolean[][]> layerHistory = masksHistory.get(layer) ;
+			
+			if (layerHistory == null) {
+				masksHistory.put(layer, layerHistory = new RoxDeque<>()) ;
+			}
+			
+			layerHistory.addFirst(prevMasks) ;
+			
+			while (layerHistory.size() > maskMaxHistory) {
+				layerHistory.removeLast() ;	
+			}
+		}
 	}
 	
+	private boolean[][] deepClone(boolean[][] masks) {
+		if (masks == null) return null ;
+		
+		boolean[][] clone = new boolean[ masks.length ][] ;
+		
+		for (int i = 0; i < clone.length; i++) {
+			boolean[] m = masks[i] ;
+			clone[i] = m != null ? m.clone() : null ;
+		}
+		
+		return clone ;
+	}
+
 	public boolean[][] getMasks(int layer) {
 		if (masks == null || layer >= masks.length) return null ;
 		return masks[layer] ;
@@ -164,6 +221,25 @@ public class ImageViewer extends JFrame {
 		this.defaultMaskColor = defaultMaskColor;
 	}
 	
+	private Hashtable<String, Object> properties = new Hashtable<>() ;
+	
+	public void clearProperties() {
+		properties.clear();
+	}
+	
+	public Hashtable<String, Object> getProperties() {
+		return properties;
+	}
+	
+	public void setProperty(String key, Object val) {
+		properties.put(key, val) ;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <V> V getProperty(String key) {
+		return (V) properties.get(key) ;
+	}
+	
 	private Rectangle panelDimension ;
 	synchronized private void updatePanelDimension( Rectangle dim ) {
 		if (panelDimension == null || !panelDimension.equals(dim)) {
@@ -191,11 +267,19 @@ public class ImageViewer extends JFrame {
 			int x = 0 ;
 			int y = 20 ;
 			
-			g2.drawString(""+stepImageCount, x+1, y-4) ;
+			String infoLine = "Step: "+stepImageCount ;
+			
+			if (!properties.isEmpty()) {
+				infoLine += " "+properties.toString() ;
+			}
+			
+			g2.drawString(infoLine , x+1, y-4) ;
 			
 			int maxH = 0 ;
 			
 			Area drawArea = new Area() ;
+			
+			int panelWidth = scrollpane.getWidth() ;
 			
 			for (int imgI = 0; imgI < images.length; imgI++) {
 				Image img = images[imgI];
@@ -210,7 +294,7 @@ public class ImageViewer extends JFrame {
 				int w2 = (int) (w * ratio) ;
 				int h2 = (int) (h * ratio) ;
 				
-				if (x+w2 > this.getWidth()) {
+				if (x+w2 > panelWidth) {
 					x = 0 ;
 					y += maxH ;
 					maxH = 0 ;
@@ -223,12 +307,13 @@ public class ImageViewer extends JFrame {
 						boolean[][] layerMasks = masks[layer];
 				
 						boolean[] mask = layerMasks != null && layerMasks.length > imgI ? layerMasks[imgI] : null ;
+						boolean[][] maskHistory = getMaskLayerHistory(layer, imgI);
 						
-						if (mask != null) {
+						if (mask != null || maskHistory != null) {
 							Color maskColor = masksLayersColors != null && masksLayersColors.length > layer ? masksLayersColors[layer] : null ;
 							if (maskColor == null) maskColor = defaultMaskColor ;
 							
-							paintMask(g2, mask, maskColor, x, y, w, h, ratio) ;
+							paintMask(g2, layer, mask, maskHistory, maskColor, x, y, w, h, ratio) ;
 						}
 					}
 				}
@@ -246,11 +331,27 @@ public class ImageViewer extends JFrame {
 		}
 	}
 	
-	private void paintMask(Graphics2D g2, boolean[] mask, Color maskColor, int x, int y, int w, int h, double ratio) {
+	private boolean[][] getMaskLayerHistory(int layer, int imgIdx) {
+		if ( !getMaskLayerHistoryEnabled(layer) ) return null ;
+		
+		RoxDeque<boolean[][]> layerHistory = this.masksHistory.get(layer) ;
+		if (layerHistory == null || layerHistory.isEmpty()) return null ;
+		
+		ArrayList<boolean[]> imgMasks = new ArrayList<>() ;
+		
+		for (boolean[][] masks : layerHistory) {
+			boolean[] mask = masks[imgIdx] ;
+			imgMasks.add(mask) ;
+		}
+		
+		return imgMasks.toArray(new boolean[ imgMasks.size() ][]) ;
+	}
+	
+	private void paintMask(Graphics2D g2, int maskLayer, boolean[] mask, boolean[][] maskHistory, Color maskColor, int x, int y, int w, int h, double ratio) {
+		
+		boolean maskLayerHistoryEnabled = getMaskLayerHistoryEnabled(maskLayer) ;
 		
 		Color prevColor = g2.getColor() ;
-		
-		g2.setColor(maskColor) ;
 		
 		int maskI = 0 ;
 		
@@ -259,20 +360,71 @@ public class ImageViewer extends JFrame {
 		
 		while (ratio > mSize) mSize++ ;
 		
+		final float maxHistory = maskMaxHistory ;
+		
+		int colorR = maskColor.getRed() ;
+		int colorG = maskColor.getGreen() ;
+		int colorB = maskColor.getBlue() ;
+		int colorAlpha = maskColor.getAlpha() ;
+		
+		g2.setColor(maskColor) ;
+		
+		int prevAlpha = colorAlpha ;
+		
 		for (int j = 0; j < h; j++) {
 			int mY = (int) (y + ( j * ratio )) ;
 			
 			for (int i = 0; i < w; i++) {
-				boolean v = mask[maskI++] ;
+				int mX = (int) (x + ( i * ratio )) ;
 				
+				boolean v = mask != null ? mask[maskI] : false ;
+				
+				int mAlpha ;
 				if (v) {
-					int mX = (int) (x + ( i * ratio )) ;
+					mAlpha = colorAlpha ;
+					
+					if (prevAlpha != mAlpha) {
+						Color color = new Color(colorR,colorG,colorB,mAlpha) ;
+						g2.setColor(color) ;
+						prevAlpha = mAlpha ;
+					}
+					
 					g2.fillRect(mX, mY, mSize,mSize) ;
 				}
+				else if (maskLayerHistoryEnabled) {
+					int history = countMasksHits(maskHistory, maskI) ;
+					
+					if (history > 0) {
+						float historyScale = (history/maxHistory) ;
+						mAlpha = (int) (colorAlpha*(0.5f+(historyScale*0.5f)) ) ;
+						
+						if (prevAlpha != mAlpha) {
+							Color color = new Color(colorR,colorG,colorB,mAlpha) ;
+							g2.setColor(color) ;
+							prevAlpha = mAlpha ;
+						}
+						
+						g2.fillRect(mX, mY, mSize,mSize) ;
+					}
+				}
+				
+				maskI++ ;
 			}
 		}
 		
 		g2.setColor(prevColor) ;
+	}
+	
+	private int countMasksHits(boolean[][] masks, int idx) {
+		if (masks == null) return 0 ;
+		
+		int count = 0 ;
+		for (int i = 0; i < masks.length; i++) {
+			boolean[] m = masks[i];
+			if (m != null && m[idx]) count++ ;
+		}
+		
+		return count ;
 	}
 	
 }
