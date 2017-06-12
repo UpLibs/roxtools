@@ -400,7 +400,7 @@ public class YUV {
 		
 	static public boolean isSimilar_IntegerTolerance(int y1, int u1, int v1 , int y2, int u2, int v2, int tolerance) {
 		int diffSum = ( (y1 ^ y2) | (u1 ^ u2) | (v1 ^ v2) ) & 0x7FFFFFFF ;
-		if ( diffSum <= 2 ) return true ;
+		if ( diffSum <= (tolerance>>1) ) return true ;
 		
 		int distY = y1 - y2 ;
 		int distU = u1 - u2 ;
