@@ -311,7 +311,7 @@ final public class SortArrayList<E> extends AbstractList<E> implements Iterable<
 			return mid; // key found
 		}
 		
-		return -1 ;
+		return -(low + 1);  // key not found.
 	}
 	
 	///////////////////////////////////////////

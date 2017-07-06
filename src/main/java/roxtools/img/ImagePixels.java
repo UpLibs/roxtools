@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -784,8 +785,12 @@ public class ImagePixels implements Cloneable , Serializable {
 	static public int clip(int i) {
 		return i < 0 ? 0 : (i > 255 ? 255 : i) ;
 	}
-	
-	
+
+	static public int clip(int v, int min, int max) {
+		if (v < min) return min ;
+		if (v > max) return max ;
+		return v ;
+	}
 	
 	//////////////////////////////////////////////////////////////////////////////////////
 	
@@ -1931,6 +1936,24 @@ public class ImagePixels implements Cloneable , Serializable {
 		return true ;
 	}
 	
+	final public int getC1(int x, int y) {
+		if (x < 0 || y < 0 || x >= width || y >= height) return -1 ;
+		int idx = (y*width)+x ;
+		return pixelsC1[idx] & 0xff ;
+	}
+	
+	final public int getC2(int x, int y) {
+		if (x < 0 || y < 0 || x >= width || y >= height) return -1 ;
+		int idx = (y*width)+x ;
+		return pixelsC2[idx] & 0xff ;
+	}
+	
+	final public int getC3(int x, int y) {
+		if (x < 0 || y < 0 || x >= width || y >= height) return -1 ;
+		int idx = (y*width)+x ;
+		return pixelsC3[idx] & 0xff ;
+	}
+	
 	final public boolean getAndAdd(int x, int y, int[] ret) {
 		if (x < 0 || y < 0 || x >= width || y >= height) return false ;
 		
@@ -2021,6 +2044,43 @@ public class ImagePixels implements Cloneable , Serializable {
 		pixelsC1[idx] = c1 ;
 		pixelsC2[idx] = c2 ;
 		pixelsC3[idx] = c3 ;
+	}
+	
+	final public void set(int x, int y, byte[] pixel, float alpha) {
+		set(x, y, pixel[0]&0xFF, pixel[1]&0xFF, pixel[2]&0xFF, alpha);
+	}
+	
+	final public void set(int x, int y, int[] pixel, float alpha) {
+		set(x, y, pixel[0], pixel[1], pixel[2], alpha);
+	}
+	
+	final public void set(int x, int y, int c1, int c2, int c3, float alpha) {
+		int idx = (y*width)+x ;
+		
+		int pC1 = pixelsC1[idx] & 0xFF ;
+		int pC2 = pixelsC2[idx] & 0xFF ; 
+		int pC3 = pixelsC3[idx] & 0xFF ;
+		
+		float pAlpha = 1-alpha ;
+		
+		pixelsC1[idx] = (byte) ((pC1*pAlpha) + (c1*alpha)) ;
+		pixelsC2[idx] = (byte) ((pC2*pAlpha) + (c2*alpha)) ;
+		pixelsC3[idx] = (byte) ((pC3*pAlpha) + (c3*alpha)) ;
+	}
+	
+	final public void setC1(int x, int y, int c1) {
+		int idx = (y*width)+x ;
+		pixelsC1[idx] = (byte) c1 ;
+	}
+	
+	final public void setC2(int x, int y, int c2) {
+		int idx = (y*width)+x ;
+		pixelsC2[idx] = (byte) c2 ;
+	}
+	
+	final public void setC3(int x, int y, int c3) {
+		int idx = (y*width)+x ;
+		pixelsC3[idx] = (byte) c3 ;
 	}
 
 	
@@ -2327,6 +2387,75 @@ public class ImagePixels implements Cloneable , Serializable {
 		Integer commonPixel = keys.get( keys.size()-1 ) ;
 		
 		return commonPixel ;
+	}
+
+	public void drawImage(ImagePixels src, int dstX, int dstY) {
+		
+		int dW = this.getWidth() ;
+		int dH = this.getHeight() ;
+		
+		int w = src.getWidth() ;
+		int h = src.getHeight() ;
+		
+		byte[] pixel = new byte[3] ;
+		
+		int xInit = clip(dstX, 0, dW)  ;
+		int xEnd = clip(dstX+w, 0, dW)  ;
+		
+		int yInit = clip(dstY, 0, dH)  ;
+		int yEnd = clip(dstY+h, 0, dH)  ;
+		
+		xInit -= dstX ;
+		xEnd -= dstX ;
+		
+		yInit -= dstY ;
+		yEnd -= dstY ;
+		
+		for (int y = yInit; y < yEnd; y++) {
+			for (int x = xInit; x < xEnd; x++) {
+				int px = dstX+x ;
+				int py = dstY+y ;
+				src.get(x, y, pixel) ;
+				this.set(px,py, pixel);
+			}
+		}
+		
+	}
+	
+	public void drawImage(ImagePixels src, int dstX, int dstY, byte[] ignorePixel, float alpha) {
+		
+		int dW = this.getWidth() ;
+		int dH = this.getHeight() ;
+		
+		int w = src.getWidth() ;
+		int h = src.getHeight() ;
+		
+		byte[] pixel = new byte[3] ;
+		
+		int xInit = clip(dstX, 0, dW)  ;
+		int xEnd = clip(dstX+w, 0, dW)  ;
+		
+		int yInit = clip(dstY, 0, dH)  ;
+		int yEnd = clip(dstY+h, 0, dH)  ;
+		
+		xInit -= dstX ;
+		xEnd -= dstX ;
+		
+		yInit -= dstY ;
+		yEnd -= dstY ;
+		
+		for (int y = yInit; y < yEnd; y++) {
+			for (int x = xInit; x < xEnd; x++) {
+				int px = dstX+x ;
+				int py = dstY+y ;
+				src.get(x, y, pixel) ;
+				
+				if ( Arrays.equals(pixel, ignorePixel) ) continue ;
+				
+				this.set(px,py, pixel, alpha);
+			}
+		}
+		
 	}
 	
 

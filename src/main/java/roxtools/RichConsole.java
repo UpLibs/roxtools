@@ -687,7 +687,7 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 		
 	}
 	
-	static public class ConsoleImage {
+	static public class ConsoleImage implements MouseHandler {
 		public Image img ;
 		public int width ;
 		public int height ;
@@ -762,6 +762,22 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 			this.height = h ;
 			
 			return this ;
+		}
+
+		@Override
+		public void mouseClicked(RichConsole richConsole, int x, int y) {
+		}
+
+		@Override
+		public void mousePressed(RichConsoleInterface richConsole, int x, int y) {
+		}
+
+		@Override
+		public void mouseRelease(RichConsoleInterface richConsole, int x, int y) {
+		}
+
+		@Override
+		public void mouseDragged(RichConsole richConsole, int x, int y) {
 		}
 		
 	}
@@ -2072,6 +2088,8 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 			
 			ret[0] = img.width ;
 			ret[1] = img.height ;
+			
+			mouseHandlers.put(new Rectangle(x,y , ret[0], ret[1]), img) ;
 			
 			return 0 ;
 		}
