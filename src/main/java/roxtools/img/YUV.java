@@ -411,6 +411,53 @@ public class YUV {
 		return distYUV <= tolerance ;
 	}
 	
+
+	static public boolean isSimilar_LumaPrecise_IntegerTolerance(int y1, int u1, int v1 , int y2, int u2, int v2, int tolerance) {
+		int diffSum = ( (y1 ^ y2) | (u1 ^ u2) | (v1 ^ v2) ) & 0x7FFFFFFF ;
+		if ( diffSum <= (tolerance>>1) ) return true ;
+		
+		boolean lumaInLimit = isLumaNearLimit(y1,y2, 20) ;
+		
+		int distY = y1 - y2 ;
+		int distU = u1 - u2 ;
+		int distV = v1 - v2 ;
+		
+		if ( lumaInLimit ) {
+			distY *= 3 ;
+		}
+		
+		int distYUV = FAST_MATH_SQRT_INT.calcSimple( distY*distY + distU*distU + distV*distV ) ;
+				
+		return distYUV <= tolerance ;
+	}
+	
+	static private boolean isLumaNearLimit(int y1, int y2, int limit) {
+		int y1LimitDist = (y1-128) ;
+		int y2LimitDist = (y2-128) ;
+		
+		boolean y1Low = y1LimitDist < 0 ;
+		boolean y2Low = y2LimitDist < 0 ;
+		
+		if ( y1Low != y2Low ) return false ;
+		
+		if (y1Low) {
+			y1LimitDist = -y1LimitDist;
+			y2LimitDist = -y2LimitDist;
+		}
+		
+		y1LimitDist = 128-y1LimitDist ;
+		y1LimitDist = y1LimitDist/limit ;
+		
+		if ( y1LimitDist > 1) return false  ;
+	
+		y2LimitDist = 128-y2LimitDist ;
+		y2LimitDist = y2LimitDist/limit ;
+		
+		if ( y2LimitDist > 1) return false  ;
+		
+		return true ;
+	}
+	
 	static public double[] getSimilarityColorAndLightRatio(int y1, int u1, int v1 , int y2, int u2, int v2) {
 		int[] ret = getSimilarityColorAndLight(y1, u1, v1, y2, u2, v2) ;
 		return new double[] { ret[0]/255d , ret[1]/255d } ;

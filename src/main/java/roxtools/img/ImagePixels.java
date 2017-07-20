@@ -2120,6 +2120,24 @@ public class ImagePixels implements Cloneable , Serializable {
 		return similar ;
 	}
 	
+	final public boolean isSimillarPixel_LumaPrecise_IntegerTolerance(ImagePixels other, int i, int j, int tolerance) {
+		int idx = (j*width)+i ;
+		
+		boolean similar = YUV.isSimilar_LumaPrecise_IntegerTolerance(
+				this.pixelsC1[idx] & 0xFF ,
+				this.pixelsC2[idx] & 0xFF ,
+				this.pixelsC3[idx] & 0xFF ,
+				
+				other.pixelsC1[idx] & 0xFF ,
+				other.pixelsC2[idx] & 0xFF ,
+				other.pixelsC3[idx] & 0xFF ,
+				
+				tolerance
+		) ;
+		
+		return similar ;
+	}
+	
 	static public boolean containsRectangle(Rectangle rect, ImagePixels img) {
 		return containsRectangle(rect, img.getWidth() , img.getHeight()) ;
 	}
