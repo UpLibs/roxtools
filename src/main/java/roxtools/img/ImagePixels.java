@@ -23,8 +23,6 @@ import roxtools.ArrayUtils;
 import roxtools.CountTable;
 import roxtools.DigestMD5;
 import roxtools.ImageUtils;
-import roxtools.RichConsole;
-import roxtools.RichConsole.ChartMap;
 import roxtools.SerializationUtils;
 
 public class ImagePixels implements Cloneable , Serializable {
@@ -1449,57 +1447,6 @@ public class ImagePixels implements Cloneable , Serializable {
 	final public Rectangle computeDiffByDensityMapBounds(ImagePixels other, double tolerance) {
 		boolean[] diff = computeDiffByDensityMap(other, tolerance) ;
 		return computeBounds(width, height, diff) ;
-	}
-	
-	public static void main(String[] args) {
-		
-		/*
-		boolean[] diff0 = new boolean[] {
-				false,false,false,false,false,false,false,
-				false,true,false,false,false,false,false,
-				false,true,true,true,false,false,false,
-				false,false,true,true,false,false,false,
-				false,false,false,false,true,false,false,
-				false,false,false,false,false,false,false,
-				false,false,false,false,false,false,false,
-				
-		};
-		*/
-		
-		boolean[] diff0 = new boolean[] {
-				false,false,false,false,false,false,false,
-				false,false,true,false,false,false,false,
-				false,false,true,true,true,false,false,
-				false,true,true,true,true,false,false,
-				false,false,true,true,true,false,false,
-				false,false,true,true,false,false,false,
-				false,false,false,false,false,false,false,
-				
-		};
-		
-		int[] map1 = computeDensityMap(7, 7, diff0, 1, 0) ;
-		boolean[] diff1 = densityMapToBooleans(map1, 4) ;
-		
-		int[] map2 = computeDensityMap(7, 7, diff1, 1, 0) ;
-		boolean[] diff2 = densityMapToBooleans(map2, 4) ;
-		
-		RichConsole.printLn( computeBounds(7, 7, diff2) );
-		
-		ChartMap chartMap1 = new RichConsole.ChartMap(diff0 , 7,7, 10) ;
-		RichConsole.printLn(chartMap1);
-		
-		ChartMap chartMap2 = new RichConsole.ChartMap( ArrayUtils.toFloats(map1) , 7,7, 10) ;
-		RichConsole.printLn(chartMap2);
-		
-		ChartMap chartMap3 = new RichConsole.ChartMap(diff1 , 7,7, 10) ;
-		RichConsole.printLn(chartMap3);
-		
-		ChartMap chartMap4 = new RichConsole.ChartMap( ArrayUtils.toFloats(map2) , 7,7, 10) ;
-		RichConsole.printLn(chartMap4);
-		
-		ChartMap chartMap5 = new RichConsole.ChartMap(diff2 , 7,7, 10) ;
-		RichConsole.printLn(chartMap5);
-		
 	}
 	
 	static final public Rectangle computeBounds(int width, int height, boolean[] map) {
