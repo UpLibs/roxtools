@@ -23,6 +23,8 @@ import roxtools.ArrayUtils;
 import roxtools.CountTable;
 import roxtools.DigestMD5;
 import roxtools.ImageUtils;
+import roxtools.RichConsole;
+import roxtools.RichConsole.ChartMap;
 import roxtools.SerializationUtils;
 
 public class ImagePixels implements Cloneable , Serializable {
@@ -1432,6 +1434,161 @@ public class ImagePixels implements Cloneable , Serializable {
 		
 	}
 	
+	final public boolean[] computeDiffByDensityMap(ImagePixels other, double tolerance) {
+		boolean[] diff0 = computeDiff(other, tolerance) ;
+		
+		int[] map1 = computeDensityMap(width, height, diff0, 1, 0) ;
+		boolean[] diff1 = densityMapToBooleans(map1, 4) ;
+		
+		int[] map2 = computeDensityMap(width, height, diff1, 1, 0) ;
+		boolean[] diff2 = densityMapToBooleans(map2, 4) ;
+		
+		return diff2 ;
+	}
+	
+	final public Rectangle computeDiffByDensityMapBounds(ImagePixels other, double tolerance) {
+		boolean[] diff = computeDiffByDensityMap(other, tolerance) ;
+		return computeBounds(width, height, diff) ;
+	}
+	
+	public static void main(String[] args) {
+		
+		/*
+		boolean[] diff0 = new boolean[] {
+				false,false,false,false,false,false,false,
+				false,true,false,false,false,false,false,
+				false,true,true,true,false,false,false,
+				false,false,true,true,false,false,false,
+				false,false,false,false,true,false,false,
+				false,false,false,false,false,false,false,
+				false,false,false,false,false,false,false,
+				
+		};
+		*/
+		
+		boolean[] diff0 = new boolean[] {
+				false,false,false,false,false,false,false,
+				false,false,true,false,false,false,false,
+				false,false,true,true,true,false,false,
+				false,true,true,true,true,false,false,
+				false,false,true,true,true,false,false,
+				false,false,true,true,false,false,false,
+				false,false,false,false,false,false,false,
+				
+		};
+		
+		int[] map1 = computeDensityMap(7, 7, diff0, 1, 0) ;
+		boolean[] diff1 = densityMapToBooleans(map1, 4) ;
+		
+		int[] map2 = computeDensityMap(7, 7, diff1, 1, 0) ;
+		boolean[] diff2 = densityMapToBooleans(map2, 4) ;
+		
+		RichConsole.printLn( computeBounds(7, 7, diff2) );
+		
+		ChartMap chartMap1 = new RichConsole.ChartMap(diff0 , 7,7, 10) ;
+		RichConsole.printLn(chartMap1);
+		
+		ChartMap chartMap2 = new RichConsole.ChartMap( ArrayUtils.toFloats(map1) , 7,7, 10) ;
+		RichConsole.printLn(chartMap2);
+		
+		ChartMap chartMap3 = new RichConsole.ChartMap(diff1 , 7,7, 10) ;
+		RichConsole.printLn(chartMap3);
+		
+		ChartMap chartMap4 = new RichConsole.ChartMap( ArrayUtils.toFloats(map2) , 7,7, 10) ;
+		RichConsole.printLn(chartMap4);
+		
+		ChartMap chartMap5 = new RichConsole.ChartMap(diff2 , 7,7, 10) ;
+		RichConsole.printLn(chartMap5);
+		
+	}
+	
+	static final public Rectangle computeBounds(int width, int height, boolean[] map) {
+		int minY = height ;
+		int maxY = 0 ;
+		
+		int minX = width ;
+		int maxX = 0 ;
+
+		for (int y = 0; y < height; y++) {
+			int yIdx = y*width ;
+			
+			for (int x = 0; x < width; x++) {
+				int xIdx = yIdx + x ;
+				
+				if ( map[xIdx] ) {
+					if ( x < minX ) minX = x ;
+					if ( y < minY ) minY = y ;
+					if ( x > maxX ) maxX = x ;
+					if ( y > maxY ) maxY = y ;
+				}
+			}
+		}
+		
+		Rectangle bounds = new Rectangle(minX, minY, ((maxX-minX)+1), (maxY-minY)+1) ;
+		return bounds ;
+	}
+	
+	static final public int[] computeDensityMap(int width, int height, boolean[] diff, int radius, int minimalDensity) {
+		int[] map = new int[diff.length] ;
+		
+		for (int y = 0; y < height; y++) {
+			int yIdx = y*width ;
+			
+			for (int x = 0; x < width; x++) {
+				int xIdx = yIdx + x ;
+				
+				if ( diff[xIdx] ) {
+				
+					for (int yShift = -radius; yShift <= radius ; yShift++) {
+						for (int xShift = -radius; xShift <= radius ; xShift++) {
+							int y1 = y+yShift ;
+							if (y1 < 0 || y1 >= height) continue ;
+							
+							int x1 = x+xShift ;
+							if (x1 < 0 || x1 >= width) continue ;
+							
+							if (xShift != 0 && yShift != 0) continue ;
+							
+							int idx = (y1*width)+x1 ;
+							
+							if ( diff[idx] ) {
+								int val = map[idx] ;
+								if (val == 0) {
+									map[idx] = 1 ;
+								}
+								else {
+									map[idx] = val*2 ;	
+								}
+									
+							}
+						}
+					}
+					
+				}
+			}
+		}
+		
+		if (minimalDensity > 0) {
+			for (int i = 0; i < map.length; i++) {
+				int d = map[i];
+				if (d < minimalDensity) {
+					map[i] = 0 ;
+				}
+			}
+		}
+		
+		return map ;
+	}
+	
+	static final public boolean[] densityMapToBooleans(int[] map, int minimalDensity) {
+		boolean[] bs = new boolean[map.length] ;
+		
+		for (int i = 0; i < bs.length; i++) {
+			bs[i] = map[i] >= minimalDensity ;
+		}
+		
+		return bs ;
+	}
 	
 	final public boolean merge(ImagePixels other, boolean[][] mergePixels) {
 		checkMutable() ;
