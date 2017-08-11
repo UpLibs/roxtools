@@ -707,13 +707,32 @@ final public class ImageUtils {
 	}
 
 	static public String imageToPNGBase64(BufferedImage image) throws IOException {
+		return imageToBase64(image, "PNG") ;
+	}
+	
+	static public String imageToJPEGBase64(BufferedImage image) throws IOException {
+		return imageToBase64(image, "JPEG") ;
+	}
+	
+	static public String imageToBase64(BufferedImage image, String format) throws IOException {
+		if (format == null || format.isEmpty()) format = "PNG" ;
+		format = format.toUpperCase().trim() ;
+		
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		ImageIO.write(image, "PNG", bout);
+		ImageIO.write(image, format, bout);
 		return Base64Utils.encode(bout.toByteArray());
 	}
-
+	
 	static public BufferedImage pngBase64ToImage(String pngBase64) throws IOException {
-		byte[] data = Base64Utils.decode(pngBase64);
+		return base64ToImage(pngBase64) ;
+	}
+	
+	static public BufferedImage jpegBase64ToImage(String pngBase64) throws IOException {
+		return base64ToImage(pngBase64) ;
+	}
+	
+	static public BufferedImage base64ToImage(String base64) throws IOException {
+		byte[] data = Base64Utils.decode(base64);
 		ByteArrayInputStream bin = new ByteArrayInputStream(data);
 		return ImageIO.read(bin);
 	}
