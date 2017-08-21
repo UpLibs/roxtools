@@ -804,6 +804,10 @@ public class ImagePixels implements Cloneable , Serializable {
 	public ImagePixels(URL imageURL) {
 		this( ImageUtils.readURL(imageURL) ) ;
 	}
+	
+	public ImagePixels(String base64) throws IOException {
+		this( ImageUtils.base64ToImage(base64) ) ;
+	}
 
 	public ImagePixels(File imageFile) {
 		this( ImageUtils.readFile(imageFile) ) ;
