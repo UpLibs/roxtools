@@ -1616,39 +1616,4 @@ final public class StatisticsUtils {
 		
 	}
 	
-	public static void main(String[] args) {
-		
-		double[] vals = new double[] { 1 ,1 , 2 , 3 , 3 , 3 , 4 , 5 , 10 } ;
-		//double[] vals = new double[] { 0 , 1 , 0 , 1 , 0 , 1 , 0 , 1} ;
-		
-		double mean = calcMean(vals) ;
-		double weightedMean = calcMeanByNormal(vals) ;
-		double d = calcStandardDeviation(vals) ;
-		
-		System.out.println("mean: "+mean);
-		System.out.println("weightedMean: "+weightedMean);
-		System.out.println("d: "+d);
-		System.out.println("d*2: "+d*2);
-		System.out.println("-----------");
-		
-		double in1 = 0 ;
-		double in2 = 0 ;
-		
-		for (int i = 0; i < vals.length; i++) {
-			double v = vals[i];
-			double dist = mean - v ;
-			if (dist < 0) dist *= -1 ;
-			
-			if ( dist < d ) in1++ ;
-			if ( dist < d*2 ) in2++ ;
-			
-			System.out.println(i+"> "+ v +" > "+ dist);
-		}
-		
-		System.out.println("-----------");
-		System.out.println("in1> "+ in1 +" > "+ ( in1/vals.length ));
-		System.out.println("in2> "+ in2 +" > "+ ( in2/vals.length ));
-		
-	}
-	
 }

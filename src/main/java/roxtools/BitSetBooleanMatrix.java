@@ -73,29 +73,5 @@ final public class BitSetBooleanMatrix {
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////
-	
-	public static void main(String[] args) {
 
-		BitSetBooleanMatrix matrix = new BitSetBooleanMatrix(100, 100) ;
-		
-		int width = matrix.getWidth() ;
-		int height = matrix.getHeight() ;
-		
-		for (int j = 0; j < height; j++) {
-			for (int i = 0; i < width; i++) {
-				matrix.set(i, j,  (i+j) % 2 == 0 ) ;
-			}
-		}
-		
-		System.out.println("--------------------------");
-		
-		for (int j = 0; j < height; j++) {
-			System.out.println();
-			for (int i = 0; i < width; i++) {
-				System.out.print( matrix.get(i, j)  ? "1":"0" );
-			}
-		}
-		
-	}
-	
 }

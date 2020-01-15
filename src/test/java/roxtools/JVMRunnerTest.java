@@ -1,16 +1,15 @@
 package roxtools;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import roxtools.ipc.JVMRunner;
 import roxtools.ipc.ProcessRunner.OutputConsumer;
 import roxtools.ipc.ProcessRunner.OutputConsumerListener;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class JVMRunnerTest {
 
@@ -116,11 +115,5 @@ public class JVMRunnerTest {
 		Assert.assertNotNull(cp3);
 		Assert.assertTrue( cp3.length > 1 );
 	}
-	
-	public static void main(String[] args) {
-		
-		System.out.println("Hello World!");
-		
-	}
-	
+
 }

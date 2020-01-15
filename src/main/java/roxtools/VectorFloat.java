@@ -465,23 +465,4 @@ final public class VectorFloat implements Iterable<Float> , Cloneable {
     	System.arraycopy(elems, 0, anArray, anArrayOffset, count);
     }
 	
-	///////////////////////////////////////
-	
-	public static void main(String[] args) {
-		
-		VectorFloat v = new VectorFloat() ;
-		
-		for (int i = 0; i < 10 ; i++) {
-			v.add(i) ;
-		}
-		
-		v.reverse() ;
-		
-		System.out.println("-------");
-		
-		System.out.println(v);
-		
-	}
-	
-
 }

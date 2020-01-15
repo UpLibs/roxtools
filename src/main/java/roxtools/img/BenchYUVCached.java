@@ -4,19 +4,6 @@ import java.util.Random;
 
 public class BenchYUVCached {
 
-	public static void main(String[] args) throws Exception {
-		int loops = args.length > 0 ? Integer.parseInt(args[0]) : 10000 ;
-		
-		prepare() ;
-		
-		while (true) {
-			bench(loops) ;
-			System.out.println("---------------------------------------------------------------------------------------------------");
-			Thread.sleep(100) ;
-		}
-	}
-	
-
 	static YUVCached yuvCached = new YUVCached(2) ;
 	//static YUVCached2 yuvCached = new YUVCached2(2) ;
 

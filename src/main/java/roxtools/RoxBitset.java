@@ -55,17 +55,4 @@ final public class RoxBitset extends BitSet {
 		return ar ;
 	}
 	
-	public static void main(String[] args) {
-		
-		RoxBitset roxBitset = new RoxBitset();
-		
-		roxBitset.set(0, new boolean[] {true,true, false, false, true,false,true,true,true,false,false,false,true}) ;
-		
-		System.out.println(roxBitset);
-		
-		System.out.println( Arrays.toString( roxBitset.toBooleanArray() ) );
-		
-		
-	}
-
 }

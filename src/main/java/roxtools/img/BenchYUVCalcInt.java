@@ -4,18 +4,6 @@ import java.util.Random;
 
 public class BenchYUVCalcInt {
 
-	public static void main(String[] args) throws Exception {
-		int loops = args.length > 0 ? Integer.parseInt(args[0]) : 10000 ;
-		
-		prepare() ;
-		
-		while (true) {
-			bench(loops) ;
-			System.out.println("---------------------------------------------------------------------------------------------------");
-			Thread.sleep(100) ;
-		}
-	}
-		
 	static int samplesSize = 10000 ;
 	static int[] samplesY ;
 	static int[] samplesU ;

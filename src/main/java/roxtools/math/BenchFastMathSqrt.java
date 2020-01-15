@@ -2,7 +2,7 @@ package roxtools.math;
 
 /**
  * 
- * Math square root, using precomputed table of results. Usefull specially on ARM architecture.
+ * Math square root, using precomputed table of results. Useful specially on ARM architecture.
  * 
  * @author gracilianomp
  *
@@ -157,29 +157,6 @@ final public class BenchFastMathSqrt {
 		
 		System.out.println(total);
 		System.out.println("TIME: "+ time);
-	}
-	
-	public static void main(String[] args) throws Exception {
-		
-		int loops = args.length > 0 ? Integer.parseInt(args[0]) : 1000 ;
-		
-		System.out.println("loops: "+ loops);
-		
-		BenchFastMathSqrt bench = new BenchFastMathSqrt(100000, 64, loops) ;
-		
-		bench.benchFast() ;
-		bench.benchNormal() ;
-		
-		System.out.println("----------------------------------------------------");
-		System.out.println("sleep...");
-		
-		Thread.sleep(10000) ;
-		
-		System.out.println("----------------------------------------------------");
-
-		bench.benchFast() ;
-		bench.benchNormal() ;
-		
 	}
 	
 }

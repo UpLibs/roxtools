@@ -1,8 +1,5 @@
 package roxtools.img;
 
-import java.util.Arrays;
-import java.util.Random;
-
 final public class YUVCached {
 	
 	
@@ -88,80 +85,4 @@ final public class YUVCached {
 		yuv[2] = decoded[idx+2] ;
 	}
 	
-	public static void main(String[] args) {
-		
-		int precision = 2 ;
-		
-		System.out.println("---------------------------------");
-		
-		YUVCached yuvCached = new YUVCached(precision) ;
-		
-		Random rand = new Random(123) ;
-		
-		byte[] yuv1 = new byte[3] ;
-		byte[] yuv2 = new byte[3] ;
-		
-		byte[] rgb1 = new byte[3] ;
-		byte[] rgb2 = new byte[3] ;
-		
-		
-		{
-
-			//255,180,173
-			int r = 255 ;
-			int g = 180 ;
-			int b = 173 ;
-			
-
-			try {
-				yuvCached.encode(r, g, b, yuv1) ;
-				yuvCached.decode(r, g, b, rgb1) ;
-			}
-			catch (Exception e) {
-				throw new IllegalStateException( r+","+g+","+b +" > "+ yuvCached.encoded.length , e) ;
-			}
-		}
-		
-		
-		
-		for (int i = 0; i < 1000000; i++) {
-
-			int r = (rand.nextInt(256) / precision) * precision ;
-			int g = (rand.nextInt(256) / precision) * precision ;
-			int b = (rand.nextInt(256) / precision) * precision ;
-			
-			int pixelRGB = RGB.toPixelRGB(r, g, b) ;
-			
-			YUV.pixelRGB_to_arrayYUV(pixelRGB, yuv1) ;
-			
-			yuvCached.encode(r, g, b, yuv2) ;
-			
-			boolean encOk = Arrays.equals(yuv1, yuv2) ;
-			
-			if (!encOk) {
-				System.out.println("error enc> "+ r+","+g+","+b +" > "+ Arrays.toString(yuv1) +" > "+ Arrays.toString(yuv2) );	
-			}
-			
-			/////
-			
-			int y = (rand.nextInt(256) / precision) * precision ;
-			int u = (rand.nextInt(256) / precision) * precision ;
-			int v = (rand.nextInt(256) / precision) * precision ;
-			
-			YUV.YUV_to_arrayRGB(y, u, v, rgb1) ;
-			
-			yuvCached.decode(y, u, v, rgb2) ;
-			
-			boolean decOk = Arrays.equals(rgb1, rgb2) ;
-			
-			if (!decOk) {
-				System.out.println("error dec> "+ y+","+u+","+v +" > "+ Arrays.toString(rgb1) +" > "+ Arrays.toString(rgb2) );	
-			}
-			
-		}
-		
-		System.out.println("---------------------------------");
-		
-	}
-
 }

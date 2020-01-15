@@ -140,25 +140,4 @@ public class XORCodec extends CryptoCodec {
 		return result ;
 	}
 	
-	public static void main(String[] args) {
-		
-		Mask mask = new Mask(123, 10) ;
-		
-		XORCodec xorCodec = new XORCodec(mask) ;
-		
-		byte[] data = "DATA skdfuy2374691387hskdfhakufiq874 XXXXXX".getBytes() ;
-		
-		System.out.println("decrypt> "+ new String(data) );
-		
-		byte[] iv = CryptoUtils.createInitializationVector(4573) ;
-		
-		byte[] encrypt = xorCodec.encrypt(data, iv) ;
-		
-		System.out.println("encrypt> "+ new String(encrypt) );
-		
-		byte[] decrypt = xorCodec.decrypt(encrypt, iv) ;
-		
-		System.out.println("decrypt> "+ new String(decrypt) );
-	}
-	
 }

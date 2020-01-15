@@ -1,12 +1,11 @@
 package roxtools.img;
 
+import roxtools.RichConsole;
+
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
-import javax.imageio.ImageIO;
-
-import roxtools.RichConsole;
 
 public class ColorBalance {
 	
@@ -168,23 +167,6 @@ public class ColorBalance {
 		ImagePixels imagePixels2 = new ImagePixels(c1, c2, c3, imagePixels.getWidth(), imagePixels.getHeight(), imagePixels.isYUVFormat()) ;
 		
 		RichConsole.printLn( imagePixels2.createImage() ).configureMaxHeight(300) ;
-		
-	}
-	
-	public static void main(String[] args) throws Exception {
-		
-		float s1 = 1.5f ;
-		float s2 = 1.5f ;
-		float minScaleRatio = 0.10f ;
-		
-		for (int i = 0; i < 12; i++) {
-			File file = new File("/Volumes/SAFEZONE/tmp/img-color-balance-test"+i+".png") ;
-			System.out.println(file.length() +"> "+file);
-			
-			testRGB(file, s1, s2, minScaleRatio) ;
-			testGray(file, s1, s2, minScaleRatio) ;
-		}
-		
 		
 	}
 	

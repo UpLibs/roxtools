@@ -36,16 +36,4 @@ public class SimpleHashMapBench {
 		
 	}
 	
-	public static void main(String[] args) {
-		
-		SimpleHashMapBench simpleHashMapBench = new SimpleHashMapBench() ;
-		
-		int samples = 20000000 ;
-		
-		for (int i = 0; i < 10; i++) {
-			simpleHashMapBench.bench(samples);	
-		}
-		
-	}
-	
 }

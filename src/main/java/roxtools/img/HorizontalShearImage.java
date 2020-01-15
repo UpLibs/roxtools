@@ -223,24 +223,5 @@ final public class HorizontalShearImage {
 		
 		return add ;
 	}
-	
-	////////////////////////////////////////////
-	
-	public static void main(String[] args) throws Exception {
-		
-		File file = new File("/Volumes/SAFEZONE/products/fanta.jpg");
-		
-		//File file = new File("/tmp/isa-linda.jpg");
-		
-		BufferedImage origImage = ImageIO.read(file) ;
-		
-		RichConsole.printLn(origImage) ;
-		
-		HorizontalShearImage shearImage = new HorizontalShearImage(origImage,  0.90) ;
-		
-		RichConsole.printLn( shearImage.createImage(true) ) ;
-		RichConsole.printLn( shearImage.createImage(false) ) ;
-		
-	}
-	
+
 }

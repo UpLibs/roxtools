@@ -246,85 +246,9 @@ final public class LongTable {
 	@Override
 	public String toString() {
 		StringBuilder str = new StringBuilder() ;
-		
 		str.append( this.getClass().getName() ) ;
-		
 		str.append("[size: "+ size +" ; table groups: "+ table.length +" ; allocatedMem: "+ getAllocatedMemory() +"]") ;
-		
 		return str.toString();
-	}
-	
-	/////////////////////////////////////////////////////////////////
-	
-	
-	@SuppressWarnings({ "unused" })
-	public static void main(String[] args) {
-		
-		if (false) {
-			System.out.println("Bench...");
-			
-			LongTable intTable = new LongTable() ;
-			
-			int loops = 4000 ;
-			
-			int inserts = 10000 ;
-			
-			int totalInserts = loops * inserts ;
-			
-			long time = System.currentTimeMillis() ;
-			
-			for (int l = 0; l < loops ; l++) {
-				int base = l*inserts ;
-				
-				for (int i = inserts-1 ; i >= 0 ; i--) {
-					intTable.put(base+i) ;
-				}
-				
-			}
-			
-			time = System.currentTimeMillis() - time ;
-			
-			System.out.println("TIME: "+ time);
-			System.out.println("totalInserts> "+ totalInserts);
-			System.out.println(intTable);
-			
-			try { Thread.sleep(1000000) ;} catch (InterruptedException e) {}
-			
-			return ;
-		}
-		
-		LongTable intTable = new LongTable() ;
-		
-		System.out.println("size> "+ intTable.size());
-		
-		int totalToAdd = 1000 ;
-		
-		for (int i = 10; i < totalToAdd; i++) {
-			intTable.put(i) ;
-			System.out.println(i+"> size> "+ intTable.size());
-		}
-		
-		System.out.println("--------------------------------------------------");
-		
-		for (int i = 0; i < totalToAdd+10; i++) {
-			boolean ok = intTable.contains(i) ;
-			System.out.println(i+"> "+ ok);
-		}
-		
-		System.out.println("--------------------------------------------------");
-		
-		intTable.remove(100) ;
-		
-		long[] values = intTable.getValues() ;
-		
-		Arrays.sort(values) ;
-		
-		for (int i = 0; i < values.length; i++) {
-			long v = values[i];
-			System.out.println(i+"> "+ v);
-		}
-		
-		
 	}
 
 }
