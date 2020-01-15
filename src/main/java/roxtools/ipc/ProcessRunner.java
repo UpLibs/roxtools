@@ -1,16 +1,21 @@
 package roxtools.ipc;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import roxtools.ArrayUtils;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-import roxtools.ArrayUtils;
-
 public class ProcessRunner {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger( ProcessRunner.class );
 	
 	private String command ;
 	private String[] arguments ;
@@ -139,12 +144,58 @@ public class ProcessRunner {
 		
 		return true ;
 	}
-	
-	static public interface OutputConsumerListener {
-		
-		public void onReadBytes(OutputConsumer outputConsumer, byte[] bytes, int length) ;
 
-		public void onReadLine(OutputConsumer outputConsumer, String line);
+	public long getProcessPID() {
+		long pid = -1;
+
+		Process runningProcess = getRunningProcess();
+
+		if (isUNIXProcess(runningProcess)) {
+			try {
+				Field field = runningProcess.getClass().getDeclaredField("pid");
+				field.setAccessible(true);
+				pid = field.getLong(runningProcess);
+			} catch (Exception e) {
+				LOGGER.error("Can't access pid field for process: " + runningProcess, e);
+			}
+		}
+
+		return pid;
+	}
+
+	static public boolean isUNIXProcess(Process process) {
+		return process.getClass().getName().equals("java.lang.UNIXProcess");
+	}
+
+	public void destroyProcessTree() {
+		long pid = getProcessPID();
+		LOGGER.info("Destroying process tree for PID: {}", pid);
+
+		if (pid > 0) {
+			try {
+				String[] pkillCmd = new String[] {"/usr/bin/pkill", "-9", "-P", String.valueOf(pid), "-e"};
+
+				LOGGER.info("UNIXProcess> pkill cmd: {}", Arrays.toString(pkillCmd));
+
+				ProcessBuilder processBuilder = new ProcessBuilder(pkillCmd);
+				processBuilder.redirectErrorStream(true);
+				Process processPKIll = processBuilder.start();
+				int pkillExitcode = processPKIll.waitFor();
+
+				LOGGER.info("UNIXProcess> pkill[{}] exitCode: {} ", pid, pkillExitcode);
+			} catch (IOException | InterruptedException e) {
+				LOGGER.error("Can't pkill child process[UNIXProcess] for PID: " + pid, e);
+			}
+		}
+
+		destroyProcess();
+	}
+	
+	public interface OutputConsumerListener {
+		
+		void onReadBytes(OutputConsumer outputConsumer, byte[] bytes, int length) ;
+
+		void onReadLine(OutputConsumer outputConsumer, String line);
 		
 	}
 	
