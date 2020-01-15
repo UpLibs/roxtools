@@ -188,12 +188,7 @@ public class ProcessRunner {
 			}
 		}
 
-		Process runningProcess = getRunningProcess();
-		try {
-			runningProcess.destroy();
-		} catch (Exception e) {
-			LOGGER.error("Error Destroying process: " + runningProcess, e);
-		}
+		destroyProcess();
 	}
 	
 	public interface OutputConsumerListener {
