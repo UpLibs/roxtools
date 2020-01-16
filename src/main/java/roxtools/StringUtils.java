@@ -164,20 +164,4 @@ final public class StringUtils {
 		return new SplitResult(preAllocatedResult, resultSize) ;
     }
 	
-	/////////////////////////////////////
-	
-	public static void main(String[] args) {
-		
-		long[] mask = new long[] { 1134567890 , 291013692 } ;
-		
-		String str = "abcdefghijklmnopqrstuvwxyz" ;
-		
-		String strMak = maskString(str, mask) ;
-		String strMak1 = maskString(strMak, mask) ;
-		
-		System.out.println("<"+str+">");
-		System.out.println("<"+strMak+">");
-		System.out.println("<"+strMak1+">");
-	}
-	
 }

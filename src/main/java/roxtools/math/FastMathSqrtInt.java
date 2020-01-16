@@ -74,36 +74,5 @@ final public class FastMathSqrtInt {
 		
 		return r ;
 	}
-	
-	public static void main(String[] args) {
-		
-		FastMathSqrtInt fastMathSqrt = new FastMathSqrtInt(256*256*2) ;
-		
-		double diffMean = 0 ;
-		int diffMeanSz = 0 ;
-		double diffMax = 0 ;
-		
-		for (double i = 0; i < fastMathSqrt.limit; i+= 0.5) {
-			int n = (int) i ;
-			double r = fastMathSqrt.calcSimple(n) ;
-			
-			double r2 = Math.sqrt(n) ;
-			
-			double diff = r2 - r ;
-			
-			System.out.println(i+"> "+ r +" =~ "+ r2 +" >>> \t "+ diff);
-		
-			diffMean += diff ;
-			diffMeanSz++ ;
-			
-			if (diff > diffMax) diffMax = diff ;
-		}
-		
-		diffMean /= diffMeanSz ;
-		
-		System.out.println("diffMean> "+ diffMean);
-		System.out.println("diffMax> "+ diffMax);
-		
-	}
-	
+
 }

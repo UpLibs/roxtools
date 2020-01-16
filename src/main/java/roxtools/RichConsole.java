@@ -2491,7 +2491,6 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 	@Override
 	public void onRichConsoleClick(RichConsoleInterface richConsole, Point position) {
 	}
-	
 
 	@Override
 	public void onRichConsolePress(RichConsoleInterface richConsole, Point position) {
@@ -2503,100 +2502,6 @@ final public class RichConsole extends JFrame implements RichConsoleListener, Ri
 
 	@Override
 	public void onRichConsoleDrag(RichConsoleInterface richConsole, Point position) {
-	}
-
-	
-	////////////////////////////////////////////////////////////////////////
-	
-	public static void main(String[] args) {
-	
-		//RichConsole.redirectSystemOut() ;
-		
-		RichConsole.getDefaultInstance().addMenuItem("Test", new RichConsoleMenuItem("Mohh") {
-			@Override
-			public void action() {
-				System.out.println("Menu click!");
-			}
-		});
-		
-
-		float[][] map = new float[][] {
-				{0,0,0,0.1f} ,
-				{0,1,0.5f,0} ,
-				{0,0.5f,1,0} ,
-				{0.1f,0,0,0} ,
-		};
-		
-		ChartMap chartMap = new RichConsole.ChartMap(map, 10) ;
-		
-		RichConsole.printLn(chartMap) ;
-		
-		RichConsole.printLn("--------------------------------------------------") ;
-		
-		RichConsole.print("moh\nhahah issa\nawwaawwawa") ;
-		RichConsole.print( new Rec(Color.GRAY) ) ;
-		RichConsole.print("beh") ;
-		RichConsole.print("bah") ;
-		RichConsole.printLn() ;
-		RichConsole.print( new RecLine(Color.RED) ) ;
-		RichConsole.print( new Rec(Color.BLUE) ) ;
-		RichConsole.printLn() ;
-		RichConsole.printLn( new Rec(Color.GREEN) ) ;
-		RichConsole.printLn( new Rec(Color.YELLOW) ) ;
-		
-		RichConsole.printLn("\n> "+ getMainClassName() ) ;
-		
-		System.out.println("!!! NORMAL SYS OUT !!!");
-		
-		RichConsole.printLn("-----------------") ;
-		
-		/*
-		RichConsole.print( new ConsoleImage(new File("/tmp/coca-main.png")).configureMaxWidth(100).scale(0.5) ) ;
-		RichConsole.print( new ConsoleImage(new File("/tmp/coca-main.png")).configureMaxWidth(200).scale(0.5) ) ;
-		RichConsole.printLn( new ConsoleImage(new File("/tmp/coca-main.png")).configureMaxWidth(100).scale(0.7) ) ;
-		*/
-		
-		RichConsole.printLn("-----------------");
-		
-		float[] data = new float[] {1 , 2 , 3 , 10, 10.5f , 10.6f, 10.7f, 11, 11.5f, 11.6f, 11.7f, 12, 30,31,32, 50,51,52} ;
-		
-		data = new float[] {1 , 11 , 12 , 13 , 50,51,52} ;
-		
-		ChartBars chartBars = new ChartBars(data).normalizeData() ;
-		
-		RichConsole.printLn(chartBars);
-		
-		RichConsole.printLn("-----------------");
-		
-
-		ChartDistribution chartDist = new ChartDistribution(data, 200, 100, 10) ;
-		
-		chartDist.setHighlightData(20) ;
-		
-		RichConsole.printLn(chartDist);
-		
-		RichConsole.printLn("-----------------");
-
-		
-		ConsoleImageHighlight consoleImageHighlight = new RichConsole.ConsoleImageHighlight(new File("/Users/gracilianomp/ASSADii/assadii-logo-industrial-bg-16-9.png")) ;
-		
-		consoleImageHighlight.addHighlight(new Rectangle(100,100, 100,100), Color.GREEN, "mohh", new ConsoleImageHighlightAction() {
-			@Override
-			public void handleHighlightAction(Rectangle rect, String hint) {
-				System.out.println("Action 1!!!!!");
-			}
-		}) ;
-		
-
-		consoleImageHighlight.addHighlight(new Rectangle(220,100, 100,100), Color.RED, "kkkk", new ConsoleImageHighlightAction() {
-			@Override
-			public void handleHighlightAction(Rectangle rect, String hint) {
-				System.out.println("Action 2!!!!!");
-			}
-		} , true ) ;
-		
-		RichConsole.printLn(consoleImageHighlight) ;
-		
 	}
 
 }

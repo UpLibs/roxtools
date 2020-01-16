@@ -1,18 +1,13 @@
 package roxtools.img;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.io.File;
-
-import javax.imageio.ImageIO;
-
-import roxtools.RichConsole;
-
 import com.jhlabs.image.ContrastFilter;
 import com.jhlabs.image.GammaFilter;
 import com.jhlabs.image.InvertFilter;
 import com.jhlabs.image.SharpenFilter;
 import com.jhlabs.image.UnsharpFilter;
+
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 
 public class ImageFilters {
 	
@@ -179,26 +174,5 @@ public class ImageFilters {
 		
 		return img3 ;
 	}
-	
-	////////////////////////////////////////////////////////////////////////////////////////
-	
-	public static void main(String[] args) throws Exception {
 
-		File file = new File("/Users/gracilianomp/test-pos-img.png") ;
-		
-		BufferedImage img = ImageIO.read(file) ;
-		
-		RichConsole.printLn(img);
-		
-		RichConsole.printLn(AutoFilter.SHARPEN_2.apply(img) );
-		
-		RichConsole.printLn(AutoFilter.UNSHARPEN_2.apply(img) );
-		
-		RichConsole.printLn(AutoFilter.UNSHARPEN_BALANCED.apply(img) );
-		
-		RichConsole.printLn(AutoFilter.SHARPEN_BALANCED.apply(img) );
-		
-		
-	}
-	
 }

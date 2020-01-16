@@ -1097,49 +1097,6 @@ final public class RoxDeque<E> extends AbstractCollection<E> implements Deque<E>
 		return elem ;
 	}
 	
-	/////////////////////////////////////////////////////////////////////////////////////
-	
-	public static void main(String[] args) {
-		
-		Comparator<Integer> comp = new Comparator<Integer>() {
-			public int compare(Integer o1, Integer o2) {
-				int thisVal = o1;
-				int anotherVal = o2;
-				return (thisVal<anotherVal ? -1 : (thisVal==anotherVal ? 0 : 1));
-			}
-		};
-		
-		RoxDeque<Integer> dq = new RoxDeque<Integer>(4) ;
-		
-		dq.add(1) ;
-		dq.add(2) ;
-		dq.add(3) ;
-		
-		dq.add(10) ;
-		
-		dq.removeFirst() ;
-		dq.removeFirst() ;
-		dq.removeFirst() ;
-		
-		dq.add(20) ;
-		dq.add(30) ;
-		dq.add(40) ;
-		dq.add(50) ;
-		dq.add(60) ;
-		dq.add(70) ;
-		
-		System.out.println(dq);
-		
-		dq.insertSorted(21, comp);
-		
-		System.out.println(dq);
-		
-		for (int i = 0; i < dq.size(); i++) {
-			System.out.println("> "+ dq.get(i));
-		}
-		
-	}
-
 	@Override
 	public boolean addAll(int index, Collection<? extends E> c) {
 		for (E e : c) {

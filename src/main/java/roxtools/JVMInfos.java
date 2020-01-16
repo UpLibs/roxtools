@@ -88,11 +88,5 @@ final public class JVMInfos {
 		
 		return str.toString() ;
 	}
-	
-	public static void main(String[] args) {
-		
-		System.out.println( getInfos() );
-		
-	}
-	
+
 }

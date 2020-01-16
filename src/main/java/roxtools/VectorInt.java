@@ -435,23 +435,4 @@ final public class VectorInt implements Iterable<Integer> , Cloneable {
     	System.arraycopy(elems, 0, anArray, anArrayOffset, count) ;
     }
 	
-	///////////////////////////////////////
-	
-	public static void main(String[] args) {
-		
-		VectorInt v = new VectorInt() ;
-		
-		for (int i = 0; i < 10 ; i++) {
-			v.add(i) ;
-		}
-		
-		v.reverse() ;
-		
-		System.out.println("-------");
-		
-		System.out.println(v);
-		
-	}
-	
-
 }

@@ -1,18 +1,17 @@
 package roxtools.img;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-
-import javax.imageio.ImageIO;
-
 import roxtools.ArrayUtils;
 import roxtools.ImageUtils;
 import roxtools.RichConsole;
 import roxtools.RichConsole.ChartBars;
 import roxtools.StatisticsUtils;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 
 final public class AutoHorizontalShearImage {
 
@@ -552,37 +551,5 @@ final public class AutoHorizontalShearImage {
 		return lineVerticals ;
 		*/
 	}
-	
-	
-	public static void main(String[] args) throws Exception {
-		
-		//File file = new File("/Volumes/SAFEZONE/products/fanta.jpg");
-		
-		//File file = new File("/Volumes/SAFEZONE/uppoints/mercado-test1/photo-test1.png");
-		
-		//File file = new File("/Volumes/SAFEZONE/uppoints/mercado-test1/full-img-2.png");
-		
-		//File file = new File("/Volumes/SAFEZONE/uppoints/mercado-test1/full-img-3.png");
-		
-		//File file = new File("/Volumes/SAFEZONE/uppoints/mercado-test1/full-img-4.png");
-		
-		//File file = new File("/Volumes/SAFEZONE/uppoints/mercado-test1/full-img-4.png");
-		
-		File file = new File("/Volumes/SAFEZONE/uppoints/mercado-test1/full-imgs-save/full-img-7.png") ;
-		
-		//File file = new File("/Users/gracilianomp/minicam-test-stream2/saves-png/img-stream-498.png");
-		
-		//File file = new File("/Volumes/SAFEZONE/uppoints/mercado-test1/img-stream-26.png");
-		
-		
-		AutoHorizontalShearImage autoHorizontalShearImage = new AutoHorizontalShearImage(file) ;
-		
-		RichConsole.printLn( new RichConsole.ConsoleImage(file) ) ;
-		
-		BufferedImage imgFix = autoHorizontalShearImage.autoHorizontalShear() ;
-		
-		RichConsole.printLn( imgFix ) ;
-		
-		
-	}
+
 }
