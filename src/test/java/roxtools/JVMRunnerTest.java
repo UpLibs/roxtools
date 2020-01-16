@@ -116,4 +116,8 @@ public class JVMRunnerTest {
 		Assert.assertTrue( cp3.length > 1 );
 	}
 
+	public static void main(String[] args) {
+		System.out.println("Hello World!");
+	}
+
 }
