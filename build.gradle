@@ -1,31 +1,8 @@
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'eclipse-wtp'
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
 apply plugin: 'jacoco'
 
-sourceCompatibility = 1.7
-group = "roxtools"
-version = "1.6.8"
 [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.5'
-}
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-}
 
 repositories {
     mavenLocal()
@@ -33,47 +10,49 @@ repositories {
 }
 
 dependencies {
-    compile group: 'com.jhlabs', name: 'filters', version: '2.0.235-1'
-	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.18'
-	
-	compile group: 'org.javassist', name: 'javassist', version: '3.19.0-GA'
-
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+    api group: 'com.jhlabs', name: 'filters', version: filtersVersion
+    api group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
+    api group: 'org.javassist', name: 'javassist', version: javaAssistVersion
+    testImplementation group: 'org.slf4j', name: 'slf4j-simple', version: slf4jVersion
+    testImplementation group: 'junit', name: 'junit', version: junitVersion
 }
 
 jar {
     manifest {
         attributes(
                 'Implementation-Title': 'Roxtools',
-                'Implementation-Version': version,
+                'Implementation-Version': archiveVersion,
                 'Built-By': System.getProperty('user.name'),
                 'Built-Date': new Date().format('yyyy-MM-dd HH:mm:ss')
         )
     }
 }
 
-
 task fatjar(type: Jar) {
-	manifest {
+    manifest {
         attributes(
                 'Implementation-Title': 'Roxtools - All Dependencies'
         )
     }
-    
-    baseName = project.name + '-all'
+
+    archiveBaseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
 
-
-uploadArchives {
+publishing {
     repositories {
-        mavenDeployer {
-            repository(url: "${nexusUrl}") {
-                authentication(userName: "${nexusUsername}", password: "${nexusPassword}")
+        maven {
+            url = uri("${nexusUrl}/repository/${nexusRepository}/")
+            credentials {
+                username "${nexusUsername}"
+                password "${nexusPassword}"
+            }
+        }
+        publications {
+            theLibrary(MavenPublication) {
+                from components.java
             }
         }
     }
 }
-
-//build.finalizedBy(install)
