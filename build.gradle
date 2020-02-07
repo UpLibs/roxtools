@@ -40,6 +40,10 @@ task fatjar(type: Jar) {
     with jar
 }
 
+java {
+    withSourcesJar()
+}
+
 publishing {
     repositories {
         maven {
