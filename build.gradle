@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'jacoco'
+    id "com.github.johnrengelman.shadow" version "6.0.0"
 }
 
 [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
