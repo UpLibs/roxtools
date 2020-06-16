@@ -1,6 +1,9 @@
-apply plugin: 'java-library'
-apply plugin: 'maven-publish'
-apply plugin: 'jacoco'
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'jacoco'
+    id "com.github.johnrengelman.shadow" version "6.0.0"
+}
 
 [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
 
@@ -26,18 +29,6 @@ jar {
                 'Built-Date': new Date().format('yyyy-MM-dd HH:mm:ss')
         )
     }
-}
-
-task fatjar(type: Jar) {
-    manifest {
-        attributes(
-                'Implementation-Title': 'Roxtools - All Dependencies'
-        )
-    }
-
-    archiveBaseName = project.name + '-all'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
 }
 
 java {
