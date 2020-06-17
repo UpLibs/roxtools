@@ -1,77 +1,68 @@
 package roxtools.collection;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import roxtools.collection.DynamicArrayObjectTyped;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class DynamicArrayObjectTypedTest {
 
-	@Test
-	public void testBasic1() {
-		testBasic(3, 100);
-	}
-	
-	@Test
-	public void testBasic2() {
-		testBasic(3, 1234);
-	}
-	
-	@Test
-	public void testBasic3() {
-		testBasic(111, 1234);
-	}
-	
-	final static private class MyObjArray extends DynamicArrayObjectTyped<Float> {
+    final static private class MyObjArray extends DynamicArrayObjectTyped<Float> {
 
-		public MyObjArray(int minBlockSize, int maxBlockSize) {
-			super(minBlockSize, maxBlockSize);
-		}
-		
-	}
-	
-	public void testBasic(int blockSize, int totalValues) {
-		
-		final int valMult = 10 ;
-		
-		MyObjArray a = new MyObjArray(blockSize,blockSize) ;
-		
-		for (int i = 0; i < totalValues; i++) {
-			a.addFloat(i*valMult);
-		}
-		
-		Assert.assertEquals( totalValues , a.size() );
-		
-		Assert.assertEquals( blockSize , a.getBlockSize() );
-		
-		int allocatedBlocks = (totalValues / blockSize)+1 ;
-		
-		Assert.assertEquals( allocatedBlocks , a.getAllocatedBlocks() );
-		
-		for (int i = 0; i < 100; i++) {
-			float v = a.getFloat(i) ;
-			
-			Assert.assertTrue( v == i*valMult );	
-		}
+        public MyObjArray(int minBlockSize, int maxBlockSize) {
+            super(minBlockSize, maxBlockSize);
+        }
 
-		Assert.assertEquals( totalValues , a.size() );
-		
-		int rmIdx = blockSize/2 ;
-		
-		for (int i = 0; i < 10; i++) {
-			a.remove(rmIdx);
-			
-			Assert.assertEquals( totalValues-(i+1) , a.size() );
-			
-			float v = a.getFloat(rmIdx) ;
-			
-			float vExpected = ((rmIdx+i)+1)*valMult ;
-			
-			Assert.assertTrue( v == vExpected );	
-		}
+    }
 
-		Assert.assertEquals( totalValues-10 , a.size() );
-		
-	}
-	
+    static Stream<Arguments> dynamicArrayObjectTypedCreation() {
+        return Stream.of(
+                arguments(3, 100),
+                arguments(3, 1234),
+                arguments(111, 1234)
+        );
+    }
+
+    @MethodSource
+    @ParameterizedTest
+    public void dynamicArrayObjectTypedCreation(int blockSize, int totalValues) {
+        final var multiplier = 10;
+
+        var dynamicArray = new MyObjArray(blockSize, blockSize);
+
+        for (var i = 0 ; i < totalValues ; i++) {
+            dynamicArray.addFloat(i * multiplier);
+        }
+
+        assertAll(
+                () -> assertEquals(totalValues, dynamicArray.size(), "Size doesn't match expected value"),
+                () -> assertEquals(blockSize, dynamicArray.getBlockSize(), "Block size doesn't match expected value"),
+                () -> assertEquals((totalValues / blockSize) + 1, dynamicArray.getAllocatedBlocks(), "Allocated blocks doesn't match expected value")
+        );
+
+        for (var i = 0 ; i < 100 ; i++) {
+            var value = dynamicArray.getFloat(i);
+            assertEquals(i * multiplier, value, "Float at index [" + i + "] doesn't match expected value");
+        }
+
+        int rmIdx = blockSize / 2;
+
+        var loops = 10;
+        for (var i = 0 ; i < loops ; i++) {
+            dynamicArray.remove(rmIdx);
+            assertEquals(totalValues - (i + 1), dynamicArray.size(), "Size doesn't match expected value after removal loop [" + i + "]");
+
+            var value = dynamicArray.getFloat(rmIdx);
+            var expected = ((rmIdx + i) + 1f) * multiplier;
+            assertEquals(expected, value, "Float at index [" + rmIdx + "] doesn't match expected value after removal loop [" + i + "]");
+        }
+
+        assertEquals(totalValues - loops, dynamicArray.size(), "Size doesn't match expected value after removing [" + loops + "] values");
+    }
+
 }

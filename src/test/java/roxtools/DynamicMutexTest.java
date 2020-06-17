@@ -1,376 +1,352 @@
 package roxtools;
 
-import java.util.ArrayList;
-
-import org.junit.Assert;
-import org.junit.Test;
-
-import roxtools.DynamicMutexHandler.DynamicMutex;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import roxtools.DynamicMutexHandler.DynamicMutexCachedResult;
+
+import java.util.ArrayList;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class DynamicMutexTest {
 
-	@Test
-	public void testBasic() {
-		
-		DynamicMutexHandler dynamicMutexHandler = new DynamicMutexHandler() ;
-		
-		DynamicMutex m1 = dynamicMutexHandler.getMutex("1") ;
-		DynamicMutex m2 = dynamicMutexHandler.getMutex("2") ;
-		
-		Assert.assertTrue( m1.lock() );
-		Assert.assertTrue( m1.unlock() ) ;
-		
-		Assert.assertTrue( m2.lock() );
-		Assert.assertTrue( m2.unlock() );
-		
-		Assert.assertTrue( m1.lock() );
-		  Assert.assertTrue( m2.lock() );
-		  Assert.assertTrue( m2.unlock() );
-		Assert.assertTrue( m1.unlock() );
-		
-	}
-	
-	@Test
-	public void testMultiBasic() {
-		
-		DynamicMutexHandler dynamicMutexHandler = new DynamicMutexHandler() ;
-		
-		DynamicMutex m12 = dynamicMutexHandler.getMultiMutex("1","2") ;
-		
-		Assert.assertTrue( m12.lock() );
-		
-		Assert.assertTrue( m12.unlock() );
-		
-		
-	}
-	
-	
-	@Test
-	public void testLockReentrant() {
+    @Test
+    void lockAndUnlockTwoMutexFromSameHandler() {
+        var handler = new DynamicMutexHandler();
 
-		DynamicMutexHandler dynamicMutexHandler = new DynamicMutexHandler() ;
-		
-		DynamicMutex m1 = dynamicMutexHandler.getMutex("1") ;
-		
-		Assert.assertTrue( m1.lock() ) ;
-		Assert.assertFalse( m1.lock() );
-		
-		Assert.assertTrue( m1.unlock() ) ;
-		
-		Assert.assertTrue( m1.isSomeThreadLocking() ) ;
-		Assert.assertTrue( m1.isCurrentThreadLocking() ) ;
-		
-		Assert.assertTrue( m1.unlock() ) ;
-		
-		Assert.assertFalse( m1.isSomeThreadLocking() ) ;
-		Assert.assertFalse( m1.isCurrentThreadLocking() ) ;
-		
-	}
-	
-	@Test
-	public void testNoLock() {
+        var mutex1 = handler.getMutex("1");
+        var mutex2 = handler.getMutex("2");
 
-		DynamicMutexHandler dynamicMutexHandler = new DynamicMutexHandler() ;
-		
-		DynamicMutex m1 = dynamicMutexHandler.getMutex("1") ;
-		
-		Assert.assertFalse( m1.unlock() ) ;
-		
-	}
-	
-	static private class Counter {
-		volatile private int count ;
-		
-		public void increment() {
-			count = count + 1 ;
-		}
-		
-		public int get() {
-			return count ;
-		}
-		
-	}
-	
-	@Test
-	public void testMultiThread() {
-		
-		DynamicMutexHandler dynamicMutexHandler = new DynamicMutexHandler() ;
-		
-		final DynamicMutex m1 = dynamicMutexHandler.getMutex("1") ;
-		
-		final Counter counter = new Counter() ;
-		
-		final int totalThreads = 10 ;
-		final int incrementsPerThread = 300000 ;
-		
-		ArrayList<Thread> threads = new ArrayList<>() ;
-		
-		for (int i = 0; i < totalThreads; i++) {
-			
-			Thread thread = new Thread() {
-				public void run() {
-					for (int j = incrementsPerThread-1; j >= 0; j--) {
-						m1.lock() ;
-						counter.increment();
-						m1.unlock();
-					}
-				};
-			};
-			
-			threads.add(thread);
-			
-			thread.start();
-		}
-		
-		for (Thread thread : threads) {
-			try {
-				thread.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		int correctCount = totalThreads * incrementsPerThread ;
-		
-		Assert.assertEquals( correctCount , counter.get() );
-		
-	}
+        assertTrue(mutex1.lock(), "Mutex 1 should have locked");
+        assertTrue(mutex1.unlock(), "Mutex 1 should have unlocked");
 
-	@Test
-	public void testMultiMutex() {
-		
-		DynamicMutexHandler dynamicMutexHandler = new DynamicMutexHandler() ;
-		
-		DynamicMutex m1 = dynamicMutexHandler.getMutex("1") ;
-		DynamicMutex m2 = dynamicMutexHandler.getMutex("2") ;
-		
-		DynamicMutex mm12 = dynamicMutexHandler.getMultiMutex("1","2") ;
-		
-		m1.lock() ;
-		
-		mm12.lock() ;
-		
-		Assert.assertTrue( m1.isCurrentThreadLocking() );
-		Assert.assertTrue( mm12.isCurrentThreadLocking() );
-		Assert.assertTrue( m2.isCurrentThreadLocking() );
-		
-		mm12.unlock() ;
-		
-		m1.unlock() ;
-		
-		Assert.assertFalse( m1.isCurrentThreadLocking() );
-		Assert.assertFalse( mm12.isCurrentThreadLocking() );
-		Assert.assertFalse( m2.isCurrentThreadLocking() );
-		
-	}
-	
-	@Test
-	public void testMultiMutexThreads() {
-		
-		DynamicMutexHandler dynamicMutexHandler = new DynamicMutexHandler() ;
-		
-		final DynamicMutex m1 = dynamicMutexHandler.getMutex("1") ;
-		final DynamicMutex m2 = dynamicMutexHandler.getMutex("2") ;
-		
-		final DynamicMutex mm12 = dynamicMutexHandler.getMultiMutex("1","2") ;
+        assertTrue(mutex2.lock(), "Mutex 2 should have locked");
+        assertTrue(mutex2.unlock(), "Mutex 2 should have unlocked");
 
-		StringBuilder strCheck1 = new StringBuilder() ;
-		StringBuilder strCheck2 = new StringBuilder() ;
-		
-		for (int i = 0; i < 1000; i++) {
-			strCheck1.append("12:"+i+"\n") ;
-			strCheck2.append("12:"+i+"\n") ;
-		}
-		for (int i = 0; i < 1000; i++) {
-			strCheck1.append("1:"+i+"\n") ;
-		}
-		for (int i = 0; i < 1000; i++) {
-			strCheck2.append("2:"+i+"\n") ;
-		}
-		
-		final StringBuilder str1 = new StringBuilder() ;
-		final StringBuilder str2 = new StringBuilder() ;
-		
-		Thread thread1 = new Thread() {
-			public void run() {
-				mm12.lock();
-				
-				mm12.setPhase(1) ;
-				
-				for (int i = 0; i < 1000; i++) {
-					str1.append("12:"+i+"\n") ;
-					str2.append("12:"+i+"\n") ;
-				}
-				mm12.unlock();
-			};
-		};
-		
-		Thread thread2 = new Thread() {
-			public void run() {
-				m1.waitPhase(1);
-				
-				m1.lock();
-				for (int i = 0; i < 1000; i++) {
-					str1.append("1:"+i+"\n") ;
-				}
-				m1.unlock();
-			};
-		};
-		
-		Thread thread3 = new Thread() {
-			public void run() {
-				m2.waitPhase(1);
-				
-				m2.lock();
-				for (int i = 0; i < 1000; i++) {
-					str2.append("2:"+i+"\n") ;
-				}
-				m2.unlock();
-			};
-		};
-		
-		mm12.lock();
-		
-		thread1.start();
-		thread2.start();
-		thread3.start();
-		
-		mm12.unlock();
-		
-		try {
-			thread1.join();
-			thread2.join();
-			thread3.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		
-		Assert.assertEquals( strCheck1.toString() , str1.toString() );;
-		Assert.assertEquals( strCheck2.toString() , str2.toString() );;
-	}
-	
-	@Test
-	public void testUniqueIDs() {
-		
-		Assert.assertArrayEquals( new String[] {"1","2","3","4"} , DynamicMutexHandler.uniqueIDs( new String[] {"1","2","3","4"} ) );
-		
-		Assert.assertArrayEquals( new String[] {"1","2","3","4","5"} , DynamicMutexHandler.uniqueIDs( new String[] {"1","2","3","4","2","2","2","5"} ) );
-		
-		Assert.assertArrayEquals( new String[] {"1","2","3","4","5"} , DynamicMutexHandler.uniqueIDs( new String[] {"1","2","3","4","1","2","2","5"} ) );
-		
-		Assert.assertArrayEquals( new String[] {"1","2","3","4","5"} , DynamicMutexHandler.uniqueIDs( new String[] {"1","2","3","4","1","2","2","5","5"} ) );
-		
-		Assert.assertArrayEquals( new String[] {"1","2","3","4"} , DynamicMutexHandler.uniqueIDs( new String[] {"1","2","3","4","4"} ) );
-		
-	}
-	
-	@Test
-	public void testMutexUniqueIDs() {
-		
-		DynamicMutexHandler dynamicMutexHandler = new DynamicMutexHandler();
-		
-		DynamicMutex mm1 = dynamicMutexHandler.getMultiMutex("1","2","3") ;
-		DynamicMutex mm1_2 = dynamicMutexHandler.getMultiMutex("1","2","3","1") ;
-		Assert.assertTrue( mm1 == mm1_2 );
-		
-		DynamicMutex m1 = dynamicMutexHandler.getMultiMutex("1") ;
-		DynamicMutex m1_2 = dynamicMutexHandler.getMutex("1") ;
-		Assert.assertTrue( m1 == m1_2 );
-		
-		DynamicMutex m2 = dynamicMutexHandler.getMultiMutex( (String[])null ) ;
-		DynamicMutex m2_1 = dynamicMutexHandler.getMultiMutex( (String)null ) ;
-		DynamicMutex m2_2 = dynamicMutexHandler.getMutex(null) ;
-		DynamicMutex m2_3 = dynamicMutexHandler.getMultiMutex("") ;
-		DynamicMutex m2_4 = dynamicMutexHandler.getMutex("") ;
-		Assert.assertTrue( m2 == m2_1 );
-		Assert.assertTrue( m2 == m2_2 );
-		Assert.assertTrue( m2 == m2_3 );
-		Assert.assertTrue( m2 == m2_4 );
-		
-	}
+        assertTrue(mutex1.lock(), "Mutex 1 should have locked");
+        assertTrue(mutex2.lock(), "Mutex 2 should have locked");
 
-	static private class ThreadRun_testCacheResultMutex implements Runnable {
+        assertTrue(mutex2.unlock(), "Mutex 2 should have unlocked");
+        assertTrue(mutex1.unlock(), "Mutex 1 should have unlocked");
 
-		final private DynamicMutexCachedResult mutex ;
-		final private long timeout ;
-		
-		public ThreadRun_testCacheResultMutex(DynamicMutexCachedResult mutex, long timeout) {
-			this.mutex = mutex;
-			this.timeout = timeout;
-		}
+    }
 
-		volatile private Object result = null ; 
+    @Test
+    void lockAndUnlockMultiMutex() {
+        var handler = new DynamicMutexHandler();
+        var multiMutex = handler.getMultiMutex("1", "2");
 
-		public Object getResult() {
-			return result;
-		}
-		
-		public void setResult(Object result) {
-			this.result = result;
-		}
-		
-		@Override
-		public void run() {
-			Object res = timeout > 0 ? mutex.lockWithResult(timeout) : mutex.lockWithResult() ;
-			
-			if (res == null) {
-				res = Thread.currentThread().getId() ;
-				mutex.setResult(res);
-				
+        assertTrue(multiMutex.lock(), "MultiMutex should have locked");
+        assertTrue(multiMutex.unlock(), "MultiMutex should have locked");
+    }
 
-				if (timeout == 0) {
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {}	
-				}
-			}
-			
-			setResult(res);
-			
-			mutex.unlock();
-		}
-		
-	}
-	
-	@Test
-	public void testCacheResultMutex() {
-		testCacheResultMutexImplem(0);
-	}
-	
-	@Test
-	public void testCacheResultMutexResultTimeout() {
-		testCacheResultMutexImplem(1000);
-	}
-	
-	private void testCacheResultMutexImplem(long resultTimeout) {
-		
-		DynamicMutexHandler dynamicMutexHandler = new DynamicMutexHandler();
-		
-		final DynamicMutexCachedResult m1 = dynamicMutexHandler.getCachedResultMutex("1") ;
-		
-		ThreadRun_testCacheResultMutex threadrun1 = new ThreadRun_testCacheResultMutex(m1,resultTimeout) ;
-		ThreadRun_testCacheResultMutex threadrun2 = new ThreadRun_testCacheResultMutex(m1,resultTimeout) ;
-		
-		Thread th1 = new Thread(threadrun1) ;
-		Thread th2 = new Thread(threadrun2) ;
-		
-		th1.start();
-		th2.start();
-		
-		try {
-			th1.join();
-			th2.join();
-		}
-		catch (InterruptedException e) {
-		
-		}
-	
-		Assert.assertNotNull( threadrun1.getResult() );
-		Assert.assertNotNull( threadrun2.getResult() );
-		
-		Assert.assertEquals( threadrun1.getResult() , threadrun2.getResult() );
-	}
-	
+
+    @Test
+    void testLockReentrant() {
+        var handler = new DynamicMutexHandler();
+
+        var mutex = handler.getMutex("1");
+
+        assertTrue(mutex.lock(), "Mutex should have locked, lock count should be 1");
+        assertFalse(mutex.lock(), "Current thread was already locked, lock count should be 2");
+
+        assertTrue(mutex.unlock(), "Lock count should be 1, current thread remains locked");
+
+        assertTrue(mutex.isSomeThreadLocking(), "Since lock count is 1, some thread should be locking");
+        assertTrue(mutex.isCurrentThreadLocking(), "Since lock occurred on this thread and count is 1, this thread should be locking");
+
+        assertTrue(mutex.unlock(), "Lock count should be 0, current thread is completely unlocked");
+
+        assertFalse(mutex.isSomeThreadLocking(), "No thread should be still locked");
+        assertFalse(mutex.isCurrentThreadLocking(), "Current thread shouldn't be locked");
+    }
+
+    @Test
+    void testNoLock() {
+        var handler = new DynamicMutexHandler();
+        var mutex = handler.getMutex("1");
+        assertFalse(mutex.unlock(), "Mutex was never locked and therefore shouldn't be able to unlock");
+    }
+
+    static private class Counter {
+        volatile private int count;
+
+        void increment() {
+            count = count + 1;
+        }
+
+        public int get() {
+            return count;
+        }
+
+    }
+
+    @Test
+    void testMultiThread() {
+        var totalThreads = 10;
+        var incrementsPerThread = 300000;
+        var counter = new Counter();
+        var threads = new ArrayList<Thread>();
+        var handler = new DynamicMutexHandler();
+
+        var mutex1 = handler.getMutex("1");
+
+        for (var i = 0 ; i < totalThreads ; i++) {
+            var thread = new Thread(() -> {
+                for (int j = incrementsPerThread - 1 ; j >= 0 ; j--) {
+                    mutex1.lock();
+                    counter.increment();
+                    mutex1.unlock();
+                }
+            });
+
+            threads.add(thread);
+            thread.start();
+        }
+
+        for (var thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        var expected = totalThreads * incrementsPerThread;
+        assertEquals(expected, counter.get(), "Number of increments from multiple threads doesn't match expected value");
+    }
+
+    @Test
+    void testMultiMutex() {
+        var handler = new DynamicMutexHandler();
+
+        var mutex1 = handler.getMutex("1");
+        var mutex2 = handler.getMutex("2");
+        var multiMutex12 = handler.getMultiMutex("1", "2");
+
+        assertAll(
+                () -> assertTrue(mutex1.lock(), "Mutex 1 should've locked current thread"),
+                () -> assertFalse(multiMutex12.lock(), "Current thread was already locked by mutex 1, but lock count should be increased")
+        );
+
+        assertAll(
+                () -> assertTrue(mutex1.isCurrentThreadLocking(), "Current thread should be locked for Mutex 1"),
+                () -> assertTrue(multiMutex12.isCurrentThreadLocking(), "Current thread should be locked for MultiMutex 12"),
+                () -> assertTrue(mutex2.isCurrentThreadLocking(), "Current thread should be locked for Mutex 2 due to lock from MultiMutex 12")
+        );
+
+        assertAll(
+                () -> assertTrue(mutex1.unlock(), "Mutex 1 should've decremented current thread lock count"),
+                () -> assertTrue(multiMutex12.unlock(), "MultiMutex 12 should've unlocked current thread")
+        );
+
+        assertAll(
+                () -> assertFalse(mutex1.isCurrentThreadLocking(), "Current thread should be unlocked for Mutex 1"),
+                () -> assertFalse(multiMutex12.isCurrentThreadLocking(), "Current thread should be unlocked for MultiMutex 12"),
+                () -> assertFalse(mutex2.isCurrentThreadLocking(), "Current thread should be unlocked for Mutex 2 due to unlock from MultiMutex 12")
+        );
+    }
+
+    @Test
+    void testMultiMutexThreads() {
+        var handler = new DynamicMutexHandler();
+
+        final var mutex1 = handler.getMutex("1");
+        final var mutex2 = handler.getMutex("2");
+
+        final var multiMutex12 = handler.getMultiMutex("1", "2");
+
+        var expected1 = new StringBuilder();
+        var expected2 = new StringBuilder();
+
+        var iterations = 1000;
+        for (var i = 0 ; i < iterations ; i++) {
+            expected1.append("12:").append(i).append("\n");
+            expected2.append("12:").append(i).append("\n");
+        }
+        for (var i = 0 ; i < iterations ; i++) {
+            expected1.append("1:").append(i).append("\n");
+        }
+        for (var i = 0 ; i < iterations ; i++) {
+            expected2.append("2:").append(i).append("\n");
+        }
+
+        final var output1 = new StringBuilder();
+        final var output2 = new StringBuilder();
+
+        var thread1 = new Thread(() -> {
+            multiMutex12.lock();
+
+            multiMutex12.setPhase(1);
+
+            for (var i = 0 ; i < iterations ; i++) {
+                output1.append("12:").append(i).append("\n");
+                output2.append("12:").append(i).append("\n");
+            }
+            multiMutex12.unlock();
+        });
+
+        var thread2 = new Thread(() -> {
+            mutex1.waitPhase(1);
+
+            mutex1.lock();
+            for (var i = 0 ; i < iterations ; i++) {
+                output1.append("1:").append(i).append("\n");
+            }
+            mutex1.unlock();
+        });
+
+        var thread3 = new Thread(() -> {
+            mutex2.waitPhase(1);
+
+            mutex2.lock();
+            for (var i = 0 ; i < iterations ; i++) {
+                output2.append("2:").append(i).append("\n");
+            }
+            mutex2.unlock();
+        });
+
+        multiMutex12.lock();
+
+        thread1.start();
+        thread2.start();
+        thread3.start();
+
+        multiMutex12.unlock();
+
+        try {
+            thread1.join();
+            thread2.join();
+            thread3.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        assertAll(
+                () -> assertEquals(expected1.toString(), output1.toString(), "Output for mutexes with Id 1 doesn't match expected value"),
+                () -> assertEquals(expected2.toString(), output2.toString(), "Output for mutexes with Id 2 doesn't match expected value")
+        );
+
+    }
+
+    static Stream<Arguments> uniqueIDs() {
+        return Stream.of(
+                arguments(new String[] {"1", "2", "3", "4"}, new String[] {"1", "2", "3", "4"}),
+                arguments(new String[] {"1", "2", "3", "4", "5"}, new String[] {"1", "2", "3", "4", "2", "2", "2", "5"}),
+                arguments(new String[] {"1", "2", "3", "4", "5"}, new String[] {"1", "2", "3", "4", "1", "2", "2", "5"}),
+                arguments(new String[] {"1", "2", "3", "4", "5"}, new String[] {"1", "2", "3", "4", "1", "2", "2", "5", "5"}),
+                arguments(new String[] {"1", "2", "3", "4"}, new String[] {"1", "2", "3", "4", "4"})
+        );
+    }
+
+    @MethodSource
+    @ParameterizedTest
+    void uniqueIDs(String[] expected, String[] inputs) {
+        assertArrayEquals(expected, DynamicMutexHandler.uniqueIDs(inputs));
+    }
+
+    @Test
+    void testMutexUniqueIDs() {
+        var handler = new DynamicMutexHandler();
+
+        var multiMutexFromNullStringArray = handler.getMultiMutex((String[]) null);
+
+        assertAll(
+                () -> assertSame(handler.getMultiMutex("1", "2", "3"), handler.getMultiMutex("1", "2", "3", "1"),
+                        "Getting MultiMutexes with the same uniqueIDs should retrieve the same instance"),
+                () -> assertSame(handler.getMultiMutex("1"), handler.getMutex("1"),
+                        "Getting MultiMutex and single Mutex with the same id should retrieve the same instance"),
+                () -> assertSame(multiMutexFromNullStringArray, handler.getMultiMutex((String) null),
+                        "Getting MultiMutexes from null id and null array of ids should retrieve the same instance"),
+                () -> assertSame(multiMutexFromNullStringArray, handler.getMutex(null),
+                        "Getting MultiMutex and Mutex from null id and null array of ids should retrieve the same instance"),
+                () -> assertSame(multiMutexFromNullStringArray, handler.getMultiMutex(""),
+                        "Getting MultiMutexes from empty id and null array of ids should retrieve the same instance"),
+                () -> assertSame(multiMutexFromNullStringArray, handler.getMutex(""),
+                        "Getting MultiMutex and Mutex from empty id and null array of ids should retrieve the same instance")
+        );
+    }
+
+    static private class ThreadRun_testCacheResultMutex implements Runnable {
+
+        final private DynamicMutexCachedResult mutex;
+        final private long timeout;
+
+        public ThreadRun_testCacheResultMutex(DynamicMutexCachedResult mutex, long timeout) {
+            this.mutex = mutex;
+            this.timeout = timeout;
+        }
+
+        volatile private Object result = null;
+
+        public Object getResult() {
+            return result;
+        }
+
+        void setResult(Object result) {
+            this.result = result;
+        }
+
+        @Override
+        public void run() {
+            var res = timeout > 0 ? mutex.lockWithResult(timeout) : mutex.lockWithResult();
+
+            if (res == null) {
+                res = Thread.currentThread().getId();
+                mutex.setResult(res);
+
+                if (timeout == 0) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                    }
+                }
+            }
+            setResult(res);
+            mutex.unlock();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {0, 1000})
+    void testCacheResultMutex(long resultTimeout) {
+        var handler = new DynamicMutexHandler();
+
+        final DynamicMutexCachedResult m1 = handler.getCachedResultMutex("1");
+
+        var run1 = new ThreadRun_testCacheResultMutex(m1, resultTimeout);
+        var run2 = new ThreadRun_testCacheResultMutex(m1, resultTimeout);
+
+        var thread1 = new Thread(run1);
+        var thread2 = new Thread(run2);
+
+        thread1.start();
+        thread2.start();
+
+        try {
+            thread1.join();
+            thread2.join();
+        } catch (InterruptedException e) {
+
+        }
+
+        assertAll(
+                () -> assertNotNull(run1.getResult(), "Result from first thread shouldn't be null"),
+                () -> assertNotNull(run2.getResult(), "Result from second thread shouldn't be null"),
+                () -> assertEquals(run1.getResult(), run2.getResult(), "Results from both threads should be equal")
+        );
+
+    }
+
 }
