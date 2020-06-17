@@ -1,11 +1,11 @@
 package roxtools.threadpool;
 
+import roxtools.RoxDeque;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
-import roxtools.RoxDeque;
 
 final public class RoxChainTaskPool<Iinit,Ofinal> {
 	
@@ -75,9 +75,7 @@ final public class RoxChainTaskPool<Iinit,Ofinal> {
 	
 	@SuppressWarnings("unchecked")
 	public void addInitialInputs(Iinit... initialInputs) {
-		RoxChainTask<Iinit,?> initialTask = getInitialTask() ;
-		
-		initialTask.addToInputQueue( Arrays.asList(initialInputs) );
+		addInitialInputs(Arrays.asList(initialInputs));
 	}
 	
 	public void addInitialInputs(List<Iinit> initialInputs) {

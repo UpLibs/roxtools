@@ -1,7 +1,7 @@
 package roxtools.io.vdisk;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.util.Iterator;
 public class VDiskTest {
 
     @Test
-    @Ignore
+    @Disabled
     public void test() throws IOException {
 
         File vDiskDir = new File("/tmp/vdisk-test");
@@ -25,7 +25,7 @@ public class VDiskTest {
         for (int sectI = 0 ; sectI < vDisk.getTotalSectors() ; sectI++) {
             VDSector sector = vDisk.getSector(sectI);
 
-            for (int i = 0 ; i < sector.getTotalBlocks() ; i++) {
+            for (var i = 0 ; i < sector.getTotalBlocks() ; i++) {
                 VDBlock block = sector.getBlock(i);
 
                 System.out.println(sectI + ">" + i + ">> " + block);
@@ -79,7 +79,7 @@ public class VDiskTest {
 
             byte[] fill = new byte[available];
 
-            for (int i = 0 ; i < available ; i++) {
+            for (var i = 0 ; i < available ; i++) {
                 fill[i] = (byte) (size + i + 1);
             }
 
@@ -150,7 +150,7 @@ public class VDiskTest {
 
         System.out.println(vdFile2);
 
-        for (int i = 0 ; i < 10005 ; i++) {
+        for (var i = 0 ; i < 10005 ; i++) {
 
             byte[] buff = new byte[15];
 

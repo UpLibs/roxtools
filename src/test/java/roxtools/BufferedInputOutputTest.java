@@ -1,118 +1,149 @@
 package roxtools;
 
-import java.io.IOException;
-
-import org.junit.Assert;
-import org.junit.Test;
-
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import roxtools.io.BufferedInputOutput;
 import roxtools.io.ByteArrayInputOutput;
 
+import java.io.IOException;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
 public class BufferedInputOutputTest {
-	
-	@Test
-	public void testBasic() throws IOException {
-		
-		testBasic(3, 1000, true) ;
-		
-		////////
-		
-		testBasic(1, 1000) ;
-		testBasic(2, 1000) ;
-		testBasic(3, 1000) ;
-		testBasic(4, 1000) ;
-		testBasic(4, 1000) ;
-		
-		testBasic(9, 1000) ;
-		testBasic(10, 1000) ;
-		testBasic(11, 1000) ;
-		
-	}
 
-	private void testBasic(int blockSize, int writeSize) throws IOException {
-		testBasic(blockSize, writeSize, false);
-		testBasic(blockSize, writeSize, true);
-	}
-	
-	private void testBasic(int blockSize, int writeSize, boolean autoFlush) throws IOException {
-		
-		ByteArrayInputOutput out = new ByteArrayInputOutput(writeSize) ;
-		
-		BufferedInputOutput inOut = new BufferedInputOutput(blockSize, out,out) ;
-		
-		Assert.assertEquals( 0 , inOut.length() );
-		Assert.assertEquals( 0 , inOut.position() );
-		
-		inOut.seek(0);
-		Assert.assertEquals( 0 , inOut.position() );
-		
-		for (int i = 0; i < writeSize; i++) {
-			inOut.write(i);
-			Assert.assertEquals( i+1 , inOut.length() );
-			Assert.assertEquals( i+1 , inOut.position() );
-		}
-		
-		if (autoFlush) inOut.flush();
-		
-		Assert.assertEquals( writeSize , inOut.length() );
-		Assert.assertEquals( writeSize , inOut.position() );
-		
-		inOut.seek(0);
-		
-		if (autoFlush) inOut.flush();
-		
-		for (int i = 0; i < writeSize; i++) {
-			inOut.write(i,i);
-			Assert.assertEquals( writeSize , inOut.length() );
-			Assert.assertEquals( 0 , inOut.position() );
-		}
+    static Stream<Arguments> testByteArrayInputOutput() {
+        return Stream.of(
+                arguments(1, 1000, false), arguments(1, 1000, true),
+                arguments(2, 1000, false), arguments(2, 1000, true),
+                arguments(3, 1000, false), arguments(3, 1000, true),
+                arguments(4, 1000, false), arguments(4, 1000, true),
+                arguments(9, 1000, false), arguments(9, 1000, true),
+                arguments(10, 1000, false), arguments(10, 1000, true),
+                arguments(11, 1000, false), arguments(11, 1000, true)
+        );
+    }
 
-		if (autoFlush) inOut.flush();
-		
-		Assert.assertEquals( writeSize , inOut.length() );
-		Assert.assertEquals( 0 , inOut.position() );
-		
-		byte[] bs = inOut.toByteArray() ;
-		
-		Assert.assertEquals( 0 , inOut.position() );
-		
-		Assert.assertEquals( writeSize , bs.length );
-		
-		for (int i = 0; i < writeSize; i++) {
-			byte b = bs[i] ;
-			byte bCheck = (byte) i ;
-			Assert.assertEquals( "byte error at index "+i+"! " , bCheck , b );
-		}
-		
-		inOut.seek(writeSize);
+    @MethodSource
+    @ParameterizedTest
+    void testByteArrayInputOutput(int blockSize, int writeSize, boolean autoFlush) throws IOException {
+        var byteArrayInputOutput = new ByteArrayInputOutput(writeSize);
+        var bufferedInputOutput = new BufferedInputOutput(blockSize, byteArrayInputOutput, byteArrayInputOutput);
 
-		for (int i = writeSize; i < writeSize*2; i++) {
-			inOut.write(i);
-			Assert.assertEquals( i+1 , inOut.length() );
-			Assert.assertEquals( i+1 , inOut.position() );
-		}
+        assertAll(
+                () -> assertEquals(0, bufferedInputOutput.length(), "Length doesn't match expected value"),
+                () -> assertEquals(0, bufferedInputOutput.position(), "Position doesn't match expected value")
+        );
 
-		if (autoFlush) inOut.flush();
+        final var initialPosition = 0;
+        bufferedInputOutput.seek(initialPosition);
+        assertEquals(initialPosition, bufferedInputOutput.position(), "Position doesn't match expected value after seeking 0");
 
-		Assert.assertEquals( writeSize*2 , inOut.length() );
-		Assert.assertEquals( writeSize*2 , inOut.position() );
-		
-		for (int i = writeSize*2; i < writeSize*3; i++) {
-			inOut.write(i);
-			Assert.assertEquals( i+1 , inOut.length() );
-			Assert.assertEquals( i+1 , inOut.position() );
-		}
-		
-		int resize = writeSize*2 + writeSize/2 ;
-		
-		inOut.setLength(resize);
+        for (var i = 0 ; i < writeSize ; i++) {
+            var content = i;
+            bufferedInputOutput.write(content);
+            assertAll(
+                    () -> assertEquals(content + 1, bufferedInputOutput.length(),
+                            "Length doesn't match expected value after writing content [" + content + "]"),
+                    () -> assertEquals(content + 1, bufferedInputOutput.position(),
+                            "Position doesn't match expected value after writing content [" + content + "]")
+            );
+        }
 
-		if (autoFlush) inOut.flush();
+        if (autoFlush) bufferedInputOutput.flush();
 
-		Assert.assertEquals( resize , inOut.length() );
-		Assert.assertEquals( resize , inOut.position() );
-		
-		
-	}
-	
+        assertAll(
+                () -> assertEquals(writeSize, bufferedInputOutput.length(),
+                        "Length doesn't match expected value after writing [" + writeSize + "] entries with autoFlush [" + autoFlush + "]"),
+                () -> assertEquals(writeSize, bufferedInputOutput.position(),
+                        "Position doesn't match expected value after writing [" + writeSize + "] entries with autoFlush [" + autoFlush + "]")
+        );
+
+        bufferedInputOutput.seek(initialPosition);
+
+        if (autoFlush) bufferedInputOutput.flush();
+
+        for (var i = 0 ; i < writeSize ; i++) {
+            var idx = i;
+            var content = i;
+            bufferedInputOutput.write(idx, content);
+            assertAll(
+                    () -> assertEquals(writeSize, bufferedInputOutput.length(),
+                            "Length should've remained the same after rewriting index [" + idx + "] with content [" + content + "]"),
+                    () -> assertEquals(initialPosition, bufferedInputOutput.position(),
+                            "Should've remained at initial position after rewriting index [" + idx + "] with content [" + content + "]")
+            );
+        }
+
+        if (autoFlush) bufferedInputOutput.flush();
+
+        assertAll(
+                () -> assertEquals(writeSize, bufferedInputOutput.length(), "Length doesn't match expected value after rewriting all entries"),
+                () -> assertEquals(initialPosition, bufferedInputOutput.position(), "Should've remained at initial position after rewriting all entries")
+        );
+
+        var bytes = bufferedInputOutput.toByteArray();
+
+        assertAll(
+                () -> assertEquals(initialPosition, bufferedInputOutput.position(), "Should've remained at initial position after obtaining bytes"),
+                () -> assertEquals(writeSize, bytes.length, "Bytes length doesn't match expected value")
+        );
+
+        for (var i = 0 ; i < writeSize ; i++) {
+            var value = bytes[i];
+            var expected = (byte) i;
+            assertEquals(expected, value, "Byte doesn't match expected value at index [" + i + "]");
+        }
+
+        bufferedInputOutput.seek(writeSize);
+
+        for (int idx = writeSize ; idx < writeSize * 2 ; idx++) {
+            var content = idx;
+            var expected = idx + 1;
+            bufferedInputOutput.write(content);
+            assertAll(
+                    () -> assertEquals(expected, bufferedInputOutput.length(),
+                            "Length doesn't match expected value after writing content [" + content + "]"),
+                    () -> assertEquals(expected, bufferedInputOutput.position(),
+                            "Position doesn't match expected value after writing content [" + content + "]")
+            );
+        }
+
+        if (autoFlush) bufferedInputOutput.flush();
+
+        assertAll(
+                () -> assertEquals(writeSize * 2, bufferedInputOutput.length(),
+                        "Length doesn't match expected value after doubling the number of entries with autoFlush [" + autoFlush + "]"),
+                () -> assertEquals(writeSize * 2, bufferedInputOutput.position(),
+                        "Position doesn't match expected value after doubling the number of entries with autoFlush [" + autoFlush + "]")
+        );
+
+        for (var idx = writeSize * 2 ; idx < writeSize * 3 ; idx++) {
+            var content = idx;
+            var expected = idx + 1;
+            bufferedInputOutput.write(content);
+            assertAll(
+                    () -> assertEquals(expected, bufferedInputOutput.length(),
+                            "Length doesn't match expected value after writing content [" + content + "]"),
+                    () -> assertEquals(expected, bufferedInputOutput.position(),
+                            "Position doesn't match expected value after writing content [" + content + "]")
+            );
+
+        }
+
+        var resize = (writeSize * 2) + (writeSize / 2);
+
+        bufferedInputOutput.setLength(resize);
+
+        if (autoFlush) bufferedInputOutput.flush();
+
+        assertAll(
+                () -> assertEquals(resize, bufferedInputOutput.length(), "Length doesn't match expected value after resizing"),
+                () -> assertEquals(resize, bufferedInputOutput.position(), "Position doesn't match expected value after resizing")
+        );
+    }
+
 }

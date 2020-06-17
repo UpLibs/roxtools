@@ -17,7 +17,9 @@ dependencies {
     api group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
     api group: 'org.javassist', name: 'javassist', version: javaAssistVersion
     testImplementation group: 'org.slf4j', name: 'slf4j-simple', version: slf4jVersion
-    testImplementation group: 'junit', name: 'junit', version: junitVersion
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junitVersion
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: junitVersion
+    testRuntimeOnly group: 'org.junit.jupiter', name:'junit-jupiter-engine', version: junitVersion
 }
 
 jar {
@@ -50,4 +52,8 @@ publishing {
             }
         }
     }
+}
+
+test {
+    useJUnitPlatform()
 }
