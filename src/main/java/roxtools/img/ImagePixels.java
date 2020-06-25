@@ -1360,8 +1360,29 @@ public class ImagePixels implements Cloneable , Serializable {
 	final public void computeDiff(ImagePixels other, double tolerance, boolean[] diff) {
 		
 		int toleranceInt = (int) (tolerance * 255) ;
-		
-		for (int i = diff.length-1 ; i >= 0; i--) {
+
+		int length = diff.length;
+		int lastIndex = length - 1;
+
+		if (length % 2 != 0) {
+			int i = lastIndex ;
+
+			boolean diffPixel = !YUV.isSimilar_IntegerTolerance(
+					this.pixelsC1[i] & 0xFF ,
+					this.pixelsC2[i] & 0xFF ,
+					this.pixelsC3[i] & 0xFF ,
+					other.pixelsC1[i] & 0xFF ,
+					other.pixelsC2[i] & 0xFF ,
+					other.pixelsC3[i] & 0xFF ,
+					toleranceInt
+			) ;
+
+			diff[i] = diffPixel ;
+
+			lastIndex-- ;
+		}
+
+		for (int i = lastIndex; i >= 0; i--) {
 			
 			boolean diffPixel = !YUV.isSimilar_IntegerTolerance(
 									this.pixelsC1[i] & 0xFF ,
