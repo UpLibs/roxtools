@@ -16,10 +16,13 @@ dependencies {
     api group: 'com.jhlabs', name: 'filters', version: filtersVersion
     api group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
     api group: 'org.javassist', name: 'javassist', version: javaAssistVersion
+
+    testImplementation platform(group: 'org.junit', name: 'junit-bom', version: junitVersion)
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params'
+    testRuntimeOnly group: 'org.junit.jupiter', name:'junit-jupiter-engine'
+
     testImplementation group: 'org.slf4j', name: 'slf4j-simple', version: slf4jVersion
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junitVersion
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: junitVersion
-    testRuntimeOnly group: 'org.junit.jupiter', name:'junit-jupiter-engine', version: junitVersion
 }
 
 jar {
