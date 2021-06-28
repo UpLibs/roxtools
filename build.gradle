@@ -2,10 +2,17 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'jacoco'
-    id "com.github.johnrengelman.shadow" version "6.0.0"
+    id "com.github.johnrengelman.shadow" version "7.0.0"
 }
 
 [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+    withSourcesJar()
+}
 
 repositories {
     mavenLocal()
@@ -25,6 +32,10 @@ dependencies {
     testImplementation group: 'org.slf4j', name: 'slf4j-simple', version: slf4jVersion
 }
 
+test {
+    useJUnitPlatform()
+}
+
 jar {
     manifest {
         attributes(
@@ -34,10 +45,6 @@ jar {
                 'Built-Date': new Date().format('yyyy-MM-dd HH:mm:ss')
         )
     }
-}
-
-java {
-    withSourcesJar()
 }
 
 publishing {
@@ -55,8 +62,4 @@ publishing {
             }
         }
     }
-}
-
-test {
-    useJUnitPlatform()
 }
