@@ -1,28 +1,28 @@
-*.class
-*.jar
-*.war
-*.ear
-*.orig
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+### IntelliJ IDEA ###
+.idea
+*.iws
 *.iml
 *.ipr
-*.iws
-*.log
-.gradle
-.metadata
+out/
+
+### STS ###
+.apt_generated
 .classpath
-.settings
+.factorypath
 .project
-.bin
-.idea
-.nb-gradle-properties
-.DS_Store
-build
-bin
-classes
-target
-target-eclipse
-private
-logs
-out
-_git.gsp
-rebel.xml
+.settings
+bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
